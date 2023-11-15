@@ -1,0 +1,104 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : pFluxRSS
+ major_version : 28
+ minor_version : 0
+ type : 7
+ description : ""
+ subtype : 0
+procedure_set :
+ identifier : 0x13f9eea4049a3bab
+ internal_properties : CAAAAAgAAABGLu41kG7fjQV3iS4F72qmnKaNh5694reolNKIW0iw
+ code_elements :
+  type_code : 31
+  p_codes :
+   -
+     code : |1+
+      // Collection de procédures de génération de flux RSS
+      
+     type : 720896
+  procedures :
+   -
+     name : GénèreFluxActualités
+     internal_properties : CAAAAAgAAABA66w3WfbgkcjYV2GmJHs+eQYeSnYxvea6HBRBMYoKmwxJ67oJdBDpouoWGC5Yqe6qkgbDlggVM7IOfQacjhQh2ZoIDAjIP85gaPKTG+AvVJV66vyMwW4N65ijA16DE7r6yWraE9SY08dyDa53l6rX8LbMvUv8pzwnbDs3POxc0SHDezk6lfzZhySGjgOHkgg6382gcxg=
+     procedure_id : 1439443961320786356
+     type_code : 15
+     code : |1-
+      // Syntaxe :
+      //[ <Résultat> = ] GénèreFluxActualités ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	chaîne ANSI : Le flux RSS (XML) correspondant à l'actualité en cours
+      //
+      Procédure GénèreFluxActualités()
+      
+      	// Variables locales
+      	rssActu est un rssflux
+      	sSourceXML est une chaine ansi
+      
+      	// Création du document RSS
+      	rssActu..Version = "2.0"
+      	
+      	// Eléments obligatoires
+      	rssActu..Canal[1]..Titre = <§@13f9e218013536a80000§>
+      	rssActu..Canal[1]..Description = <§@13f9e218013536a80001§>
+      	
+      	// Eléments optionnels
+      	rssActu..Canal[1]..Langue = "fr-FR"
+      	rssActu..Canal[1]..DatePublication = dateheuresys
+      	rssActu..Canal[1]..Générateur = "PC SOFT WEBDEV " + VersionWinDev()[[A 3]]
+      	rssActu..Canal[1]..Lien = URLHonolulu() + "?rss=actu"
+      			
+      	// Premier article
+      	pour toute Actualite SUR DateHeureCréation depuisfin
+      		
+      		// Crée l'article
+      		rssItem est une rssEntrée
+      				
+      		// Eléments obligatoires
+      		rssItem..Titre = Actualite.Titre
+      		rssItem..Source..Valeur = <§@13f9e218013536a80000§>
+      		rssItem..Source..URL = URLHonolulu() + "?go=actu%and%actuid=" + Actualite.DateHeureCréation
+      
+      		rssItem..DatePublication = Actualite.DateHeureCréation
+      		rssItem..Description = HHCodeVersHTML(Actualite.Contenu, Faux)
+      		
+      		// GUID (peut être une URL, mais ici on préfera utiliser les identifiants)
+      		rssItem..Identifiant..Valeur = Actualite.IDActualite
+      		rssItem..Identifiant..LienPermanent = faux
+      
+      		// Lien vers l'actu
+      		rssItem..Lien = URLHonolulu() + "?go=actu%and%actuid=" + Actualite.DateHeureCréation
+      		
+      		// Revient sur <channel>
+      		ajoute(rssActu..Canal[1]..Entrée, rssItem)
+      	fin
+      		
+      	// Récupère le code source XML
+      	sSourceXML = rssConstruitChaîne(rssActu)
+      	
+      renvoyer sSourceXML
+     type : 458752
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : COL_Collection1
+resources :
+ string_res :
+  identifier : 0x13f9e218013536a8
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+  strings :
+   -
+     text :
+      fr-FR : Actualités HONOLULU
+     index : 0
+   -
+     text :
+      fr-FR : "HONOLULU, Le portail Intranet/Internet de votre entreprise"
+     index : 1
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ

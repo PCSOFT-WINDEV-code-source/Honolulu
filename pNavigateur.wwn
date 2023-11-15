@@ -1,0 +1,52 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : pNavigateur
+ major_version : 28
+ minor_version : 0
+ type : 65539
+ description : ""
+ subtype : 0
+procedure_set :
+ identifier : 0x15c33a45000dbd43
+ internal_properties : CAAAAAgAAABGLu41kG7fjQV3iS4F72qmnKaNh5694reolNKIW0iw
+ code_elements :
+  type_code : 41
+  p_codes :
+   -
+     type : 983040
+     role : N
+   -
+     type : 983042
+     role : N
+  procedures :
+   -
+     name : EnFireFoxOuNetscapeNav
+     internal_properties : CAAAAAgAAADLHOULf1TF2F9yzJjDKTZiNogyex+Hg24IibeTw9eLDFscrGgIXiI3goKlMuXTq1QL/6LV6KXiZFn0St6pGcCU7QP8nPjccJgUqFbDE4W57u3T1gD11cy+6QE=
+     procedure_id : 1568192877511409922
+     type_code : 15
+     code : |1-
+      // Résumé : <indiquez ici ce que fait la procédure>
+      // Syntaxe :
+      //[ <Résultat> = ] EnFireFoxOuNetscapeNav ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	booléen : Vrai/Faux
+      //
+      PROCEDURE EnFireFoxOuNetscapeNav()
+      renvoyer pas (NavigateurType() = NavigateurTypeInternetExplorer)
+     type : 458752
+     role : N
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : NAV_CollectionNavigateur1
+resources :
+ string_res :
+  identifier : 0x10ed9151275ad5a5
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ

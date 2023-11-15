@@ -1,0 +1,921 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : PAGE_Messagerie_Message
+ major_version : 28
+ minor_version : 0
+ type : 65538
+ description : ""
+ subtype : 0
+page :
+ name : PAGE_Messagerie_Message
+ identifier : 0x259d15ae67deff1e
+ internal_properties : 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
+ properties : {}
+ controls :
+  -
+    name : LIEN_REPONDRE_MSG
+    identifier : 0x259e1d121a05ef71
+    internal_properties : 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
+    properties :
+     y : 380
+     width : 80
+     height : 24
+    type : 16
+    code_elements :
+     type_code : 47
+     alias : A4
+     p_codes :
+      -
+        internal_properties : CAAAAAgAAADIlLaQ845O0B+H1tVZ76dfEpyMddW2YyxhkJ8cqzxAa51mDlsCz7N1VVxG1ToY4eN/PvNqptTAIdQaGIc0Mkp8NWIf0aE83Ed65RxrhQJaAevkclvuS0afKzLTwld0fsXhB9JmGhp9ELdMPcEwR7Pfg23V253YbtZ07KcI6jO6EeOvbqyagnbULv7H6b498GOKsOoHWojqoeqiyknXFj31Iz1wxJXN1hcRyvZPjaVfVn1eM3WqQnBZZltbx2rlWugydKFvhGV++IZrZ5uZZtjgETIpNgDZvsHGbquL3PrBQilFtDEhMIrgSp5WeYbZfyuzZFSeTqtAkFtyP/KPTkyvF0ysxz7rtmDvlYJ9pMeJ2HwnzkDEMNt0T1GXlmm1FV/TsCsJYnzL
+        code : |1-
+         
+         timer(FermeDifféré, 100)
+        type : 851998
+        role : N
+      -
+        internal_properties : CAAAAAgAAAACQ50ha7yEHcaWB3BPJWvGSKXa1do3uZDV39pUP80ohep1tXuLXW0s9SBVXWR87i8InbFSKnooj848Qb2sr44BnFp6w90z4oUCxXNAgF80yVmmJQwP4rUmZLZjdKWQXZTZBrRnLHkc8b5OJr3Z
+        code : |1-
+         
+         HLitRecherchePremier(message, idmessage, gnIDMessage)
+         
+         sMessage est une chaine
+         sListeDestinataires est une chaine
+         
+         // Message
+         sMessage = Message.Contenu
+         // Transforme le message si nécessaire
+         sMessage = MessageUniforme(sMessage)
+         sMessage = <§$0020§> + RC + Remplace(Remplace(Remplace(sMessage, "<br>", "<br/>", SansCasse), "<br/>", "<br/>&gt;&nbsp;"), "<p>", "<p>&gt;&nbsp;")
+         
+         // Ajoute seulement l'expéditeur
+         si Message.IDExpéditeur <> -1 alors
+         	sListeDestinataires = RécupèreLogin(message.IDExpéditeur)
+         sinon
+         	sListeDestinataires = ExtraitChaîne(message.EmailExpéditeur, 2)
+         fin
+         
+         // Répond au message (on ne transfère pas les pièces jointes)
+         PageAffiche(PAGE_Messagerie_NouveauMessage, "Re : " + message.Sujet, sMessage, sListeDestinataires, "")
+        type : 851984
+      -
+        type : 1310736
+        enabled : false
+      -
+        type : 852149
+        role : N
+        enabled : false
+  -
+    name : LIEN_TRANSFERER_MSG
+    identifier : 0x259e1d2e1a0e5bb8
+    internal_properties : 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
+    properties :
+     x : 202
+     y : 380
+     width : 80
+     height : 24
+    type : 16
+    code_elements :
+     type_code : 47
+     alias : A5
+     p_codes :
+      -
+        internal_properties : CAAAAAgAAACOQ33ThWRSrB0X92HbuhtyPf6Ca9Sd8+/57VM1davRoiFsYMy6kJzDVmkhBo93lnNuqcqt7i4hXpYyzXqm++BslsIhsULK/zw0KWIcOcjQueQetXIpdLUm5+FVoejgar0ZeSBTj3K7t/5LRXDQg3s4cn6f5+DOXE3XM6McS5nw+fn0R0GdKiuy220+8SS6+6Sq28DxPzJtH+vpQH+Sr3Du+IqL1VMpKduAebzshYNXAjDMDPC7ysCmKFYbtDv0NzfS2eygoI3J40+WTTFoWJ9T+BdACJ9MBNvkGmh0o0j9DCAlaLBuREwSoqPMY1cD1yEYHjrcpIM26eUYQqvzf4gJ4qjTA+z1tRuMZ6DEwLuE+J6vnup1KTrrZ3mGbS64eanfRm5znYfXdg==
+        code : |1-
+         
+         Timer(FermeDifféré, 100)
+        type : 851998
+        role : N
+      -
+        internal_properties : CAAAAAgAAAAiI/31k1TgHcaWB3BPJWvGSKXa1do3uZDV39pUP80ohep1tXuLXW0s9SBVXWR87i8InbFSKnqoD068wT0sLw6BHNr6Q12zYgWCRfPAAN+0SdkmpYyPYjWm5Dbj9CUQ3RRZhjTnrPl4rdouBp35
+        code : |1+
+         
+         
+         sMessage est une chaine
+         sListePiècesJointes est une chaine
+         
+         // Message
+         sMessage = Message.Contenu
+         // Transforme le message si nécessaire
+         sMessage = MessageUniforme(sMessage)
+         
+         // Récupère les pièces jointes
+         POUR TOUT MessageAttache AVEC IDMessage = gnIDMessage
+         	
+         	sListePiècesJointes += [RC] + MessageAttache.Clé
+         	
+         FIN
+         
+         // Forward le message avec les pièces jointes
+         PageAffiche(PAGE_Messagerie_NouveauMessage, "Fw : " + Message.Sujet, sMessage, "", sListePiècesJointes)
+        type : 851984
+      -
+        type : 1310736
+        enabled : false
+      -
+        type : 852149
+        role : N
+        enabled : false
+  -
+    name : BTN_GETMIMEICON
+    identifier : 0x259e25de1a3b49f0
+    internal_properties : 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
+    properties :
+     x : 404
+     y : 380
+     width : 115
+     height : 24
+    type : 4
+    code_elements :
+     type_code : 4
+     alias : A7
+     p_codes :
+      -
+        type : 851998
+        role : N
+      -
+        internal_properties : CAAAAAgAAABi4721274y7ba2N/DftVu2eKWqZdrH+dC1TxrEv41oZWqFFVsbvf2cBQBl3bTMHt/YfeGCysqAd9a0OVUUtxaZNOKCy+UrGi3Knas4aEe8QdEurfT3uo1OTC4bTA2YZazxDlzPtDFOZRruRl25
+        code : |1-
+         
+         sFichier est une chaine
+         sFichier = PageParamètre("MIME")
+         
+         // Renvoie l'image de l'icone du type MIME associé au fichier
+         ChaîneAffiche(IconeTypeMIME(sFichier, vrai, vig16x16))
+        type : 851984
+      -
+        type : 1310736
+        enabled : false
+      -
+        type : 852149
+        role : N
+        enabled : false
+  -
+    name : LIEN_REPONDREATOUS_MSG
+    identifier : 0x26024e7904391eec
+    internal_properties : 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
+    properties :
+     x : 86
+     y : 380
+     width : 110
+     height : 24
+    type : 16
+    code_elements :
+     type_code : 47
+     alias : A15
+     p_codes :
+      -
+        internal_properties : CAAAAAgAAACOQ33ThWRSrB0X92HbuhtyPf6Ca9Sd8+/57VM1davRoiFsYMy6kJzDVmkhBo93lnNuqcqt7i4hXpYyzXqm++BslsIhsULK/zw0KWIcOcjQueQetXIpdLUm5+FVoejgar0ZeSBTj3K7t/5LRXDQg3s4cn6f5+DOXE3XM6McS5nw+fn0R0GdKiuy220+8SS6+6Sq28DxPzJtH+vpQH+Sr3Du+IqL1VMpKduAebzshYNXAjDMDPC7ysCmKFYbtDv0NzfS2eygoI3J40+WTTFoWJ9T+BdACJ9MBNvkGmh0o0j9DCAlaLBuREwSoqPMY1cD1yEYHjrcpIM26eUYQqvzf4gJ4qjTA+z1tRuMZ6DEwLuE+J6vnup1KTrrZ3mGbS64eanfRm5znYfXdg==
+        code : |1-
+         
+         Timer(FermeDifféré, 100)
+        type : 851998
+        role : N
+      -
+        internal_properties : CAAAAAgAAACcx5C0f/XChNHAQVU/Xb0DTXPKTSQIkgD6gBagAo5+zsO8NhFDP+mWk/P5myWARMpoYkMfmK+o9/Aj/hIGN9N9gkYIxqbzsOvbs0E0rt56LjX75kYPM7mRWWOH+IMRm/7RInmymEIkGspu4augx4UIEl0v5bbl40Ns2OLnH5XFK4aM
+        code : |1-
+         
+         HLitRecherchePremier(message, idmessage, gnIDMessage)
+         
+         sMessage est une chaine
+         sListeDestinataires est une chaine
+         sDestinataire est une chaine
+         
+         // Message
+         sMessage = Message.Contenu
+         // Transforme le message si nécessaire
+         sMessage = MessageUniforme(sMessage)
+         sMessage = <§$0021§> + RC + Remplace(Remplace(Remplace(sMessage, "<br>", "<br/>", SansCasse), "<br/>", "<br/>&gt;&nbsp;"), "<p>", "<p>&gt;&nbsp;") + "</p>"
+         
+         // Reconstruit la liste des destinataires
+         // Récupère les destinataires
+         POUR TOUT Destinataire AVEC IDMessage = gnIDMessage
+         	
+         	// On n'affiche pas les destinataires cachés
+         	SI Destinataire.EstDestinataireCaché ALORS CONTINUER
+         	
+         	// On ne tient pas compte de l'utilisateur courant
+         	SI Destinataire.IDUtilisateur = UtilisateurEnCours:IDUtilisateur ALORS CONTINUER
+         	
+         	// Récupère l'utilisateur
+         	SI Destinataire.IDUtilisateur <> -1 ALORS
+         		sDestinataire = RécupèreLogin(Destinataire.IDUtilisateur)
+         	sinon
+         		sDestinataire = ExtraitChaîne(Destinataire.EmailDestinataire,2)	
+         	fin
+         
+         	// On n'ajoute pas deux fois le meme destinataire
+         	si position(sListeDestinataires, sDestinataire, 0, motcomplet) < 1 alors	
+         		// C'est un utilisateur connu, on affiche son nom
+         		sListeDestinataires += [";"] + sDestinataire
+         	FIN
+         	
+         FIN
+         
+         // Ajoute l'expéditeur
+         si Message.IDExpéditeur <> -1 alors
+         	sListeDestinataires += [";"] + RécupèreLogin(message.IDExpéditeur)
+         sinon
+         	sListeDestinataires += [";"] + ExtraitChaîne(message.EmailExpéditeur, 2)
+         fin
+         
+         // Répond au message (on ne transfère pas les pièces jointes)
+         PageAffiche(PAGE_Messagerie_NouveauMessage, "Re : " + message.Sujet, sMessage, sListeDestinataires, "")
+        type : 851984
+      -
+        type : 1310736
+        enabled : false
+      -
+        type : 852149
+        role : N
+        enabled : false
+  -
+    name : LIEN_SUPPRIMER_MSG
+    identifier : 0x2614b747093e0ffc
+    internal_properties : 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
+    properties :
+     x : 288
+     y : 380
+     width : 80
+     height : 24
+    type : 16
+    code_elements :
+     type_code : 47
+     alias : A16
+     p_codes :
+      -
+        code : |1-
+         
+        type : 851998
+        role : N
+      -
+        internal_properties : CAAAAAgAAAAbUbshpY0HFzos9eSOQ+XeCZmtxqZZrG58A2HCnw5radoA0NvwIG8c33rVAcgxg9E1QmhcsxB7/93kRXEgQTEJFUPsUicTM1WvUVuYWp/z55gkDTzi/Q==
+        code : |1-
+         
+         // Vérifie si le message a été envoyé par l'utilisateur en cours
+         HLitRecherchePremier(Message, IDMessage, gnIDMessage)
+         SI HTrouve(Message) ALORS
+         	
+         	// Le message a été envoyé par l'utilisateur en cours
+         	SI Message.IDExpéditeur = UtilisateurEnCours:IDUtilisateur ALORS
+         		
+         		// On marque ce message comme supprimé
+         		SI PAGE_PortailMessagerie.gnListe = BoîteSupprimés ALORS
+         			Message.EstSupprimé = Faux
+         		SINON
+         			SI PAGE_PortailMessagerie.gnListe = BoîteEnvoyés ALORS
+         				// On ne supprime pas le message envoyé
+         				Message.EstSupprimé = Vrai
+         			FIN
+         		FIN			
+         		
+         		HModifie(Message)
+         	FIN
+         	
+         	// On recherche dans les destinataires le message courant
+         	POUR TOUT Destinataire AVEC IDUtilisateurParIDMessage = [UtilisateurEnCours:IDUtilisateur, gnIDMessage]
+         		
+         		// On marque ce message comme supprimé
+         		SI PAGE_PortailMessagerie.gnListe = BoîteSupprimés ALORS
+         			Destinataire.EstSupprimé = Faux
+         		SINON
+         			SI PAGE_PortailMessagerie.gnListe <> BoîteEnvoyés ALORS
+         				// On ne supprime pas le message envoyé
+         				Destinataire.EstSupprimé = Vrai
+         			FIN
+         		FIN	
+         		
+         		HModifie(Destinataire)
+         	FIN
+         	
+         	
+         	SAI_FERME = 1
+         	
+         FIN
+        type : 851984
+      -
+        type : 1310736
+        enabled : false
+      -
+        type : 852149
+        role : N
+  -
+    name : SAI_FERME
+    identifier : 0x2614b7f80940c5d5
+    internal_properties : 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
+    properties :
+     x : 374
+     y : 380
+     width : 24
+     height : 24
+    type : 2
+    code_elements :
+     type_code : 3
+     alias : A17
+     p_codes :
+      -
+        type : 852010
+        role : N
+      -
+        type : 852075
+        role : N
+      -
+        type : 851983
+        role : N
+      -
+        type : 852009
+        role : N
+      -
+        type : 852244
+        role : N
+        enabled : false
+      -
+        type : 852246
+        role : N
+        enabled : false
+      -
+        type : 852245
+        role : N
+        enabled : false
+  -
+    name : LIBHTM_MESSAGE
+    identifier : 0x259e1d791a1a7edb
+    internal_properties : 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
+    properties :
+     x : 20
+     y : 103
+     width : 479
+     height : 231
+    type : 109
+    code_elements :
+     type_code : 132
+     alias : A3
+     p_codes :
+      -
+        type : 851998
+        role : N
+      -
+        type : 852005
+        role : N
+      -
+        internal_properties : CAAAAAgAAAC8gmh+MC4QrU0utgNBfl0Ba/jqg1LK+Dwp8MhpUhqrFXKYnYkcdsFAaHOY6ObpQ/xfKfSxjrQterWfXIxYE+XU8eTa3dgHHYih6pD5FI+viG7ChbqMzBs=
+        type : 852227
+      -
+        type : 1310979
+        enabled : false
+      -
+        type : 852228
+        role : N
+      -
+        internal_properties : CAAAAAgAAAC8gmh+MC4QrU0utgNBfl0Ba/jqg1LK+Dwp8MhpUhqrFXKYnYkcdsFAaHOY6ObpQ/xfKfSxjrQterWfXIxYE+XU8eTa3dgHHYih6pD5FI+viG7ChbqMzBs=
+        type : 852216
+      -
+        type : 852217
+        role : N
+        enabled : false
+  -
+    name : LIB_SUJET
+    identifier : 0x259e142318fa09e9
+    internal_properties : CAAAAAgAAABRO1jlIj/TFM8Pk8sPGYqYeZVHLSUWTOAXysX42+P121M2Q06iHoKgVl8NdRmXNvKsST0JSJjYd7CXjCBYVlO4Q1A52y2S+YjyTAnyFCnliheb0D3GVSf0ZkaSCxPZBmIm9ebaWmPvUSyRlc/vXs2Qr5V/IvCNHwkNZ2dnljPPi+aq04jSeyJY+Eqd2ChyLXorbE4zJMV8Pso71Y2Fev2vN6BI2oxzREi75k9Bwv1eFXiZhIy3zn4q05ahNnH69y9gUnkHnrp6qWxaByYeNCZ0Kyq1iavOoq+8c3/k2CDghYjoungTCmrsj93WZkBchL/WIkqPfGXqsf3HMoFDdYq9Op2It5LiCHW2noQEl+9cZFwVUrLRO4uJ9aaDRGO678qb6KD6HLg4tXBnYutbkRLyJlLMiEAzmmesl3DsU9bxw44s5pT5DZEx7C2F1yDzOPeyvmgfAMNhx+/cxyEEOxMQ7fhaHsaezRoFG5g5s1ByfL35C+dv5RAqkXnWz4GkqCcUdmyFKjw1px266FnXDlhzSmAKByCkDpOLfZXbZYBa9uWseqzCjGrFye0bPH1t6x8YPtNe3zbAgK4PZKjB5O2PvIX+BJcK126xu7DeGso2wXTW5LppvM2ggGM0+GAXphJac4LDsfb66gcgDvsEK63cewExnvRHEcjlf/EUXYN53465H2ZGvjLIjMONJD+weV1hXT30inC7i4SqvhEbF3cQXa//wo2mFI9Iy6XPCIQtg0NKsbq2VzBmp9NfrhvSjogkoZKKO29Gw3qqNr9UQjXaZXvF21Op8fVa5+dQkwk0+0VxVCJFj/hlwiLmf/HZMiw9QsHP0r+yoPqpHJRHWPV8G5lvwO4MpIti61CQaMdJ/kgA0UTcx/m3WG9PiAV1q5xB5plVIG8BED35HS+HvgDZMp05NiPoxhxqFzzzCWwNeZ0wOEE7PNjEc5jB7GCOKXSWZqKomRrJHJObxk8y/S4r23TL4mUYaftXDxMSd6VoqSqSI7ZOzFvt52bQ3/QhwxwxQeB/nvI4s7gqsYRYtOTxL58cCjdj9pW29QwJaD1oBz2YIqu9DZeuK7DKReWXtZFJeM8lvsU9XC6SjMQXy7H7gMyfibMk4UacA/TSSHXV4Muv6Pw7BRSRM+CwXyuRiJEBNEAq8Pi3k1PaAbTdWLHvnjtNh6m4YGOhxKQs/44pRslOtlzp0oJWsHTEtn9ou+3+wC1Bes9H7gMzkonJVv0fP9w4qWLGpm6VR/4RqaNgx/Ozn7oarctjqLgMusCnRosSI6ELdyNFe27G0AUAk0xfgAlEMzJAUoEQnqwl1G0g2yTx2AuJOX21tUn/ardmQw/RwlKSo9/9S6LGZl7VXGLjvGJkbUS1ZJ5qTa0aEj5+Gv/qHMsftp7Egk55BvtEGDmB1WcqpS/imzEn8OfEFDsQLvzKQWggfJD95zVlUpIs47zP7N2ZBOVD5jfd5nEUPAROLsZDZRQUOk+GoME4IGbjbPhsed1/olk3estQM6YhhWXmORSa8szqd8n5TpEh2sAAgMkMKlnxPmnrzKjnN4y0MV7S
+    properties :
+     width : 519
+     height : 32
+    type : 3
+    code_elements :
+     type_code : 2
+     alias : A14
+     p_codes : []
+  -
+    name : LIBHTM_EXPDEST
+    identifier : 0x259e36ab1aa7ed19
+    internal_properties : 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
+    properties :
+     y : 78
+     width : 519
+     height : 20
+    type : 109
+    code_elements :
+     type_code : 132
+     alias : A1
+     p_codes :
+      -
+        type : 851998
+        role : N
+      -
+        type : 852005
+        role : N
+      -
+        internal_properties : CAAAAAgAAAC8gmh+MC4QrU0utgNBfl0Ba/jqg1LK+Dwp8MhpUhqrFXKYnYkcdsFAaHOY6ObpQ/xfKfSxjrQterWfXIxYE+XU8eTa3dgHHYih6pD5FI+viG7ChbqMzBs=
+        type : 852227
+      -
+        type : 1310979
+        enabled : false
+      -
+        type : 852228
+        role : N
+      -
+        internal_properties : CAAAAAgAAAC8gmh+MC4QrU0utgNBfl0Ba/jqg1LK+Dwp8MhpUhqrFXKYnYkcdsFAaHOY6ObpQ/xfKfSxjrQterWfXIxYE+XU8eTa3dgHHYih6pD5FI+viG7ChbqMzBs=
+        type : 852216
+      -
+        type : 852217
+        role : N
+        enabled : false
+  -
+    name : LIB_DATE
+    identifier : 0x259e36ab1aa9ed39
+    internal_properties : CAAAAAgAAAAPUMRyyDjEfmvDyOVydbfYWil2qzBa1RI4eta2YyKDwRDmwWNsTfJUURDndEvvn7h3X1H+HUQgmoYtksTxhZ0cJ7VHZXYPgL9HTzk7485iIx8yh/0rAoI8b2RQSio23Q1earP7lbfUuErpnTMG33n1p6GD4mIBkbFZtqPm6tE80PX7OMiL58p22n+h48ictjo/KIgVp817o6s9eJ1aOSd6twcyRb5ydzKiUDmvd7JTcdKgRNtYTskqg5iK9wE9Di+98pGkjcLxq47yNstNi6GBhyCtvorsWxKHIgBDDX6pPdtgGd5iWWfMki9Ah4awlu78W/gwJLPVn3jlA9CCpP6NqHsiEavDVH/ONHIWc9SmsRNe/Ktgu3ZC/ZpBw03dSMOYIDS8XvoCh1YQecBScF973KFBhNgyjLduX/xbWS2i4nZ37CL+0mfabqmgtFxeZCzhAtWCNpoWFNsa3IUEAGZ4CmMrEXsfvgk7E19Or5gtdaGmphRhSt+Cv4yOSahxG3skSM9K6+QeeYwCxupS1LSCwsIQZvlGp2NHKu4jzSnVpA5A3EgwWbovDdjVOsGM1t2uXd+k8gmxOduu0b4Gfm/wxWg0wdtVcIfdNyT2jEp4BMrg3qJ3XXbbbW1MWXFPUVP1HU/GnOy6biGjhUO97Yk/uIdqH6caZtWQxSV82Jmxqe/DEz96lSeluqeNw5nWBMmK89DPH7dVgZJudx7lFlxL9Vprkiqxo5BmZByZpl6P9awkcK8TK4IIX7y+d1fHA3mvRFLbH/6dvXUcdyCF/ypAgtvvCFY1Nv8dAR35OuryTrLwjK8J8RKvLX5DSdewWvwXmjuGsFLfsvwMz3fvKyk3erA+7wxVIOuGMraQw/n9farJO5niRLGD5gzGbNj+3ERoO8wWro2MOcdqIumIiL3VcAOCHNuNtMaAhQ1WGGWslgxepdBUKGFO27c6fc/16cUGB/oblPqcLBElWYxjW2sdNud8INlLnYIkTsw2co7pJJcOlggAkSJd7fAApBA+bvbdeK4XYkfVLH3yFuqURthX7wqWCqeafVFCtHXuI3K/qX81OErbxehimfTKEgjTbieUGbOG8nViQ5mrCYQpHS+7bgYTeFFjILg4OcTk7/iuBQwl4T6FHsB5F/b5JhlHoHEXyFK04qEz6w6JxLR2waF6O64nKvNYQyWmBeiq0jlD2V8W3YC8wMXYaMyWNvMorioe/jkimiTiRc4e7G5QVDJu9WvNLjDWB7GVgL4TGDg9SewsTocl7TynSN3pa+ctGHNbyfNC7DioXt9hFlQqfE6AApdidFeQwMP1WDkz/pOktGoealNeltg3iIZaB70bPtgcB0hyNlJeRgTBpKuGLGKGl697GnQ1ImvEI1mj2Qtn8uNOviGnhQrZp7PYft8eXdgu6pvJ1BHXyqRpp28rH679s9tKVoVSLE2zyOqZrUSZA/jD3G4umhuSJ9lwlroC5/QpDEOKdZFn16J938VHX6St1BzFAmmzD3gErxqpFOKoIRc9SxwHOeI9czkvujZm9uCvf1JW41QvENeb3eDoTQyC9wV9qLSk2lQPna8+FI3AzLTv+iG7mSJYdlDF6nYuskzXe61IgeISmn0k5P3uYgbqugEV03byxlnCCb/pkf0FiL18BCkpVPVCoBokLOAweLrLYPD08wViPDwOX7o1IZSW3jJAvEj2M+HgcfMpA0I87PmntTHHZVOnfKfUIDTWB6gDfMoCYfK5QGoAdPhFrmllTEgVtajEcAPMA8+vK66mnr7YvU+jXnf7Ncr2l+dvW+x8zJpjVasQFw4kTIC7ekZrITrqzArkC5ZZAmBdDblRE0KH9ip7KVQtWOqmcv7PNMq1kLA8MycWQs1l
+    properties :
+     y : 58
+     width : 519
+     height : 20
+    type : 3
+    code_elements :
+     type_code : 2
+     alias : A2
+     p_codes : []
+ type : 1
+ languages :
+  - fr-FR
+ code_elements :
+  internal_properties : CAAAAAgAAACNGv90SWC/SRCRIaM4N51azACSE4ePHwY8V0GQMUpMvSllMhqvZSq9y98vQymQrD6VRQTfDQAcei/nfCevNYCh9FV773zhU8SpbxQ2f9GTHkC3nFn4gU4D129i9HX7CnxWQ3eC44GaVWBlBdyOj0hjthXSbf3jjT6s7GF3vqVTNrR9P5KmcNnNJ2agQZqOM6+COqLimqjSBrtMkIA9Ktks/ol04u9x3flCmnDOi6bUjVDdRMVssDtQGBiBS2rLU8VCmKJU/VdW8QsfL70e17RhyfHggbk0uM+AJg7KZt9jRnUTTpOY3PtCffE2cKTQnFOBY/ADt37eEZCmSgOwkROtKIBVN7eDSGgCW/IoSqBHfu4YgjqVr7+BTiQvJUFY+4Ht2h59rVgD8AK2pkIKiUsZU+FHdWNuDaqQMa7TL+YD1dzT0GX5Uo2esuSjO7mlTkDOy3ILKvGKGzaFGPtltPQEuNXpfhr/clMtOZCCUqQazQvmS+kzEFG3g0necKsxzY35w2znl/zbK8ef0XvwRaFnGhcsazlUo2IFKEMznCdQwRp7p3hggmpepDupMSAe5TTy5f2rrf0ktVqrUMS1Gryi7qqTDITWOxkpghLSNBgWp9A/PUG7fOuqbwYJzydcpR0sR83eoMMCkvVu5IYjAT5/lnX+f5XMKtqDUY8csRIHRf90OqPu8NA8n49LHQeezMeKPkrNXIYAAEl9+hY8vvEv9F/jjonD7POv5WQtY9Vkyq8AGkPBRGASEPU6liuehz0u45FNPwx/hG996SK1MPe4NlXF73Q2YYPjeLNIRVFuFQoa1Qcfy/HFTtFYHGKZJWLzGn60CsExEuv646PjrSMtu+9EaEJEjiUTMuORO60bX+2N6yJjnx3Pnix1YwNIDCJeTtnB/EofuxpMcS8ZhOviljp+lry17MokGCRUZPYNglhJusWIWz5dL8cQqp2LQf+U2M+qvCR52OysMJUqv9307XrLTuTFKkgpSGUwwYvBdNRNbf0JJ00H8XfCioPe5WvDFwJ127ODxKZDZZK6OU4lRGn1hgEsPOwhr6TythA7Xt9STYfqj06/zY/ajr9dHfzvGECzRKZvF8NUCgSTcep5
+  type_code : 38
+  p_codes :
+   -
+     code : |1+
+      
+      procedure PAGE_Messagerie_Message(gnIDMessage)
+      
+      gbDoitFermer est un booléen 
+      
+      // Récupère le message
+      HLitRecherchePremier(Message, IDMessage, gnIDMessage)
+      si htrouve(Message) alors
+      	
+      	// Affiche le message
+      	ChargeMessage()	
+      
+      sinon
+      
+      	// Message introuvable
+      	erreur(<§$0000§>)
+      	gbDoitFermer = vrai
+      
+      FIN
+     type : 851968
+   -
+     type : 852300
+     enabled : false
+   -
+     type : 852017
+     enabled : false
+   -
+     type : 852119
+     enabled : false
+   -
+     type : 852298
+     role : N
+   -
+     code : |1-
+      
+      // Ferme le navigateur si besoin
+      si gbDoitFermer alors 
+      	NavigateurFerme()
+      fin
+      
+      Timer(Actualise, 100)
+     type : 851999
+     role : N
+   -
+     type : 852000
+     role : N
+   -
+     type : 852232
+     enabled : false
+   -
+     type : 852167
+     enabled : false
+   -
+     type : 852169
+     role : N
+     enabled : false
+   -
+     type : 852225
+     role : N
+     enabled : false
+   -
+     type : 852227
+     enabled : false
+   -
+     type : 1310979
+     enabled : false
+   -
+     type : 852228
+     role : N
+     enabled : false
+   -
+     type : 852217
+     role : N
+     enabled : false
+  procedures :
+   -
+     name : InitialiseActions
+     procedure_id : 1557706104959674266
+     type_code : 14
+     code : |1+
+      Procédure InitialiseActions(sCombo)
+      
+      
+      	ListeSupprimeTout(sCombo)
+      	
+      	// Actions simples
+      	ListeAjoute(sCombo, gLien(-1) + <§$0001§>)
+      	ListeAjoute(sCombo, gLien(-2) + Répète(ESP, 5) + <§$0002§>)
+      	ListeAjoute(sCombo, gLien(-3) + Répète(ESP, 5) + <§$0003§>)
+      	
+      	// Appliquer les étiquettes ?
+      	REQ_Messagerie_Etiquettes.pIDUtilisateur = UtilisateurEnCours:IDUtilisateur
+      	HExécuteRequête(REQ_Messagerie_Etiquettes)
+      	
+      	SI HNbEnr(REQ_Messagerie_Etiquettes) > 0 ALORS
+      		
+      		ListeAjoute(sCombo, gLien(-4) + <§$0004§>)	
+      		ListeAjoute(sCombo, gLien(-1) + <§$0005§>)
+      		
+      		// Ajoute les étiquettes
+      		POUR TOUTE REQ_Messagerie_Etiquettes
+      			ListeAjoute(sCombo, gLien(REQ_Messagerie_Etiquettes.IDEtiquette) + Répète(ESP, 5) + REQ_Messagerie_Etiquettes.Libellé)
+      		FIN
+      	FIN
+      	
+      	sCombo..Etat = Grisé
+      
+      
+     type : 458752
+   -
+     name : ChargeMessage
+     internal_properties : CAAAAAgAAAAtSu6Bo5GdRoX79+GEdvJsDURk7zS/uxMFq4OMxrNm5QIAWmWUHlTm7j5SXKr/Cvy8sJsPE9TbQoLOghvksaZdTq9vYpAmoC7bUVhCRO3QEIkvKhAVz4gdHnSuras3VbKW/iiuDuG7PcisEuARx0OVO5cmM5vIHMURCizaQgNov6t9KXS7yWxhmIWEKKxWvaW/7HHu3AgNSoSMXn7B7qMVKt7xgL7KoK0DIA1+U0Uecd6/N+XFqTC0UpeWg2a4wOLbaw7TXoH4tStSnkrtIh96yAorNqskoqbkoc4RIiW2xC30I9SHX/NKzCllFN3hkwdE1h39kTrOGhFtBDLO2w+LS79T9XuJi/fuPLUipg==
+     procedure_id : 1557715579661897696
+     type_code : 14
+     code : |1-
+      // Résumé : Charge le message en cours
+      // Syntaxe :
+      // ChargeMessage ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	Aucune
+      //
+      Procédure ChargeMessage()
+      
+      	sExpéditeur			est une chaine
+      	sListeDestinataires est une chaine
+      	sListePiècesJointes est une chaine
+      	sSignature			est une chaine
+      	sHTMPiècesJointes 	est une chaine
+      	
+      
+      	// Récupère les destinataires
+      	pour tout Destinataire avec IDMessage = gnIDMessage
+      		
+      		// On n'affiche pas les destinataires cachés
+      		si Destinataire.EstDestinataireCaché alors continuer
+      			
+      		// On ne tient pas compte de l'utilisateur courant
+      		si Destinataire.IDUtilisateur = UtilisateurEnCours:IDUtilisateur ALORS 
+      			// Premier destinataire : utilisateur en cours
+      			sListeDestinataires += [", "] + <§$0022§>
+      			continuer
+      		FIN
+      				
+      		// Récupère l'utilisateur
+      		si Destinataire.IDUtilisateur <> -1 alors
+      			// C'est un utilisateur connu, on affiche son nom
+      			sListeDestinataires += [", "] + RécupèreNomUtilisateur(Destinataire.IDUtilisateur)
+      		sinon
+      			// C'est un utilisateur externe, on affiche son email
+      			sListeDestinataires += [", "] + RécupèreNomAffichéEmailEx(Destinataire.EmailDestinataire)
+      		FIN
+      		
+      	fin
+      	
+      	// Par défaut, le message est nécessairement envoyé à l'utilisateur
+      	si sListeDestinataires ~= "" alors
+      		sListeDestinataires = <§$0023§>
+      	FIN
+      	
+      	// Expéditeur du message
+      	si message.IDExpéditeur = -1 alors
+      		sExpéditeur = RécupèreNomAffichéEmail(message.EmailExpéditeur)
+      	sinon
+      		sExpéditeur = RécupèreNomUtilisateur(message.IDExpéditeur)
+      		sSignature  = HHCodeVersHTML(RécupèreSignatureUtilisateur(Message.IDExpéditeur, vrai))
+      	FIN
+      	
+      	// Récupère les pièces jointes
+      	pour tout MessageAttache avec IDMessage = gnIDMessage
+      		
+      		sListePiècesJointes += [rc] + MessageAttache.Clé
+      		
+      	FIN
+      	
+      	//
+      	// Affichage
+      	//
+      	
+      	// Expéditeur et destinataires
+      	LIBHTM_EXPDEST = chaineconstruit(LIBHTM_EXPDEST, sExpéditeur, sListeDestinataires)
+      	
+      	// Sujet
+      	SI Message.Sujet ~= "" ALORS Message.Sujet = <§$0006§>
+      	LIB_SUJET	   = message.Sujet
+      	mapage..titre  = "Honolulu - " + Message.Sujet
+      	
+      	// Date
+      	dhDateHeureRéception est une dateheure
+      	dhDateHeureRéception = message.DateHeureEnvoi
+      	
+      	si dhDateHeureRéception..partiedate = datedujour ALORS
+      		// On affiche l'heure
+      		LIB_DATE = heureverschaine(dhDateHeureRéception..partieheure, "HH:MM") + chaineconstruit(" (%1)", DateHeureNaturelle(dhDateHeureRéception))
+      	sinon
+      		LIB_DATE = DateHeureNaturelle(dhDateHeureRéception, vrai)
+      	FIN
+      	
+      	// Message
+      	sMessage est une chaine
+      	sMessage = message.Contenu
+      	
+      	// Transforme le message si nécessaire et ajoute la signature
+      	sMessage = MessageUniforme(sMessage) + sSignature
+      	
+      	// Ajout des pièces jointes dans le message
+      	si sListePiècesJointes <> "" alors
+      		
+      		nNbPiècesJointes est un entier
+      		sClé, sURL est une chaine
+      		sInfos, sNomFichier, sMIME sont des chaines
+      		moTaille est un monétaire
+      		
+      		// Pour chaque pièce jointe
+      		pour toute chaine sClé de sListePiècesJointes separee par rc
+      			
+      			// On vérifie que la pièce jointe existe toujours
+      			si PJCléExiste(sClé) alors
+      				
+      				// Récupère toutes les infos de la pièce jointe
+      				sURL = PJRécupèreURL(sClé)
+      				PJRécupère(sClé, sInfos, sMIME, moTaille, sNomFichier)
+      				
+      				// Si c'est une image
+      				si position(sMIME, "image", 0, sanscasse) > 0 ALORS
+      					
+      					// On affichera un aperçu de l'image
+      					sHTMPiècesJointes += ["<br/>" + rc] + "<table border=0 cellpadding=2 cellspacing=2><tr><td width=100 height=100 style=""border:1px solid #c0c0c0"">" + ...
+      										ChaîneConstruit("<a href=""javascript:PHONOLULUNAV_DOWNLOAD('%1');""><img src=""" + sURL + "&mode=homo&sizel=100&sizeh=100"" width=100 height=100 border=0 /></a></td>", sClé) + ...
+      										"<td width=10>&nbsp;</td>" +  ...
+      										"<td class=Libelle>" + ChaîneConstruit("<strong>%1</strong>", sNomFichier) + ...
+      										"<br/>" + RC +  TailleVersChaîne(moTaille) + ESP + ...
+      										ChaîneConstruit(<§$000e§>, sClé) + "</td></tr></table>"
+      					
+      				sinon
+      					
+      					// On affiche simplement un lien vers le fichier
+      					sHTMPiècesJointes += ["<br/>" + rc] + "<p><span class=Libelle>" + chaineconstruit(""+TAB+""+TAB+""+TAB+""+TAB+""+TAB+""+TAB+""+TAB+""+TAB+""+TAB+""+TAB+" <img src=""%2"" width=16 height=16 />", sNomFichier, "/" + repertoireweb() + ...
+      										"/FR/PAGE_PJ." + AWP_EXT + "?mime=" + fExtraitChemin(sNomFichier, fFichier+fExtension) + "&sizel=16&sizeh=16&AWPSESSIONID=" + gsIdentifiant) + esp + ...
+      										 chaineconstruit("<strong>%1</strong>", sNomFichier) + ...
+      										 "<br/>" + rc +  TailleVersChaîne(moTaille) + esp + ...
+      										 chaineconstruit(<§$0016§>, sClé) + "spanan></p>"	
+      				FIN
+      				
+      				// Comptage des pièces jointes
+      				nNbPiècesJointes ++
+      				
+      			FIN
+      			
+      		FIN
+      		
+      		sHTMPiècesJointes = ChaîneConstruit(""+TAB+""+TAB+"<hr/>"+RC+""+TAB+""+TAB+"<br/>"+RC+""+TAB+""+TAB+"<div class=Libelle>"+RC+""+TAB+""+TAB+""+TAB+"<strong>%1</strong>"+RC+""+TAB+""+TAB+""+TAB+"<br/><br/>"+RC+""+TAB+""+TAB+""+TAB+"%2"+RC+""+TAB+""+TAB+"</div>", ChaîneConstruit(<§$0019§>, nNbPiècesJointes, (nNbPiècesJointes > 1 ? "s" SINON "")), sHTMPiècesJointes)	
+      	FIN
+      	
+      	LIBHTM_MESSAGE..Valeur = ChaîneConstruit(""+TAB+"<div style=""position: relative; width:100%"">"+RC+""+TAB+""+TAB+"<table align=left valign=top>"+RC+""+TAB+""+TAB+""+TAB+"<tr>"+RC+""+TAB+""+TAB+""+TAB+""+TAB+"<td>"+RC+""+TAB+""+TAB+""+TAB+""+TAB+""+TAB+"%1"+RC+""+TAB+""+TAB+""+TAB+""+TAB+"</td>"+RC+""+TAB+""+TAB+""+TAB+"</tr>"+RC+""+TAB+""+TAB+"</table>"+RC+""+TAB+""+TAB+"<br>"+RC+""+TAB+"</div>", sMessage + sHTMPiècesJointes)
+      		
+      	// On ne peut pas répondre au service de notifications
+      	si message.IDExpéditeur = idsystem() alors
+      		LIEN_REPONDRE_MSG..etat = grise
+      		LIEN_REPONDREATOUS_MSG..etat = grise
+      	sinon
+      		LIEN_REPONDRE_MSG..etat = actif
+      		LIEN_REPONDREATOUS_MSG..etat = actif
+      	FIN
+      	
+      	si message.EstSupprimé alors
+      		LIEN_SUPPRIMER_MSG = <§$001c§>
+      		LIEN_SUPPRIMER_MSG..bulle = <§$001d§>
+      	sinon
+      		LIEN_SUPPRIMER_MSG = <§$001e§>
+      		LIEN_SUPPRIMER_MSG..Bulle = <§$001f§>
+      	FIN
+      
+      	
+     type : 458752
+   -
+     name : MessageUniforme
+     procedure_id : 1557719226094175444
+     type_code : 14
+     code : |1-
+      // Résumé : Transforme un message source (HHCode, HTML ou texte brut) en message HTML uniforme
+      // Syntaxe :
+      //[ <Résultat> = ] MessageUniforme (<sMessage>)
+      //
+      // Paramètres :
+      //	sMessage : Message original
+      // Valeur de retour :
+      // 	chaîne : Message uniforme
+      //
+      Procédure MessageUniforme(sMessage)
+      
+      	sMessageUnif est une chaine
+      	sMessageUnif = sMessage
+      	
+      	selon vrai 
+      		// Vérifie s'il s'agit de texte brut
+      		cas HTMLVersTexte(sMessageUnif) = sMessageUnif
+      			
+      			sMessageUnif = "<p class=Libelle>" + TexteVersHTML(sMessageUnif) + "</p>"
+      					
+      		AUTRE CAS
+      			
+      			// C'est du HTML
+      			
+      			
+      	FIN
+      	
+      	
+      renvoyer sMessageUnif
+     type : 458752
+   -
+     name : RécupèreNomAffichéEmailEx
+     internal_properties : CAAAAAgAAAA0j3DGpcDM4Tqqd7VKpivSZ6QkLBqjBR5watQFRfx6awZT0VQhkiDNMHiKmK7GFR4c7Iy1Zn4Vs/gkjd60ZHy916jaEkwKf1r2npoQEuMMf7whD4fDpCk2wu+qZFmaJElpuF/VKv+r1MZxDKtqhkdqE1FV/AYz1m0Wg0I820flWMR+OOzFJGvWsh9Bh1oCezdZfplUz8Q=
+     procedure_id : 1562945802425641017
+     type_code : 14
+     code : |1-
+      // Résumé : <indiquez ici ce que fait la procédure>
+      // Syntaxe :
+      //[ <Résultat> = ] RécupèreNomAffichéEmailEx (<sEmailStocké>)
+      //
+      // Paramètres :
+      //	sEmailStocké : <indiquez ici le rôle de Param1>
+      // Valeur de retour :
+      // 	Type indéterminé : // 	Aucune
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure RécupèreNomAffichéEmailEx(sEmailStocké)
+      
+      	// Pas de nom affiché
+      	si extraitchaine(sEmailStocké, 1) = extraitchaine(sEmailStocké, 2) ALORS
+      		renvoyer sEmailStocké
+      	FIN
+      
+      renvoyer extraitchaine(sEmailStocké, 1) + " <" + extraitchaine(sEmailStocké, 2) + ">"
+     type : 458752
+   -
+     name : MiseAJourListeMessage
+     internal_properties : CAAAAAgAAAChKvcwH8vzQTDbQ8qu0cHFCpzbbEpLHSdUlRRxD/bSE8q6bKMNI7RoJN66tP8VAzrsNG8aXz5Q2wjAWjZw/WI0JQ==
+     procedure_id : 1591099166518471389
+     type_code : 14
+     code : |1+
+      function MiseAJourListeMessage()
+      {
+      	window.opener.OnDialogueMessage();
+      }
+     language : JS
+     type : 458752
+     role : N
+   -
+     name : Actualise
+     internal_properties : CAAAAAgAAABctavKrHvP7BfOxDwF2ip+ntog8cOJEvzoxIDRE5WslnaYsejcOI+/qYy1NG/WqWGfPtYyrrvdUXeuqzDgWckT1Q9ddFgxdbQ=
+     procedure_id : 1591101558868568835
+     type_code : 14
+     code : |1-
+      Procédure Actualise()
+      
+      si sai_ferme = 1 alors
+      	MiseAJourListeMessage()
+      	NavigateurFerme()
+      fin
+     type : 458752
+     role : N
+   -
+     name : FermeDifféré
+     internal_properties : CAAAAAgAAAC0TaGuYi2PqOQmiC1YmXJbMUTnjPWO9mhkQd3KIBH1rSc/lp1PMClvZtdu4BMhj7h3XT0qh3VDLEy3sw==
+     procedure_id : 1726614616449107428
+     type_code : 14
+     code : |1-
+      // Résumé : <indiquez ici ce que fait la procédure>
+      // Syntaxe :
+      // FermeDifféré ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	Aucune
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      PROCEDURE FermeDifféré()
+      
+      	NavigateurFerme()
+     type : 458752
+     role : N
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACKmTCh8JLxSu4GQYAwvW4Jovx5ukEm8qKoyIkiuKN51zcR2CQ5+oNX8jvaQcd4k2MldXcA0BdHsymVQStUTI/9C4S/125a+VFBS+/NgHfKQjDNc1XLWEcTzBXCQVHNgWwG6u98x/U37dUM/vKZPg==
+  original_name : PAGE_Page1
+resources :
+ string_res :
+  identifier : 0x159d150612926d77
+  internal_properties : CAAAAAgAAACZEjEk9ePFZOo+39SDkDJRBhrPU5L8MGNkyQkX/peSMADIgmGIamrQQ4iQ
+  strings :
+   -
+     text :
+      fr-FR : Message introuvable
+     index : 0
+   -
+     text :
+      fr-FR : Autres actions...
+     index : 1
+   -
+     text :
+      fr-FR : Marquer comme lu
+     index : 2
+   -
+     text :
+      fr-FR : Marquer comme non lu
+     index : 3
+   -
+     text :
+      fr-FR : Supprimer l'étiquette
+     index : 4
+   -
+     text :
+      fr-FR : "- Appliquer une étiquette"
+     index : 5
+   -
+     text :
+      fr-FR : (Sans objet)
+     index : 6
+   -
+     text :
+      fr-FR : "\t\t\t\t\t\t\t\t\t\t<a href=\"javascript:PHONOLULUNAV_DOWNLOAD('%1');\">Télécharger</a>"
+     index : 14
+   -
+     text :
+      fr-FR : "\t\t\t\t\t\t\t\t\t\t <a href=\"javascript:PHONOLULUNAV_DOWNLOAD('%1');\">Télécharger</a>"
+     index : 22
+   -
+     text :
+      fr-FR : "%1 pièce%2 jointe%2"
+     index : 25
+   -
+     text :
+      fr-FR : Restaurer
+     index : 28
+   -
+     text :
+      fr-FR : Restaurer le message supprimé
+     index : 29
+   -
+     text :
+      fr-FR : Supprimer
+     index : 30
+   -
+     text :
+      fr-FR : Supprimer le message
+     index : 31
+   -
+     text :
+      fr-FR : <p class=Libelle-Gras>--- Message original ---</p>
+     index : 32
+   -
+     text :
+      fr-FR : <p class=Libelle-Gras>--- Message original ---</p><p>
+     index : 33
+   -
+     text :
+      fr-FR : moi
+     index : 34
+   -
+     text :
+      fr-FR : moi
+     index : 35
+webification :
+ internal_properties : CAAAAAgAAACYzxT95H3qP7nIys4LqA==
+custom_note :
+ internal_properties : CAAAAAgAAAC68/W0/adbG0nFCRhrE42B5HRnbDzVHaz86sSQyxlBk7I=
+rad :
+ internal_properties : CAAAAAgAAABoAN7PLpwJW3EiA7WVZdCA5EwrCA1rvutcDHooMWKe

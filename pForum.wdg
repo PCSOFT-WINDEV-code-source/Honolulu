@@ -1,0 +1,1236 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : pForum
+ major_version : 28
+ minor_version : 0
+ type : 7
+ description : ""
+ subtype : 0
+procedure_set :
+ identifier : 0x15a24aca074f970a
+ internal_properties : CAAAAAgAAABGLu41kG7fjQV3iS4F72qmnKaNh5694reolNKIW0iw
+ code_elements :
+  type_code : 31
+  p_codes :
+   -
+     code : |1-
+      
+      constant
+      	// Compteurs
+      	COMPTEUR_SUJETS_FORUM 			= "TotalSujetsForum"
+      	COMPTEUR_TOUS_LES_SUJETS 		= "TotalSujets"
+      	COMPTEUR_REPONSES_FORUM 		= "TotalRéponsesForum"
+      	COMPTEUR_REPONSES_SUJETS 		= "TotalRéponsesSujet"
+      	COMPTEUR_TOUTES_LES_REPONSES 	= "TotalRéponses"
+      	COMPTEUR_LECTURE 				= "TotalLectureSujet"
+      	
+      	// Notifications
+      	NOTIFICATION_FORUM_CREATION_SUJET 	= "NOTIFICATION_FORUM_CREATION_SUJET"
+      	NOTIFICATION_FORUM_CREATION_REPONSE = "NOTIFICATION_FORUM_CREATION_REPONSE"
+      	
+      	// Constantes des forums systèmes
+      	FORUM_PARTAGES					= 1
+      	FORUM_WIKI						= 2
+      	FORUM_PETITESANNONCES			= 3
+      	FORUM_AUTRES					= 0
+      	FORUM_ARTICLESNEWS				= 4
+      FIN
+      
+      gsForumErreurInfo est une chaine
+      
+      //
+      // Activation de triggers sur l'ajout/suppression de forum, de sujet (topic), de message (post)
+      // -> permet de mettre à jour les compteurs (voir constantes ci dessus)
+      // -> permet d'envoyer les notifications aux administrateurs et modérateurs
+      // ... automatiquement, sans appel explicite
+      
+      SI PAS HDécritTrigger(post	, "HAjoute,HSupprime"	, TRIGGER_AjoutSuppressionPost	, hTriggerAprès) ALORS dbgAssertion(faux, HErreurInfo())
+      SI PAS HDécritTrigger(topic	, "HAjoute,HSupprime"	, TRIGGER_AjoutSuppressionTopic	, hTriggerAprès) ALORS dbgAssertion(Faux, HErreurInfo())
+      SI PAS HDécritTrigger(Forum	, "HSupprime"			, TRIGGER_SuppressionForum		, hTriggerAvant) ALORS dbgAssertion(Faux, HErreurInfo())
+     type : 720896
+  procedures :
+   -
+     name : TRIGGER_AjoutSuppressionPost
+     procedure_id : 1558891305430214389
+     type_code : 15
+     code : |1+
+      // Résumé : Trigger HFSQL appelé lors d'un ajout/suppression d'un message dans un sujet (Topic / Post)
+      // Syntaxe :
+      //TRIGGER_AjoutSuppressionPost ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	Aucune
+      //
+      Procédure RESTREINTE TRIGGER_AjoutSuppressionPost()
+      
+      	GUID est une chaîne
+      
+      	SELON H.FonctionTrigger
+      		
+      		// Ajout de message (post)
+      		CAS ~= "HAjoute"
+      			
+      			GUID = HFSauvePosition(Topic..Nom + ";" + Forum..Nom)			
+      			HLitRecherchePremier(topic, IDTopic, post.IDTopic)
+      									
+      			// On ne prend pas en compte le premier message du sujet						
+      			SI Topic.IDPremierPost <> Post.IDPost ALORS	
+      				
+      								
+      				// Stocke les dernières informations du message
+      				// Le trigger du fichier TOPIC n'a pas à être déclenché
+      				HGèreTrigger(Faux)
+      				topic.DateHeureDernierPost = post.DateHeureCréation
+      				topic.IDAuteurDernierPost  = post.IDUtilisateur
+      				topic.IDDernierPost		   = post.idpost
+      				hmodifie(topic)
+      				// Réactive la gestion des triggers
+      				HGèreTrigger(vrai)
+      											
+      				// Incrémente le compteur de réponses pour un forum
+      				CompteurIncrémente(COMPTEUR_REPONSES_FORUM + Topic.IDForum)
+      
+      				// Incrémente le compteur de réponses pour un sujet
+      				CompteurIncrémente(COMPTEUR_REPONSES_SUJETS + Post.IDTopic)
+      				
+      				// Incrémente le compteur de réponses
+      				CompteurIncrémente(COMPTEUR_TOUTES_LES_REPONSES)
+      								
+      				// Récupère le forum				
+      				HLitRecherchePremier(Forum, idforum, topic.idforum)
+      				
+      				// Notification
+      				NotificationEnvoie(	MODULE_FORUM, ...
+      									NOTIFICATION_FORUM_CREATION_REPONSE, ...
+      									<§@15a24ac8074d8e8e0000§>, ...
+      									ChaîneConstruit(<§@15a24ac8074d8e8e0001§>, RécupèreLogin(Topic.IDUtilisateur), Topic.Titre, Forum.Titre))
+      								
+      			FIN
+      
+      			HFRetourPosition(GUID)
+      		
+      		
+      		// Suppression de message (post)	
+      		CAS ~= "HSupprime"
+      			
+      			GUID = HFSauvePosition(Topic..Nom)			
+      			HLitRecherchePremier(Topic, IDTopic, Post.IDTopic)
+      			
+      			// Décrémente le compteur de réponses d'un forum
+      			CompteurDécrémente(COMPTEUR_REPONSES_FORUM + Topic.IDForum)
+      			
+      			// Décrémente le compteur de réponses pour un sujet
+      			CompteurDécrémente(COMPTEUR_REPONSES_SUJETS + Post.IDTopic)
+      		
+      			// Décrémente le compteur de réponses
+      			CompteurDécrémente(COMPTEUR_TOUTES_LES_REPONSES)
+      					
+      			__Alias est une source de données
+      			halias(post, __Alias)
+      			hchangenom(__Alias, Post..nom)
+      			
+      			// On doit rechercher le dernier message du topic
+      			// Le trigger du fichier TOPIC n'a pas à être déclenché
+      			HGèreTrigger(Faux)
+      			HLitRechercheDernier(__Alias, IDTopic, post.idtopic)
+      			si htrouve(__Alias) ALORS
+      				topic.DateHeureDernierPost = __Alias.DateHeureCréation
+      				topic.IDAuteurDernierPost  = __Alias.IDUtilisateur
+      				topic.IDDernierPost  = __Alias.IDPost
+      			sinon
+      				Topic.DateHeureDernierPost = topic.DateHeureCréation
+      				topic.IDAuteurDernierPost = topic.IDUtilisateur
+      				topic.IDDernierPost = topic.IDPremierPost
+      			FIN
+      			hmodifie(topic)
+      			// Réactive la gestion des triggers
+      			HGèreTrigger(Vrai)
+      			
+      			HAnnuleAlias(__Alias)
+      			HAnnuleDéclaration(__Alias)
+      			
+      			HFRetourPosition(GUID)	
+      	FIN
+     type : 458752
+   -
+     name : TRIGGER_AjoutSuppressionTopic
+     procedure_id : 1558891326905121155
+     type_code : 15
+     code : |1-
+      // Résumé : Trigger HFSQL appelé lors d'un ajout/suppression d'un sujet dans un forum (Forum / Topic)
+      // Syntaxe :
+      //TRIGGER_AjoutSuppressionTopic ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	Aucune
+      //
+      Procédure RESTREINTE TRIGGER_AjoutSuppressionTopic()
+      
+      	sListeClé est une chaine
+      	sClé est une chaine
+      	
+      	SELON H.FonctionTrigger
+      		// Ajout d'un sujet (topic)
+      		CAS ~= "HAjoute"
+      			
+      			// Incrémente le compteur de sujets d'un forum
+      			CompteurIncrémente(COMPTEUR_SUJETS_FORUM + Topic.IDForum)
+      			
+      			// Incrémente le compteur de sujets
+      			CompteurIncrémente(COMPTEUR_TOUS_LES_SUJETS)
+      			
+      			GUID est une chaîne = HFSauvePosition(Forum..Nom)			
+      			HLitRecherchePremier(Forum, IDForum, Topic.IDForum)
+      			
+      			// Notification
+      			NotificationEnvoie(	MODULE_FORUM, ...
+      							   	NOTIFICATION_FORUM_CREATION_SUJET, ...
+      							   	<§@15a24ac8074d8e8e0002§>, ...
+      								ChaîneConstruit(<§@15a24ac8074d8e8e0003§>, RécupèreLogin(Topic.IDUtilisateur), Topic.Titre, Forum.Titre))
+      			
+      			HFRetourPosition(GUID)
+      		
+      		// Suppression d'un sujet (topic)
+      		CAS ~= "HSupprime"
+      			
+      			// Décrémente le compteur de sujets d'un forum
+      			CompteurDécrémente(COMPTEUR_SUJETS_FORUM + Topic.IDForum)
+      			
+      			// Décrémente le compteur de sujets
+      			CompteurDécrémente(COMPTEUR_TOUS_LES_SUJETS)
+      			
+      			// Supprime le compteur de lectures du sujet
+      			ParamètreSupprime(COMPTEUR_LECTURE + Topic.idtopic)
+      			
+      			// Supprime toutes les notifications actives sur le sujet
+      			sListeClé = ParamètreListe(PourTous, NOTIFICATION_FORUM_CREATION_REPONSE + "_" + MODULE_FORUM + Topic.idtopic)
+      			POUR TOUTE CHAINE sClé DE sListeClé SEPAREE PAR RC
+      				
+      				// Supprime la notification
+      				ParamètreSupprime(sClé)
+      				
+      			FIN
+      		
+      	FIN
+     type : 458752
+   -
+     name : ForumCrée
+     procedure_id : 1559188276620361853
+     type_code : 15
+     code : |1+
+      // Résumé : Crée un forum
+      // Syntaxe :
+      //[ <Résultat> = ] ForumCrée (<sTitre> [, <sDescription> [, <nIDForumParent>]])
+      //
+      // Paramètres :
+      //	sTitre : Titre du forum
+      //	sDescription (valeur par défaut="") : Description du forum
+      //	nIDForumParent (valeur par défaut=-1) : Identifiant du forum parent. Si ce paramètre n'est pas spécifié, le forum sera un groupe de forums
+      // Valeur de retour :
+      // 	booléen : Vrai si le forum a été créé, Faux sinon
+      //
+      Procédure ForumCrée(sTitre, sDescription = "", nIDForumParent = -1)
+      
+      	gsForumErreurInfo = ""
+      
+      	// On doit être administrateur ou modérateur
+      	SI EstAdministrateurOuModerateur() = Faux ALORS 
+      		gsForumErreurInfo = <§@15a24ac8074d8e8e0004§>
+      		RENVOYER Faux
+      	FIN
+      
+      	GUID est une chaîne = HFSauvePosition(forum..nom)
+      	
+      	si nIDForumParent <> -1 alors
+      		// Vérifie si le forum parent existe déjà
+      		HLitRecherchePremier(Forum, IDForumParent, nIDForumParent)
+      		si pas htrouve(Forum) ALORS
+      			gsForumErreurInfo = <§@15a24ac8074d8e8e0005§>
+      			HFRetourPosition(GUID)
+      			renvoyer faux
+      		FIN
+      	fin
+      	
+      	// Vérifie qu'un autre forum ne porte pas déjà ce nom
+      	HLitRecherchePremier(Forum, Titre, sTitre)
+      	si htrouve(Forum) ALORS
+      		gsForumErreurInfo = <§@15a24ac8074d8e8e0006§>
+      		HFRetourPosition(GUID)
+      		renvoyer faux
+      	FIN
+      	
+      	hraz(forum)
+      	
+      	// Création du forum
+      	forum.EstGroupe 		= (nIDForumParent = -1)
+      	forum.DateHeureCréation = datedujour + maintenant
+      	forum.Description 		= sDescription
+      	forum.IDForumParent 	= nIDForumParent
+      	forum.IDUtilisateur 	= UtilisateurEnCours:IDUtilisateur
+      	forum.Titre 			= sTitre
+      	hajoute(Forum)
+      	
+      	HFRetourPosition(GUID)
+      	
+      renvoyer vrai
+     type : 458752
+   -
+     name : ForumModifie
+     procedure_id : 1559189410520697265
+     type_code : 15
+     code : |1+
+      // Résumé : Crée un forum
+      // Syntaxe :
+      //[ <Résultat> = ] ForumModifie (<nIDForum> [, <sNouveauTitre> [, <sNouvelleDescription> [, <nNouvelIDForumParent>]]])
+      //
+      // Paramètres :
+      //	nIDForum : Identifiant du forum à modifier
+      //	sNouveauTitre (valeur par défaut="") : Nouveau titre
+      //	sNouvelleDescription (valeur par défaut="") : Nouvelle description
+      //	nNouvelIDForumParent (valeur par défaut=-2) : Nouveau forum parent
+      // Valeur de retour :
+      // 	booléen : Vrai si le forum a été modifié, Faux sinon
+      //
+      Procédure ForumModifie(nIDForum, sNouveauTitre = "", sNouvelleDescription = "", nNouvelIDForumParent = -2)
+      
+      	gsForumErreurInfo = ""
+      
+      	si EstAdministrateurOuModerateur() = faux alors
+      		gsForumErreurInfo = <§@15a24ac8074d8e8e0004§>
+      		renvoyer faux		
+      	FIN
+      
+      	GUID est une chaîne = HFSauvePosition(forum..nom)
+      	bRetour est un booléen
+      	
+      	// Vérifie qu'un autre forum ne porte pas déjà ce nom
+      	si sNouveauTitre <> "" alors
+      		HLitRecherchePremier(Forum, Titre, sNouveauTitre)
+      		tantque htrouve(Forum)
+      			si forum.IDForum <> nIDForum alors
+      				gsForumErreurInfo = <§@15a24ac8074d8e8e0006§>
+      				HFRetourPosition(GUID)
+      				renvoyer faux
+      			fin
+      			hlitsuivant(Forum)
+      		FIN
+      	fin
+      	
+      	// Vérifie si le forum contient des sujets : si c'est le cas, le forum ne peut pas devenir un groupe
+      	si nNouvelIDForumParent = -1 alors
+      		HRecherchePremier(Topic, IDForum, nIDForum)
+      		si htrouve(Topic) ALORS
+      			gsForumErreurInfo = <§@15a24ac8074d8e8e0007§>
+      			HFRetourPosition(GUID)
+      			RENVOYER Faux		
+      		FIN
+      	FIN
+      	
+      	// Recherche le forum
+      	HLitRecherchePremier(Forum, IDForum, nIDForum)
+      	si htrouve(Forum) alors
+      	
+      		// Modification du forum
+      		si sNouvelleDescription <> "" 	alors forum.Description 	= sNouvelleDescription
+      		si sNouveauTitre <> "" 			alors forum.Titre 			= sNouveauTitre
+      		si nNouvelIDForumParent <> -2	alors forum.IDForumParent	= nNouvelIDForumParent
+      		hmodifie(Forum)
+      		
+      		bRetour = vrai
+      	
+      	sinon
+      		gsForumErreurInfo = <§@15a24ac8074d8e8e0008§>
+      	fin
+      	
+      	HFRetourPosition(GUID)
+      	
+      renvoyer bRetour
+     type : 458752
+   -
+     name : ForumSupprime
+     procedure_id : 1559190260950699137
+     type_code : 15
+     code : |1+
+      // Résumé : Supprime un forum
+      // Syntaxe :
+      //[ <Résultat> = ] ForumSupprime (<nIDForum>)
+      //
+      // Paramètres :
+      //	nIDForum : Identifiant du forum à supprimer
+      // Valeur de retour :
+      // 	booléen : Vrai si le forum a été supprimé, faux sinon
+      //
+      Procédure ForumSupprime(nIDForum)
+      
+      	gsForumErreurInfo = ""
+      
+      	GUID est une chaîne = HFSauvePosition(forum..nom)
+      	bRetour est un booléen
+      	
+      	// Recherche le forum
+      	HLitRecherchePremier(Forum, IDForum, nIDForum)
+      	si htrouve(Forum) alors	
+      		
+      		// Si c'est un groupe, on supprimer tous les forums du groupe
+      		si forum.estgroupe alors
+      			pour tout forum avec IDForumParent = nIDForum
+      				ForumSupprime(forum.idforum)
+      			FIN
+      		FIN
+      		
+      		// Supprime tous les sujets
+      		pour tout topic avec IDForum = nIDForum
+      			si pas SujetSupprime(topic.idtopic)	alors
+      				renvoyer faux
+      			FIN
+      		FIN
+      		
+      		// Supprime
+      		HLitRecherchePremier(Forum, IDForum, nIDForum)
+      		hsupprime(Forum)		
+      		bRetour = vrai		
+      	sinon
+      		gsForumErreurInfo = <§@15a24ac8074d8e8e0008§>
+      	fin
+      	
+      	HFRetourPosition(GUID)
+      	
+      renvoyer bRetour
+     type : 458752
+   -
+     name : TRIGGER_SuppressionForum
+     procedure_id : 1559190583075353500
+     type_code : 15
+     code : |1-
+      // Résumé : Trigger appelé lors de la suppression d'un forum
+      // Syntaxe :
+      //TRIGGER_SuppressionForum ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	Aucune
+      //
+      Procédure RESTREINTE TRIGGER_SuppressionForum()
+      
+      	sListeClé est une chaine
+      	sClé est une chaine
+      
+      	// Les sujets et les messages du forum vont être supprimés
+      	pour tout topic avec IDForum = forum.IDForum
+      
+      		// Supprime les compteurs associés au topic
+      		ParamètreSupprime(COMPTEUR_LECTURE + topic.IDtopic)	
+      		ParamètreSupprime(COMPTEUR_REPONSES_SUJETS + Topic.IDTopic)			
+      		
+      	FIN	
+      	
+      	// Supprime les compteurs associés au forum
+      	ParamètreSupprime(COMPTEUR_SUJETS_FORUM + Forum.IDForum)	
+      	ParamètreSupprime(COMPTEUR_REPONSES_FORUM + Forum.IDForum)	
+      	
+      	// Supprime toutes les notifications actives sur le forum
+      	sListeClé = ParamètreListe(PourTous, NOTIFICATION_FORUM_CREATION_SUJET + "_" + MODULE_FORUM + Forum.IDForum)
+      	pour toute chaine sClé de sListeClé separee par rc
+      		
+      		// Supprime la notification
+      		ParamètreSupprime(sClé)
+      		
+      	FIN
+     type : 458752
+   -
+     name : SujetCrée
+     procedure_id : 1559192021901659665
+     type_code : 15
+     code : |1+
+      // Résumé : Crée un sujet dans un forum
+      // Syntaxe :
+      //[ <Résultat> = ] SujetCrée (<sTitre>, <nIDForum>, <sPremierMessage> [, <sDescription> [, <nIDAuteur> [, <bEpinglé>]]])
+      //
+      // Paramètres :
+      //	sTitre : Titre du sujet
+      //	nIDForum : Identifiant du forum dans lequel le sujet est inscrit
+      //	sPremierMessage : Contenu du premier message du sujet
+      //	sDescription (valeur par défaut="") : Description facultative du sujet
+      //	nIDAuteur : <indiquez ici le rôle de nIDAuteur>
+      // 	bEpinglé (valeur par défaut=0) : < indiquez ici le rôle de bEpinglé >
+      // Valeur de retour :
+      // 	entier : Identifiant du sujet
+      //
+      Procédure SujetCrée(sTitre, nIDForum, sPremierMessage, sDescription = "", nIDAuteur = UtilisateurEnCours:IDUtilisateur, bEpinglé = faux)
+      
+      	gsForumErreurInfo = ""
+      
+      	GUID est une chaîne = HFSauvePosition(forum..nom + ";" + topic..nom)
+      	nIDTopic est un entier
+      	
+      	// Vérifie si le forum parent existe déjà
+      	HRecherchePremier(Forum, IDForum, nIDForum)
+      	si pas htrouve(Forum) ALORS
+      		gsForumErreurInfo = <§@15a24ac8074d8e8e0008§>
+      		HFRetourPosition(GUID)
+      		renvoyer 0
+      	FIN
+      	
+      	hraz(topic)
+      	
+      	// Création du sujet
+      	topic.DateHeureCréation = datedujour + maintenant
+      	topic.Description		= sDescription
+      	topic.EstEpinglé		= bEpinglé
+      	topic.IDForum			= nIDForum
+      	topic.IDUtilisateur		= nIDAuteur
+      	topic.Titre				= sTitre
+      	hajoute(Topic)
+      	
+      	// Création du premier message
+      	post.DateHeureCréation  = Topic.DateHeureCréation
+      	post.Contenu			= sPremierMessage
+      	post.IDTopic			= topic.idtopic
+      	post.IDUtilisateur		= nIDAuteur
+      	hajoute(post)
+      	
+      	// Associe le message au sujet
+      	topic.IDPremierPost		= post.idpost
+      	hmodifie(topic)
+      	
+      	nIDTopic = topic.idtopic
+      	
+      	HFRetourPosition(GUID)
+      	
+      renvoyer nIDTopic
+     type : 458752
+   -
+     name : SujetModifie
+     procedure_id : 1559192021901725279
+     type_code : 15
+     code : |1+
+      // Résumé : Modifie un sujet
+      // Syntaxe :
+      //[ <Résultat> = ] SujetModifie (<nIDSujet> [, <nEstEpinglé> [, <nNouvelIDForum> [, <sNouveauTitre> [, <sNouvelleDescription> [, <nEstFermé>]]]]])
+      //
+      // Paramètres :
+      //	nIDSujet : Identifiant du sujet à modifier
+      //	nEstEpinglé (valeur par défaut=-1) : Vrai pour épingler le sujet, Faux dans le cas contraire. -1 pour ne pas modifier
+      //	nNouvelIDForum (valeur par défaut=-1) : Forum dans lequel on doit placer le sujet ou -1 pour ne pas modifier
+      //	sNouveauTitre (valeur par défaut="") : Nouveau titre du sujet ou -1 pour ne pas modifier
+      //	sNouvelleDescription (valeur par défaut="") : Nouvelle description du sujet ou -1 pour ne pas modifier
+      // 	nEstFermé (valeur par défaut=-1) : Vrai pour fermer le sujet, Faux dans le cas contraire. -1 pour ne pas modifier
+      // Valeur de retour :
+      // 	booléen : Vrai si le sujet a été modifié, Faux sinon
+      //
+      Procédure SujetModifie(nIDSujet, nEstEpinglé = -1, nNouvelIDForum = -1, sNouveauTitre = "", sNouvelleDescription = "", nEstFermé = -1)
+      
+      	gsForumErreurInfo = ""
+      
+      	// On doit être administrateur ou modérateur
+      	SI EstAdministrateurOuModerateur() = Faux ALORS 
+      		gsForumErreurInfo = <§@15a24ac8074d8e8e0004§>
+      		RENVOYER Faux
+      	FIN
+      
+      	GUID est une chaîne = HFSauvePosition(forum..nom + ";" + topic..nom)
+      	bRetour est un booléen
+      
+      	// Recherche le forum
+      	si nNouvelIDForum <> -1 alors
+      		HRecherchePremier(forum, idforum, nNouvelIDForum)
+      		si pas htrouve(Forum) ALORS
+      			gsForumErreurInfo = <§@15a24ac8074d8e8e0008§>
+      			HFRetourPosition(GUID)
+      			renvoyer faux
+      		FIN
+      	FIN
+      	
+      	// Recherche le sujet
+      	HLitRecherchePremier(topic, idtopic, nIDSujet)
+      	si htrouve(topic) ALORS
+      		
+      		// Modifie les caractéristiques du sujet
+      		si nNouvelIDForum <> -1 		alors topic.IDForum 	= nNouvelIDForum
+      		si sNouveauTitre <> "" 			alors topic.Titre 		= sNouveauTitre
+      		si sNouvelleDescription <> "" 	alors topic.Description = sNouvelleDescription
+      		si nEstEpinglé <> -1 			alors topic.EstEpinglé 	= nEstEpinglé
+      		si nEstFermé <> -1 				alors topic.EstFermé 	= nEstFermé
+      		
+      		hmodifie(topic)
+      		
+      		bRetour = vrai
+      		
+      	sinon
+      		gsForumErreurInfo = <§@15a24ac8074d8e8e0009§>
+      	FIN
+      	
+      	HFRetourPosition(GUID)
+      	
+      renvoyer bRetour
+     type : 458752
+   -
+     name : SujetSupprime
+     procedure_id : 1559192021901790893
+     type_code : 15
+     code : |1+
+      // Résumé : Supprime un forum
+      // Syntaxe :
+      //[ <Résultat> = ] SujetSupprime (<nIDSujet>)
+      //
+      // Paramètres :
+      //	nIDSujet : Identifiant du sujet à supprimer
+      // Valeur de retour :
+      // 	booléen : Vrai si le sujet a été supprimé, Faux sinon
+      //
+      Procédure SujetSupprime(nIDSujet)
+      
+      	gsForumErreurInfo = ""
+      
+      	// On doit être administrateur ou modérateur
+      	SI EstAdministrateurOuModerateur() = Faux ALORS 
+      		gsForumErreurInfo = <§@15a24ac8074d8e8e0004§>
+      		RENVOYER Faux
+      	FIN
+      
+      	GUID est une chaîne = HFSauvePosition(topic..nom)
+      	bRetour est un booléen
+      	
+      	// Recherche le sujet
+      	HLitRecherchePremier(Topic, IDTopic, nIDSujet)
+      	si htrouve(Topic) alors	
+      		
+      		// Supprime tous les messages
+      		pour tout post avec IDTopic = topic.IDTopic
+      			// Supprime
+      			hsupprime(post)			
+      		FIN
+      		
+      		// On vérifie si le sujet est lié 
+      		sListe est une chaine
+      		sParamètre est une chaine
+      		
+      		// Supprime toutes les associations du sujet avec les partages
+      		sListe = ParamètreListe(pourtous, "SUJET_PARTAGE_", vrai)
+      		pour toute chaine sParamètre de sListe separee par rc
+      			si val(extraitchaine(sParamètre, 2)) = nIDSujet ALORS
+      				ParamètreSupprime(ExtraitChaîne(sParamètre, 1))
+      			FIN
+      		FIN
+      	
+      		// Supprime toutes les associations du sujet avec les WIKI
+      		sListe = ParamètreListe(PourTous, "SUJET_IDWIKI_", Vrai)
+      		POUR TOUTE CHAINE sParamètre DE sListe SEPAREE PAR RC
+      			SI Val(ExtraitChaîne(sParamètre, 2)) = nIDSujet ALORS
+      				ParamètreSupprime(ExtraitChaîne(sParamètre, 1))
+      			FIN
+      		FIN
+      				
+      		// Supprime toutes les associations du sujet avec les actualités
+      		sListe = ParamètreListe(PourTous, "SUJET_ACTUALITE_", Vrai)
+      		POUR TOUTE CHAINE sParamètre DE sListe SEPAREE PAR RC
+      			SI Val(ExtraitChaîne(sParamètre, 2)) = nIDSujet ALORS
+      				ParamètreSupprime(ExtraitChaîne(sParamètre, 1))
+      			FIN
+      		FIN		
+      		
+      		// Supprime
+      		hsupprime(Topic)		
+      		bRetour = vrai		
+      	sinon
+      		gsForumErreurInfo = <§@15a24ac8074d8e8e0009§>
+      	fin
+      	
+      	HFRetourPosition(GUID)
+      	
+      renvoyer bRetour
+     type : 458752
+   -
+     name : ForumMiseAJour
+     procedure_id : 1559194482950606225
+     type_code : 15
+     code : |1-
+      // Résumé : Remet à jour les compteurs des forums
+      // Syntaxe :
+      //ForumMiseAJour ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	Aucune
+      //
+      Procédure RESTREINTE ForumMiseAJour()
+      
+      	gsForumErreurInfo = ""
+      
+      	GUID est une chaîne = HFSauvePosition(forum..nom + ";" + topic..nom + ";" + post..nom)
+      	
+      	// Supprime les compteurs
+      	ForumCompteursSupprime()
+      	
+      	// Pour tous les forums
+      	pour chaque forum
+      		
+      		// TOTAL DES MESSAGES D'UN FORUM
+      		REQ_Forum_TotalMessagesForum.pIDForum = forum.IDForum
+      		HExécuteRequête(REQ_Forum_TotalMessagesForum)
+      		
+      		// Sauvegarde le compteur
+      		ParamètreEcrit(COMPTEUR_REPONSES_FORUM + forum.idforum, REQ_Forum_TotalMessagesForum.Total)
+      
+      		// TOTAL DES SUJETS D'UN FORUM
+      		REQ_Forum_TotalSujetsForum.pIDForum = Forum.IDForum
+      		HExécuteRequête(REQ_Forum_TotalSujetsForum)
+      		
+      		// Sauvegarde le compteur
+      		ParamètreEcrit(COMPTEUR_SUJETS_FORUM + forum.IDForum, REQ_Forum_TotalSujetsForum.Total)
+      				
+      		// TOTAL DES SUJETS POUR TOUS LES FORUMS
+      		CompteurIncrémente(COMPTEUR_TOUS_LES_SUJETS, REQ_Forum_TotalMessagesForum.Total)
+      				
+      		// Pour tous les sujets du forum
+      		pour chaque topic avec IDForum = forum.idforum
+      			
+      			// TOTAL DES MESSAGES D'UN SUJET
+      			REQ_Forum_TotalMessagesSujet.pIDSujet = topic.idtopic
+      			HExécuteRequête(REQ_Forum_TotalMessagesSujet)
+      			
+      			// Sauvegarde le compteur
+      			ParamètreEcrit(COMPTEUR_REPONSES_SUJETS + topic.idtopic, REQ_Forum_TotalMessagesSujet.Total)
+      			
+      			// TOTAL DES MESSAGES POUR TOUS LES SUJETS ET LES FORUMS
+      			CompteurIncrémente(COMPTEUR_TOUTES_LES_REPONSES, REQ_Forum_TotalMessagesSujet.Total)
+      			
+      			// Mise à jour du dernier post
+      			HGèreTrigger(faux)
+      			HLitRechercheDernier(post, IDTopic, topic.idtopic)
+      			si htrouve(post) alors
+      				topic.IDAuteurDernierPost = post.IDUtilisateur
+      				topic.DateHeureDernierPost = post.DateHeureCréation
+      				topic.IDDernierPost = post.IDPost
+      			sinon
+      				topic.IDAuteurDernierPost = topic.IDUtilisateur
+      				topic.DateHeureDernierPost = topic.DateHeureCréation
+      				topic.IDDernierPost = topic.IDPremierPost
+      			FIN
+      			hmodifie(topic)
+      			HGèreTrigger(vrai)
+      		FIN
+      		
+      	FIN	
+      	
+      	HFRetourPosition(GUID)
+     type : 458752
+   -
+     name : ForumNotificationActive
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1559219015977023556
+     type_code : 15
+     group : 3
+     code : |1-
+      // Résumé : Vérifie si une notification de création de sujet sur un forum est active pour un utilisateur
+      // Syntaxe :
+      //[ <Résultat> = ] ForumNotificationActive (<nIDForum> [, <nIDUtilisateur>])
+      //
+      // Paramètres :
+      //	nIDForum : Identifiant du forum
+      //	nIDUtilisateur : Identifiant de l'utilisateur
+      // Valeur de retour :
+      // 	Type indéterminé : Vrai si une notification est active, Faux sinon
+      //
+      Procédure ForumNotificationActive(nIDForum, nIDUtilisateur = UtilisateurEnCours:IDUtilisateur)
+      	
+      	// On doit être connecté
+      	SI PAS EstConnecté() ALORS renvoyer 0
+      
+      renvoyer val(ParamètreLit(NOTIFICATION_FORUM_CREATION_SUJET + "_" + MODULE_FORUM + nIDForum + "_" + nIDUtilisateur, PourTous, "0"))
+      	
+     type : 458752
+   -
+     name : SujetNotificationActive
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1559219698891465545
+     type_code : 15
+     group : 3
+     code : |1-
+      // Résumé : Vérifie si une notification de création de réponse sur un sujet est active pour un utilisateur
+      // Syntaxe :
+      //[ <Résultat> = ] SujetNotificationActive (<nIDSujet> [, <nIDUtilisateur>])
+      //
+      // Paramètres :
+      //	nIDSujet : Identifiant du sujet
+      //	nIDUtilisateur : Identifiant de l'utilisateur
+      // Valeur de retour :
+      // 	Type indéterminé : Vrai si une notification est active, Faux sinon
+      //
+      Procédure SujetNotificationActive(nIDSujet, nIDUtilisateur = UtilisateurEnCours:IDUtilisateur)
+      
+      	// On doit être connecté
+      	SI PAS EstConnecté() ALORS renvoyer 0
+      
+      renvoyer val(ParamètreLit(NOTIFICATION_FORUM_CREATION_REPONSE + "_" + MODULE_FORUM + nIDSujet + "_" + nIDUtilisateur, PourTous, "0"))
+      	
+     type : 458752
+   -
+     name : ForumNotificationSupprime
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1559220867139160708
+     type_code : 15
+     group : 3
+     code : |1-
+      // Résumé : Supprime une notification de création de sujet sur un forum pour un utilisateur
+      // Syntaxe :
+      //ForumNotificationSupprime (<nIDForum> [, <nIDUtilisateur>])
+      //
+      // Paramètres :
+      //	nIDForum : Identifiant du forum
+      //	nIDUtilisateur : Identifiant de l'utilisateur// Valeur de retour :
+      // 	Aucune
+      //
+      Procédure ForumNotificationSupprime(nIDForum, nIDUtilisateur = UtilisateurEnCours:IDUtilisateur)
+      
+      	// On doit être connecté
+      	SI PAS EstConnecté() ALORS RETOUR
+      
+      	Paramètresupprime(NOTIFICATION_FORUM_CREATION_SUJET + "_" + MODULE_FORUM + nIDForum + "_" + nIDUtilisateur)
+      	
+     type : 458752
+   -
+     name : SujetNotificationSupprime
+     procedure_id : 1559221111956417234
+     type_code : 15
+     group : 3
+     code : |1-
+      // Résumé : Supprime une notification de création de réponse sur un sujet pour un utilisateur
+      // Syntaxe :
+      //SujetNotificationSupprime (<nIDSujet> [, <nIDUtilisateur>])
+      //
+      // Paramètres :
+      //	nIDSujet : Identifiant du sujet
+      //	nIDUtilisateur : Identifiant de l'utilisateur
+      // Valeur de retour :
+      // 	Aucune
+      //
+      Procédure SujetNotificationSupprime(nIDSujet, nIDUtilisateur = UtilisateurEnCours:IDUtilisateur)
+      
+      	// On doit être connecté
+      	SI PAS EstConnecté() ALORS Retour
+      
+      	Paramètresupprime(NOTIFICATION_FORUM_CREATION_REPONSE + "_" + MODULE_FORUM + nIDSujet + "_" + nIDUtilisateur)
+      	
+     type : 458752
+   -
+     name : ForumNotificationCrée
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1559221339596028175
+     type_code : 15
+     group : 3
+     code : |1-
+      // Résumé : Crée une notification de création de sujet sur un forum pour un utilisateur
+      // Syntaxe :
+      //ForumNotificationCrée (<nIDForum> [, <nIDUtilisateur>])
+      //
+      // Paramètres :
+      //	nIDForum : Identifiant du forum
+      // 	nIDUtilisateur : Identifiant de l'utilisateur
+      // Valeur de retour :
+      // 	Aucune
+      //
+      Procédure ForumNotificationCrée(nIDForum, nIDUtilisateur = UtilisateurEnCours:IDUtilisateur)
+      
+      	// On doit être connecté
+      	SI PAS EstConnecté() ALORS RETOUR
+      
+      	ParamètreEcrit(NOTIFICATION_FORUM_CREATION_SUJET + "_" + MODULE_FORUM + nIDForum + "_" + nIDUtilisateur, "1")
+      	
+     type : 458752
+   -
+     name : SujetNotificationCrée
+     procedure_id : 1559221477039141665
+     type_code : 15
+     group : 3
+     code : |1-
+      // Résumé : Crée une notification de création de réponse sur un sujet pour un utilisateur
+      // Syntaxe :
+      //SujetNotificationCrée (<nIDSujet> [, <nIDUtilisateur>])
+      //
+      // Paramètres :
+      //	nIDSujet : Identifiant du sujet
+      // 	nIDUtilisateur : Identifiant de l'utilisateur
+      // Valeur de retour :
+      // 	Aucune
+      //
+      Procédure SujetNotificationCrée(nIDSujet, nIDUtilisateur = UtilisateurEnCours:IDUtilisateur)
+      
+      	// On doit être connecté
+      	SI PAS EstConnecté() ALORS RETOUR
+      
+      	ParamètreEcrit(NOTIFICATION_FORUM_CREATION_REPONSE + "_" + MODULE_FORUM + nIDSujet + "_" + nIDUtilisateur, "1")
+      	
+     type : 458752
+   -
+     name : RéponseSupprime
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1559310043145084119
+     type_code : 15
+     group : 3
+     code : |1+
+      // Résumé : Supprime une réponse
+      // Syntaxe :
+      //[ <Résultat> = ] RéponseSupprime (<nIDRéponse>)
+      //
+      // Paramètres :
+      //	nIDRéponse : Identifiant de la réponse
+      // Valeur de retour :
+      // 	booléen : Vrai si la réponse a été supprimée, Faux sinon
+      //
+      Procédure RéponseSupprime(nIDRéponse)
+      
+      	gsForumErreurInfo = ""
+      
+      	// On doit être administrateur ou modérateur
+      	si EstAdministrateurOuModerateur() = faux alors 
+      		gsForumErreurInfo = <§@15a24ac8074d8e8e0004§>
+      		renvoyer faux
+      	FIN
+      
+      	GUID est une chaîne = HFSauvePosition(Post..nom)
+      	bRetour est un booléen
+      	
+      	// Recherche le sujet
+      	HLitRecherchePremier(Post, IDPost, nIDRéponse)
+      	si htrouve(Post) alors	
+      	
+      		HLitRecherchePremier(Topic, IDTopic, Post.IDTopic)
+      		si htrouve(topic) ALORS
+      			
+      			// Supprime le sujet
+      			si post.idpost = topic.IDPremierPost ALORS
+      				bRetour = SujetSupprime(Topic.idtopic)
+      			sinon
+      				// Supprime
+      				HSupprime(Post)	
+      
+      				bRetour = Vrai						
+      			FIN
+      			
+      		sinon
+      			// Supprime
+      			HSupprime(Post)		
+      			bRetour = Vrai				
+      		FIN
+      			
+      	sinon
+      		gsForumErreurInfo = <§@15a24ac8074d8e8e000a§>
+      	fin
+      	
+      	HFRetourPosition(GUID)
+      	
+      renvoyer bRetour
+     type : 458752
+   -
+     name : ForumCompteursSupprime
+     procedure_id : 1559931924609375092
+     type_code : 15
+     code : |1-
+      // Résumé : Supprime tous les compteurs associés au forum
+      // Syntaxe :
+      //ForumCompteursSupprime ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	Aucune
+      //
+      Procédure RESTREINTE ForumCompteursSupprime()
+      
+      	gsForumErreurInfo = ""
+      
+      	sListeClé est une chaine
+      	sClé est une chaine
+      	nIDSujet est un entier
+      
+      	// Récupère tous les compteurs enregistrés
+      	sListeClé = ParamètreListe(PourTous, COMPTEUR_SUJETS_FORUM, Faux)
+      	sListeClé += [RC] + ParamètreListe(PourTous, COMPTEUR_REPONSES_FORUM, Faux)
+      	sListeClé += [RC] + ParamètreListe(PourTous, COMPTEUR_REPONSES_SUJETS, Faux)
+      	
+      	// Supprime tous les compteurs
+      	POUR TOUTE CHAINE sClé DE sListeClé SEPAREE PAR RC		
+      		// Supprime le compteur
+      		ParamètreSupprime(sClé)
+      	FIN
+      	
+      	// Vérifie pour chaque compteur de lectures que le sujet existe toujours
+      	sListeClé = ParamètreListe(PourTous, COMPTEUR_LECTURE)
+      	POUR TOUTE CHAINE sClé DE sListeClé SEPAREE PAR RC		
+      		
+      		// Récupère l'identifiant du sujet
+      		nIDSujet = Remplace(sClé, COMPTEUR_LECTURE, "")
+      		
+      		// Si le sujet n'existe plus
+      		HRecherchePremier(Topic, IDTopic, nIDSujet)
+      		SI PAS HTrouve(Topic) ALORS
+      			// Supprime le compteur
+      			ParamètreSupprime(sClé)
+      		FIN
+      		
+      	FIN
+      	
+      	// Supprime les compteurs globaux
+      	ParamètreSupprime(COMPTEUR_TOUS_LES_SUJETS)
+      	ParamètreSupprime(COMPTEUR_TOUTES_LES_REPONSES)
+     type : 458752
+   -
+     name : RécupèreIDForumPartages
+     procedure_id : 1560337416533622727
+     type_code : 15
+     code : |1-
+      // Résumé : Renvoie l'identifiant du forum des partages
+      // Syntaxe :
+      //[ <Résultat> = ] RécupèreIDForumPartages ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	entier : Identifiant du forum
+      //
+      Procédure RécupèreIDForumPartages()
+      
+      	sGUID est une chaine = HFSauvePosition(forum..nom)
+      	nIDForum est un entier
+      	
+      	pour tout forum avec "EstProtégé=1 ET Type=" + FORUM_PARTAGES
+      		nIDForum = Forum.IDForum
+      		sortir
+      	FIN
+      	
+      	HFRetourPosition(sGUID)
+      
+      renvoyer nIDForum
+     type : 458752
+   -
+     name : RécupèreIDForumWIKI
+     procedure_id : 1560337511023973549
+     type_code : 15
+     code : |1-
+      // Résumé : Renvoie l'identifiant du forum des articles WIKI
+      // Syntaxe :
+      //[ <Résultat> = ] RécupèreIDForumWIKI ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	entier : identifiant du forum
+      //
+      Procédure RécupèreIDForumWIKI()
+      
+      	sGUID est une chaine = HFSauvePosition(forum..nom)
+      	nIDForum est un entier
+      	
+      	POUR TOUT Forum AVEC "EstProtégé=1 ET Type=" + FORUM_WIKI
+      		nIDForum = Forum.IDForum
+      		SORTIR
+      	FIN
+      	
+      	HFRetourPosition(sGUID)
+      
+      RENVOYER nIDForum
+     type : 458752
+   -
+     name : RécupèreIDForumAnnonces
+     procedure_id : 1560337532498881002
+     type_code : 15
+     code : |1-
+      // Résumé : Renvoie l'identifiant du forum des petites annonces
+      // Syntaxe :
+      //[ <Résultat> = ] RécupèreIDForumAnnonces ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	entier : Identifiant du forum
+      //
+      Procédure RécupèreIDForumAnnonces()
+      
+      	sGUID est une chaine = HFSauvePosition(forum..nom)
+      	nIDForum est un entier
+      	
+      	POUR TOUT Forum AVEC "EstProtégé=1 ET Type=" + FORUM_PETITESANNONCES
+      		nIDForum = Forum.IDForum
+      		SORTIR
+      	FIN
+      	
+      	HFRetourPosition(sGUID)
+      
+      RENVOYER nIDForum
+     type : 458752
+   -
+     name : RécupèreIDForumActualités
+     procedure_id : 1561782802015224443
+     type_code : 15
+     code : |1-
+      // Résumé : Renvoie l'identifiant du forum des actualités
+      // Syntaxe :
+      //[ <Résultat> = ] RécupèreIDForumActualités ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	entier : Identifiant du forum des actualités
+      //
+      Procédure RécupèreIDForumActualités()
+      
+      	sGUID est une chaine = HFSauvePosition(forum..nom)
+      	nIDForum est un entier
+      	
+      	POUR TOUT Forum AVEC "EstProtégé=1 ET Type=" + FORUM_ARTICLESNEWS
+      		nIDForum = Forum.IDForum
+      		SORTIR
+      	FIN
+      	
+      	HFRetourPosition(sGUID)
+      
+      RENVOYER nIDForum
+     type : 458752
+   -
+     name : ForumLibellé
+     procedure_id : 1561809555473076047
+     type_code : 15
+     code : |1-
+      // Résumé : Renvoie le libellé d'un forum
+      // Syntaxe :
+      //[ <Résultat> = ] ForumLibellé (<nIDForum>)
+      //
+      // Paramètres :
+      //	nIDForum : Identifiant du forum
+      // Valeur de retour :
+      // 	chaîne : Titre du forum
+      //
+      Procédure ForumLibellé(nIDForum)
+      
+      	gsForumErreurInfo = ""
+      
+      	sLibellé est une chaine
+      	sGUID est une chaine = HFSauvePosition(forum..nom)
+      	
+      	HLitRecherchePremier(forum, idforum, nIDForum)
+      	si htrouve(Forum) ALORS
+      		sLibellé = forum.titre
+      	sinon
+      		gsForumErreurInfo = <§@15a24ac8074d8e8e0008§>
+      	FIN
+      	
+      	HFRetourPosition(sGUID)
+      	
+      renvoyer sLibellé
+     type : 458752
+   -
+     name : SujetLibellé
+     procedure_id : 1561811737349935351
+     type_code : 15
+     code : |1-
+      // Résumé : Renvoie le libellé d'un sujet (topic)
+      // Syntaxe :
+      //[ <Résultat> = ] SujetLibellé (<nIDSujet> [, <nIDForum>])
+      //
+      // Paramètres :
+      //	nIDSujet : Identifiant du sujet
+      // 	nIDForum (valeur par défaut=0) : Identifiant retour du forum
+      // Valeur de retour :
+      // 	chaîne : Libellé du sujet
+      //
+      Procédure SujetLibellé(nIDSujet, nIDForum = 0)
+      
+      	sLibellé est une chaine
+      	sGUID est une chaine = HFSauvePosition(topic..nom)
+      	
+      	HLitRecherchePremier(topic, idtopic, nIDSujet)
+      	si htrouve(topic) ALORS
+      		sLibellé = topic.titre
+      		nIDForum = topic.IDForum
+      	FIN
+      	
+      	HFRetourPosition(sGUID)
+      	
+      renvoyer sLibellé
+     type : 458752
+   -
+     name : ForumErreurInfo
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1570392163495547577
+     type_code : 15
+     code : |1-
+      // Résumé : <indiquez ici ce que fait la procédure>
+      // Syntaxe :
+      //[ <Résultat> = ] ForumErreurInfo ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	chaîne : // 	Aucune
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure ForumErreurInfo()
+      
+      renvoyer gsForumErreurInfo
+     type : 458752
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : COL_Collection1
+resources :
+ string_res :
+  identifier : 0x15a24ac8074d8e8e
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+  strings :
+   -
+     text :
+      fr-FR : Annonce de réponse à un sujet
+     index : 0
+   -
+     text :
+      fr-FR : "\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t%1 vient d'écrire une réponse dans le sujet auquel vous êtes inscrit.\r\n\t\t\t\t\t\t\t\t\tTitre du sujet : %2\r\n\t\t\t\t\t\t\t\t\tDans le forum : %3\r\n\t\t\t\t\t\t\t\t\t"
+     index : 1
+   -
+     text :
+      fr-FR : Annonce de création de sujet
+     index : 2
+   -
+     text :
+      fr-FR : "\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t%1 vient de créer un sujet dans le forum auquel vous êtes inscrit.\r\n\t\t\t\t\t\t\t\tTitre du sujet : %2\r\n\t\t\t\t\t\t\t\tDans le forum : %3\r\n\t\t\t\t\t\t\t\t"
+     index : 3
+   -
+     text :
+      fr-FR : Cette opération doit être effectuée par un administrateur ou un modérateur
+     index : 4
+   -
+     text :
+      fr-FR : Le groupe de forum spécifié n'existe pas
+     index : 5
+   -
+     text :
+      fr-FR : Ce forum existe déjà
+     index : 6
+   -
+     text :
+      fr-FR : Un forum contenant des sujets ne peut pas devenir un groupe de forums
+     index : 7
+   -
+     text :
+      fr-FR : Ce forum n'existe pas
+     index : 8
+   -
+     text :
+      fr-FR : Ce sujet n'existe pas
+     index : 9
+   -
+     text :
+      fr-FR : Ce message n'existe pas
+     index : 10
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ

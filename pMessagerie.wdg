@@ -1,0 +1,1977 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : pMessagerie
+ major_version : 28
+ minor_version : 0
+ type : 7
+ description : ""
+ subtype : 0
+procedure_set :
+ identifier : 0x15544fb60203c0e4
+ internal_properties : CAAAAAgAAABGLu41kG7fjQV3iS4F72qmnKaNh5694reolNKIW0iw
+ code_elements :
+  internal_properties : CAAAAAgAAAB7Ymz4CJKkl1Do844bI1Ct7yahedfgUPS434mIRyAiNgE30plXFtLXeBGrcKSJLiLdFhRfdhJtuWTzSASW8M5VdvcjEB+ZY/oUoYdH1sb0zkrdI231Nn/7Y29RQdiUVxFnyaiSbA9TuQocuTTvXYzcjSPhASLF3zbS
+  type_code : 31
+  p_codes :
+   -
+     code : |1-
+      // Collection de procédures de gestion de la messagerie
+      
+      // Définition des constantes
+      constant
+      	// Types de destinataires
+      	destPrincipaux 	= 1
+      	destCopie 		= 2
+      	destCachés 		= 4
+      	
+      	// Boîte sélectionnée
+      	BoîteRéception  = 1
+      	Etiquettes 		= 2
+      	BoîteEnvoyés 	= 3
+      	BoîteSupprimés  = 4
+      	BoîteArchivés	= 5
+      	BoîteRecherche	= 6
+      FIN
+      
+      // Mémorisation de la dernière erreur de la messagerie
+      gsMessagerieErreurInfo est une chaine
+     type : 720896
+  procedures :
+   -
+     name : MessageEnvoie
+     procedure_id : 1536941050336502686
+     type_code : 15
+     code : |1-
+      // Résumé : Envoi un message dans la BAL des utilisateurs spécifiés
+      // Syntaxe :
+      //[ <Résultat> = ] MessageEnvoie (<sListeDestinatairesPrincipaux>, <sListeDestinatairesCopie>, <sListeDestinatairesCachés>, <sObjet>, <sMessage> [, <sIDExpediteur> [, <nPriorité> [, <bUrgent> [, <sListePièceJointes>]]]])
+      //
+      // Paramètres :
+      //	sListeDestinatairesPrincipaux : Liste des destinataires (séparés par ;, la liste peut contenir : des noms de groupes, des adresses emails, des logins)
+      //	sListeDestinatairesCopie : Liste des destinataires en copie ('')
+      //	sListeDestinatairesCachés : Liste des destintaires cachés ('')
+      //	sObjet : Objet du message
+      //	sMessage : Message au format HHCode ou texte brut
+      //	sIDExpediteur : Identifiant de l'expéditeur (par défaut : utilisateur en cours)
+      //	nPriorité (valeur par défaut=1) : Priorité (prioritéBasse, prioritéNormale, prioritéElevée)
+      //	bUrgent (valeur par défaut=0) : Caractère urgent
+      //	sListePièceJointes (valeur par défaut="") : Liste des pièces jointes (séparées par ; la liste peut contenir : des chemins de fichier ou des clés de pièce jointe)
+      // Valeur de retour :
+      // 	booléen : Vrai si le message a bien été envoyé, Faux sinon
+      //
+      Procédure MessageEnvoie(sListeDestinatairesPrincipaux, sListeDestinatairesCopie, sListeDestinatairesCachés, ...
+      					   sObjet, sMessage, sIDExpéditeur = UtilisateurEnCours:IDUtilisateur, nPriorité = PrioritéNormale, bUrgent = faux, ...
+      					   sListePièceJointes = "")
+      
+      // Variables locales
+      bRetour 				est un booléen
+      sMessageTexte 			est une chaine
+      sMessageHTML  			est une chaine
+      sMessageHHCode 			est une chaine
+      nNbDestinataireEmail 	est un entier
+      sListeClésPiècesJointes est une chaine	
+      nIDMessage 				est un entier
+      bEmailExterne 			est un booléen
+      
+      // Initialisation du message d'erreur
+      gsMessagerieErreurInfo = ""
+      	
+      // On stocke le message dans trois formats
+      sMessageHHCode = sMessage
+      sMessageHTML   = sMessage
+      sMessageTexte  = WL.HTMLVersTexte(sMessageHHCode)
+      
+      // Initialisation des fichiers
+      hraz(message)
+      
+      // Si l'expéditeur est un utilisateur interne 
+      si DestinataireEstUnUtilisateur(RécupèreLogin(sIDExpéditeur)) alors
+      	bEmailExterne 			  = faux
+      sinon
+      	// Sinon c'est un utilisateur externe (adresse email)
+      	bEmailExterne			  = vrai
+      FIN
+      
+      // Création du message
+      message.DateHeureCréation = datedujour + maintenant
+      message.DateHeureEnvoi    = datedujour + maintenant	
+      message.Priorité		  = nPriorité
+      message.esturgent		  = bUrgent
+      message.Sujet			  = sObjet
+      message.Contenu			  = sMessageHHCode
+      
+      si bEmailExterne = faux alors
+      	Message.IDExpéditeur	  = sIDExpéditeur	
+      	Message.EmailExpéditeur   = ""
+      	Message.DateHeureCréation = DateDuJour + Maintenant
+      	Message.DateHeureEnvoi    = Message.DateHeureCréation
+      sinon
+      	
+      	sIdentifiant est une chaine
+      	SI Email.MessageID = "" ALORS
+      		sIdentifiant = Email.Expéditeur + Email.DateRéception
+      	SINON
+      		sIdentifiant = Email.MessageID
+      	FIN
+      	
+      	Message.IDExpéditeur	  = -1	
+      	Message.EmailExpéditeur   = sIDExpéditeur	
+      	Message.DateHeureCréation = MessageRécupèreDate(Email.DateRéception)
+      	Message.DateHeureEnvoi    = Message.DateHeureEnvoi
+      	message.Identifiant		  = sIdentifiant
+      FIN
+      
+      // Ajout du message
+      bRetour = hajoute(message, hAffecteParcours)
+      
+      // Mémorisation de l'identifiant du message
+      nIDMessage = Message.IDMessage
+      
+      // Est-ce que le message a été enregistré ?
+      si bRetour alors
+      	
+      	// Crée la liste des pièces jointes
+      	sListeClésPiècesJointes = MessageCréePiècesJointes(nIDMessage, sListePièceJointes, sIDExpéditeur)
+      	
+      	// Crée la liste des destinataires du message
+      	nNbDestinataireEmail =  MessageCréeDestinataires(nIDMessage, sListeDestinatairesPrincipaux	, destPrincipaux, bRetour)
+      	nNbDestinataireEmail += MessageCréeDestinataires(nIDMessage, sListeDestinatairesCopie		, destcopie, bRetour)
+      	nNbDestinataireEmail += MessageCréeDestinataires(nIDMessage, sListeDestinatairesCachés		, destCachés, bRetour)
+      				
+      	// Envoi d'un e-mail en réponse si cet une adresse externe	
+      	si bEmailExterne = faux alors
+      
+      		// Pour tous les destinataires 'mail' il faut envoyer un email
+      		si nNbDestinataireEmail > 0 alors				
+      			bRetour = MessageEnvoieSMTP(sIDExpéditeur, nIDMessage, sObjet, sMessageTexte, sMessageHTML, ...
+      									   bUrgent, nPriorité, sListeClésPiècesJointes)
+      		fin
+      		
+      	fin		
+      
+      	
+      sinon
+      	// Mémorisation de l'erreur
+      	gsMessagerieErreurInfo = herreurinfo(herrmessage)
+      fin
+      
+      // Renvoie le compte-rendu
+      renvoyer bRetour
+     type : 458752
+   -
+     name : DestinataireEstUnUtilisateur
+     procedure_id : 1536988217721976256
+     type_code : 15
+     code : |1-
+      // Résumé : Vérifie si un destinataire est un utilisateur connu
+      // Syntaxe :
+      //[ <Résultat> = ] DestinataireEstUnUtilisateur (<sDestinataire>)
+      //
+      // Paramètres :
+      //	sDestinataire : Destinataire
+      // Valeur de retour :
+      // 	booléen : Vrai si le destinataire est un utilisateur connnu
+      //
+      Procédure DestinataireEstUnUtilisateur(sDestinataire)
+      
+      // Variables locales
+      bRetour 		est un booléen
+      GUID 			est une chaîne
+      
+      // Sauvegarde du contexte
+      GUID = HFSauvePosition(utilisateur..nom)
+      
+      // Recherche de l'utilisateur
+      HLitRecherchePremier(Utilisateur, Login, sDestinataire)
+      bRetour = htrouve(Utilisateur)
+      
+      // Restauration du contexte
+      HFRetourPosition(GUID)
+      
+      // Renvoie le résultat	
+      renvoyer bRetour
+     type : 458752
+   -
+     name : DestinataireEstUnGroupe
+     procedure_id : 1536988415291173029
+     type_code : 15
+     code : |1-
+      // Résumé : Vérifie si un destinataire est un groupe connu
+      // Syntaxe :
+      //[ <Résultat> = ] DestinataireEstUnGroupe (<sDestinataire>)
+      //
+      // Paramètres :
+      //	sDestinataire : Destinataire
+      // Valeur de retour :
+      // 	booléen : Vrai si le destinataire est un groupe
+      //
+      Procédure DestinataireEstUnGroupe(sDestinataire)
+      
+      // Variables locales
+      bRetour 		est un booléen
+      GUID 			est une chaîne
+      
+      // Sauvegarde du contexte
+      GUID  = HFSauvePosition(groupe..nom)
+      
+      // Recherche du groupe d'utilisateur
+      HRecherchePremier(Groupe, TitreParUtilisateur, [sDestinataire, UtilisateurEnCours:IDUtilisateur])
+      bRetour = htrouve(Groupe)
+      
+      si pas bRetour alors
+      	// Groupe public
+      	HRecherchePremier(Groupe, TitreParUtilisateur, [sDestinataire, pourtous])
+      	bRetour = HTrouve(Groupe)
+      FIN
+      
+      // Restauration du contexte
+      HFRetourPosition(GUID)
+      	
+      // Renvoie le résultat		
+      renvoyer bRetour
+     type : 458752
+   -
+     name : DestinataireEstUneAdresseEmail
+     procedure_id : 1536988436766080139
+     type_code : 15
+     code : |1-
+      // Résumé : Vérifie si un destinataire est une adresse email externe
+      // Syntaxe :
+      //[ <Résultat> = ] DestinataireEstUneAdresseEmail (<sDestinataire>)
+      //
+      // Paramètres :
+      //	sDestinataire : Destinataire
+      // Valeur de retour :
+      // 	booléen : Vrai si le destinataire est une adresse email
+      //
+      Procédure DestinataireEstUneAdresseEmail(sDestinataire)
+      
+      // Variables locales
+      bRetour est un booléen
+      
+      // Vérifie si la chaîne vérifie l'expression régulière d'une adresse email
+      bRetour = VérifieExpressionRégulière(sDestinataire, "[-.a-z0-9]+[@][-.a-z0-9]+[.][a-z]{2,4}")	
+      
+      // Renvoie le résultat			
+      renvoyer bRetour
+     type : 458752
+   -
+     name : DestinataireEstDéjàPrésent
+     procedure_id : 1536989982957812583
+     type_code : 15
+     code : |1+
+      // Résumé : Vérifie si un destinataire est déjà présent dans la liste des destinataires d'un message
+      // Syntaxe :
+      //[ <Résultat> = ] DestinataireEstDéjàPrésent (<nIDMessage>, <pDestinataire>)
+      //
+      // Paramètres :
+      //	nIDMessage : Identifiant du message
+      //	pDestinataire : Destinataire à vérifier (ID ou adresse email)
+      // Valeur de retour :
+      // 	booléen : Vrai si le detinataire est déjà dans la liste de destinataire d'un message
+      //
+      Procédure DestinataireEstDéjàPrésent(nIDMessage, pDestinataire)
+      
+      // Variables locales
+      bRetour est un booléen
+      GUID    est une chaîne
+      
+      // Sauvegarde du contexte
+      GUID  = HFSauvePosition(Destinataire..nom)
+      
+      // Si <pDestinataire> est une chaîne, on vérifie sur l'adresse email
+      si pas (("" + val(pDestinataire)) = pDestinataire) alors
+      	// Recherche du destinataire par adresse email
+      	HRecherchePremier(Destinataire, EmailDestinataireParIDMessage, [pDestinataire, nIDMessage])
+      
+      // Sinon on vérifie sur l'ID
+      sinon
+      		
+      	HRecherchePremier(Destinataire, IDUtilisateurParIDMessage, [Val(pDestinataire), nIDMessage])
+      		
+      FIN
+      
+      // Est-ce que le destinataire a été trouvé ?
+      bRetour = htrouve(Destinataire)
+      
+      // Restauration du contexte
+      HFRetourPosition(GUID)
+      
+      renvoyer bRetour
+     type : 458752
+   -
+     name : MessageCréeDestinataires
+     procedure_id : 1536991310106685297
+     type_code : 15
+     code : |1-
+      // Résumé : Crée la liste des destintaires d'un message
+      // Syntaxe :
+      //[ <Résultat> = ] MessageCréeDestinataires (<nIDMessage>, <sListeDestinataire> [, <nTypeDestinataires> [, <bRetour>]])
+      //
+      // Paramètres :
+      //	nIDMessage : Identifiant du message
+      //	sListeDestinataire : Liste des destinataires
+      //	nTypeDestinataires (valeur par défaut=1) : Type des destintaires (destPrincipaux, destSecondaires, destCaché)
+      // 	bRetour (valeur par défaut=0) : < indiquez ici le rôle de bRetour >
+      // Valeur de retour :
+      // 	entier : // 	Aucune
+      //
+      Procédure RESTREINTE MessageCréeDestinataires(nIDMessage, sListeDestinataire, nTypeDestinataires = destPrincipaux, bRetour = faux)
+      
+      // Variables locales
+      sDestinataire 			est une chaine	
+      sListeMembres 			est une chaine
+      nNbDestinataireEmail 	est un entier
+      
+      // Création de la liste des destinataires
+      POUR TOUTE CHAINE sDestinataire DE sListeDestinataire SEPAREE PAR ";"
+      	// Vérification de la validité du destinataire
+      	si sDestinataire ~= "" alors continuer
+      	
+      	// Détection du type d'utilisateur
+      	SELON Vrai
+      		// C'est un utilisateur de la base
+      		CAS DestinataireEstUnUtilisateur(sDestinataire)
+      			
+      			// Vérifie si l'utilisateur n'est pas déjà présent dans la liste des destinataires de ce message
+      			SI DestinataireEstDéjàPrésent(Message.IDMessage, RécupèreID(sDestinataire)) = Faux ALORS
+      				
+      				HRAZ(Destinataire)
+      				
+      				// Crée le destinataire
+      				Destinataire.EstDestinatairePrincipal  = (nTypeDestinataires = destPrincipaux)
+      				Destinataire.EstDestinataireSecondaire = (nTypeDestinataires = destCopie)
+      				Destinataire.EstDestinataireCaché	   = (nTypeDestinataires = destCachés)
+      				Destinataire.IDUtilisateur 			   = RécupèreID(sDestinataire)
+      				Destinataire.IDMessage 				   = nIDMessage
+      				HAjoute(Destinataire)
+      
+      				// Etiquettes automatiques
+      				FiltreAutomatique(Destinataire.IDUtilisateur, message.idmessage, message.IDExpéditeur, message.EmailExpéditeur, message.sujet, message.Contenu)
+      				
+      			FIN
+      			
+      			bRetour = vrai et bRetour
+      			
+      		// C'est un groupe
+      		CAS DestinataireEstUnGroupe(sDestinataire)
+      			
+      			// Il faut donc créer autant de destinataires qu'il y a de membres dans ce groupe
+      			sListeMembres = ListeMembresGroupe(UtilisateurEnCours:IDUtilisateur, sDestinataire)
+      			
+      			// On rappelle notre fonction par récursivité sur la liste des membres du groupe
+      			nNbDestinataireEmail += MessageCréeDestinataires(nIDMessage, sListeMembres, nTypeDestinataires, bRetour)				
+      	
+      		// C'est une adresse email externe
+      		CAS DestinataireEstUneAdresseEmail(sDestinataire)
+      			
+      			// Vérifie si l'utilisateur n'est pas déjà présent dans la liste des destinataires de ce message
+      			SI DestinataireEstDéjàPrésent(Message.IDMessage, sDestinataire) = Faux ALORS
+      				
+      				HRAZ(Destinataire)
+      				
+      				Destinataire.EstDestinatairePrincipal  = (nTypeDestinataires = destPrincipaux)
+      				Destinataire.EstDestinataireSecondaire = (nTypeDestinataires = destCopie)
+      				Destinataire.EstDestinataireCaché	   = (nTypeDestinataires = destCachés)
+      				Destinataire.EmailDestinataire 		   = sDestinataire
+      				Destinataire.IDMessage 				   = nIDMessage
+      				HAjoute(Destinataire)
+      				
+      				nNbDestinataireEmail ++
+      			FIN				
+      			
+      			bRetour = Vrai ET bRetour
+      			
+      		// Destinataire invalide
+      		AUTRES CAS
+      			gsMessagerieErreurInfo += [RC] + <§@15544fb30201b50c0000§> + sDestinataire + <§@15544fb30201b50c0001§>
+      			bRetour = faux et bRetour
+      	FIN
+      FIN
+      	
+      renvoyer nNbDestinataireEmail
+     type : 458752
+   -
+     name : MessageCréePiècesJointes
+     procedure_id : 1537010323944045892
+     type_code : 15
+     code : |1-
+      // Résumé : Crée la liste des pièces jointes du message
+      // Syntaxe :
+      //[ <Résultat> = ] MessageCréePiècesJointes (<nIDMessage>, <sListePièceJointes> [, <nIDUtilisateur>])
+      //
+      // Paramètres :
+      //	nIDMessage : Identifiant du message
+      //	sListePièceJointes : Liste des pièces jointes
+      // 	nIDUtilisateur : Identifiant de l'utilisateur
+      // Valeur de retour :
+      // 	chaîne : Liste des clés des pièces jointes enregistrées
+      //
+      Procédure RESTREINTE MessageCréePiècesJointes(nIDMessage, sListePièceJointes, nIDUtilisateur = UtilisateurEnCours:IDUtilisateur)
+      
+      // Variables locales
+      sListeClésPiècesJointes est une chaine
+      sClé					est une chaine
+      sPièceJointe 			est une chaine
+      
+      // Parcours des pièces jointes
+      pour toute chaine sPièceJointe de sListePièceJointes separee par ";"
+      	si sPièceJointe <> "" ALORS
+      	
+      		// Vérifie s'il s'agit d'une clé ou d'un nom de fichier
+      		si PJCléExiste(sPièceJointe) alors
+      			sClé = sPièceJointe
+      		sinon
+      			// Il faut enregistrer la pièce jointe
+      			si pas PJEnregistre(sClé, sPièceJointe, *, *, nIDUtilisateur) alors
+      				sClé = ""
+      				gsMessagerieErreurInfo += [rc] + <§@15544fb30201b50c0002§> + sPièceJointe + ">"
+      			FIN
+      		FIN
+      		 
+      		si sClé <> "" alors
+      			
+      			// Vérifie si la pièce jointe n'est pas déjà enregistrée
+      			HLitRecherchePremier(MessageAttache, CléParMessage, [sClé, nIDMessage])
+      			si pas htrouve(MessageAttache) ALORS
+      				
+      				// Enregistre la pièce jointe
+      				MessageAttache.Clé = sClé
+      				MessageAttache.IDMessage = nIDMessage
+      				HAjoute(MessageAttache)		
+      				
+      				sListeClésPiècesJointes += [";"] + sClé		
+      			FIN
+      							
+      		FIN
+      	FIN		
+      FIN
+      
+      // Renvoie la liste des pièces jointes	
+      renvoyer sListeClésPiècesJointes
+     type : 458752
+   -
+     name : MessageEnvoieSMTP
+     procedure_id : 1537016792172525729
+     type_code : 15
+     code : |1-
+      // Résumé : Envoie un message enregistré vers ses destintaires 'Email'
+      // Syntaxe :
+      //[ <Résultat> = ] MessageEnvoieSMTP (<nIDUtilisateur>, <nIDMessage>, <sObjet>, <sMessageTexte> [, <sMessageHTML> [, <bUrgent> [, <nPriorité> [, <sListeClésPiècesJointes>]]]])
+      //
+      // Paramètres :
+      //	nIDUtilisateur : Identifiant de l'expéditeur
+      //	nIDMessage : Identifiant du message
+      //	sObjet : Sujet du message
+      //	sMessageTexte : Message texte
+      //	sMessageHTML (valeur par défaut="") : Message HTML
+      //	bUrgent (valeur par défaut=0) : Caractère urgent
+      //	nPriorité (valeur par défaut=1) : Priorité
+      //	sListeClésPiècesJointes (valeur par défaut="") : Liste des clés des pièces jointes
+      // Valeur de retour :
+      // 	booléen : Vrai si l'email a pu être envoyé
+      //
+      Procédure RESTREINTE MessageEnvoieSMTP(nIDUtilisateur, nIDMessage, sObjet, sMessageTexte, sMessageHTML = "", bUrgent = faux, nPriorité = PrioritéNormale, sListeClésPiècesJointes = "")
+      
+      // Variables locales
+      bRetour 					est un booléen
+      sAdresseExpediteur, sEmailExpéditeur, sUserSMTP, sMDPSMTP, sServeurSMTP sont des chaines
+      nPortSMTP					est un entier
+      sEmailUtilisateur, sUserPOP, sMDPPOP, sServeurPOP sont des chaines
+      nPortPOP					est un entier
+      sClé 						est une chaine
+      bufPièceJointe 				est un buffer
+      sTypeMIME 					est une chaine
+      sNomFichier 				est une chaine
+      tabFichiers 				est un tableau de 0 chaines
+      
+      // Si l'utilisateur a le droit d'envoyer des emails, on récupère ses paramètres
+      SI RécupèreParamètresEmailSMTP(nIDUtilisateur, sAdresseExpediteur, sEmailExpéditeur, sUserSMTP, sMDPSMTP, sServeurSMTP, nPortSMTP) ALORS
+      	si RécupèreParamètresEmailPOP(nIDUtilisateur, sEmailUtilisateur, sUserPOP, sMDPPOP, sServeurPOP, nPortPOP) alors
+      		
+      		// Recherche du message
+      		HLitRecherchePremier(Message, IDMessage, nIDMessage)
+      		
+      		// 10 secondes maximum
+      		EmailChangeTimeOut(10)
+      		
+      		SI sEmailExpéditeur ~= "" ALORS
+      			gsMessagerieErreurInfo += [RC] + <§@15544fb30201b50c000b§>
+      			RENVOYER Faux
+      		FIN
+      		
+      		bConnecté est un booléen
+      	//	si sMDPSMTP <> "" alors
+      		// Ouvre une session SMTP
+      		bConnecté = EmailOuvreSessionSMTP(sUserSMTP, sMDPSMTP, sServeurSMTP, nPortSMTP, vrai)
+      //		sinon
+      //			// Ouvre une session complète	
+      //			bConnecté = EmailOuvreSession(sUserPOP, sMDPPOP, sServeurPOP, sServeurSMTP, nPortPOP, nPortSMTP, Vrai)
+      //		FIN
+      	
+      		si bConnecté alors
+      			// Réinitialisation des variables e-mails
+      			EmailRAZ()
+      			
+      			// Configuration de l'e-mail
+      			Email.Expéditeur 		= sEmailExpéditeur
+      			Email.AdresseExpéditeur = sAdresseExpediteur
+      			Email.Sujet 			= sObjet
+      			Email.Message 			= sMessageTexte
+      			Email.HTML				= sMessageHTML
+      			Email.Priorité			= bUrgent ? PrioritéElevée SINON nPriorité
+      			
+      			// Parcours des destinataires
+      			POUR TOUT Destinataire AVEC IDMessage = Message.IDMessage
+      				
+      				// Si c'est un destinataire 'Email'
+      				SI Destinataire.EmailDestinataire <> "" ALORS
+      					
+      					SELON Vrai
+      					
+      						// Destinataire principal
+      						CAS Destinataire.EstDestinatairePrincipal
+      							Email.NbDestinataire += 1
+      							Email.Destinataire[Email.NbDestinataire] = Destinataire.EmailDestinataire
+      							
+      						// Destinataire secondaire								
+      						CAS Destinataire.EstDestinataireSecondaire
+      							Email.NbCc += 1
+      							Email.Cc[Email.NbCc] = Destinataire.EmailDestinataire
+      							
+      						// Destinataire caché
+      						CAS Destinataire.EstDestinataireCaché
+      							Email.NbCci += 1
+      							Email.Cci[Email.NbCci] = Destinataire.EmailDestinataire
+      							
+      					FIN
+      					
+      				FIN
+      			FIN
+      			
+      			// Pièces jointes
+      			si sListeClésPiècesJointes <> "" alors
+      				
+      				// Création du répertoire des pièces jointes
+      				si fRépertoireExiste(frepdonnees() + "\EmailAttache") = faux alors
+      					frepcree(fRepDonnées() + "\EmailAttache")
+      				FIN
+      				
+      				// Pour chaque pièce jointe
+      				pour toute chaine sClé de sListeClésPiècesJointes separee par ";"
+      				
+      					// Récupère la pièce jointe
+      					bufPièceJointe = PJRécupère(sClé, "", sTypeMIME, "", sNomFichier)
+      					fsauvetexte(fRepDonnées() + "\EmailAttache\" + sNomFichier, bufPièceJointe)
+      				
+      					si ErreurDétectée = faux alors
+      						// Crée la pièce jointe dans l'email
+      						email.NbAttache ++
+      						Email.AttacheContentType[email.NbAttache] = sTypeMIME
+      						Email.Attache[Email.NbAttache] = fRepDonnées() + "\EmailAttache\" + sNomFichier
+      						Email.IdentifiantAttache[Email.NbAttache] = "wdcid" + Email.NbAttache
+      						
+      						// Remplace les pièces jointes contenues dans le source du message par les identifiants d'attache
+      						si position(email.html, "src=""" + sClé + """") > 0 alors
+      							email.html = remplace(Email.HTML, "src=""" + sClé + """", "src=""cid:" + Email.IdentifiantAttache[Email.NbAttache] + """")
+      						fin
+      					
+      						// Ajoute le fichier (pour suppression ultérieure)
+      						TableauAjoute(tabFichiers, sNomFichier)
+      					sinon
+      						gsMessagerieErreurInfo += [RC] + chaineconstruit(<§@15544fb30201b50c0003§>, sNomFichier)
+      					fin
+      				fin
+      				
+      			FIN
+      			
+      			// Envoie l'email
+      			bRetour = EmailEnvoieMessage(sUserSMTP)
+      			si pas bRetour alors
+      				gsMessagerieErreurInfo += [RC] + erreurinfo(errmessage)
+      			sinon
+      				message.Identifiant = email.IdentifiantMail
+      				hmodifie(message)
+      			FIN
+      			
+      			// Fermeture de la session
+      			EmailFermeSession(sUserSMTP)
+      			
+      			// Supprime les fichiers temporaires
+      			pour tout element sNomFichier de tabFichiers
+      				fsupprime(sNomFichier, frLectureSeule)
+      			FIN
+      			
+      		SINON
+      			gsMessagerieErreurInfo += [RC] + EmailMsgErreur(email.erreur)
+      			bRetour = Faux
+      		FIN
+      	sinon
+      		gsMessagerieErreurInfo += [RC] + <§@15544fb30201b50c0004§>
+      		bRetour = faux
+      	fin
+      SINON
+      	gsMessagerieErreurInfo += [rc] + <§@15544fb30201b50c0004§>
+      	bRetour = Faux
+      FIN
+      	
+      renvoyer bRetour
+     type : 458752
+   -
+     name : NotificationEnvoie
+     procedure_id : 1559683765660182575
+     type_code : 15
+     code : |1-
+      // Résumé : Envoie une notification
+      // Syntaxe :
+      //[ <Résultat> = ] NotificationEnvoie (<sModule>, <sTypeNotification>, <sTitre>, <sMessage> [, <nIDDestinataire>])
+      //
+      // Paramètres :
+      //	sModule : Module effectuant la notification (voir constantes MODULE_XXXX)
+      //	sTypeNotification : Type de notification à effectuer (voir constantes NOTIFICATION_XXXX)
+      //	sTitre : Titre du message de notification
+      //	sMessage : Message de notification
+      //	nIDDestinataire (valeur par défaut=-1) : Spécifie un Destinataire en plus des destinataires par défaut (admin et modérateur)
+      // Valeur de retour :
+      // 	booléen : Vrai si la notification a été envoyée, Faux sinon
+      //
+      Procédure NotificationEnvoie(sModule, sTypeNotification, sTitre, sMessage, nIDDestinataire = -1)
+      
+      // Variables locales
+      bRetour 				est un booléen
+      sListeDestinataireID 	est une chaine
+      
+      // On considère que si l'utilisateur qui demande la notification est un admin
+      // On n'envoie pas de notif, il est admin ou modérateur, il sait ce qu'il fait
+      si EstAdministrateurOuModerateur() ALORS
+      	
+      	// Si un destinataire supplémentaire a été spécifié, on envoie quand même le message
+      	// Il faut que cette personne soit prévenue de cette action
+      	si nIDDestinataire <> -1 ALORS
+      		// Récupération du login de l'identifiant supplémentaire
+      		sListeDestinataireID = RécupèreLogin(nIDDestinataire)
+      	sinon
+      		// Aucun destinataire supplémentaire spécifié, on renvoie vrai,
+      		// Aucun message n'est parti mais c'est normal
+      		renvoyer vrai	
+      	FIN
+      	
+      sinon
+      	
+      	// Récupère la liste des personnes concernées par la notification en fonction de son type et du module 
+      	sListeDestinataireID = NotificationCréeDestinataires(sModule, sTypeNotification, nIDDestinataire)
+      
+      FIN
+      
+      // Est-ce qu'il y a une liste de destinataire ?	
+      SI sListeDestinataireID <> "" ALORS		
+      	// Envoie la notification en copie cachée
+      	bRetour = MessageEnvoie("", "", sListeDestinataireID, sTitre, sMessage, IDSYSTEM())				
+      FIN	
+      	
+      renvoyer bRetour
+     type : 458752
+   -
+     name : NotificationCréeDestinataires
+     procedure_id : 1559686235294937319
+     type_code : 15
+     code : |1-
+      // Résumé : Renvoie une liste de destinataires en fonction d'une notification
+      // Syntaxe :
+      //[ <Résultat> = ] NotificationCréeDestinataires (<sModule>, <sTypeNotification>, <nIDDestinataire>)
+      //
+      // Paramètres :
+      //	sModule : Nom du module
+      //	sTypeNotification : Type de notification
+      //	nIDDestinataire : Identifiant du destinataire
+      // Valeur de retour :
+      // 	chaîne : Liste des destinataires
+      //
+      Procédure RESTREINTE NotificationCréeDestinataires(sModule, sTypeNotification, nIDDestinataire)
+      
+      // Variables locales
+      sListeDestinatairesParDéfaut 	est une chaine
+      sListeDestinatairesTemp 		est une chaine
+      sListeDestinataires 			est une chaine
+      sDestinataire 					est une chaine
+      sParamètre 						est une chaine
+      
+      // On récupère les administrateurs et les modérateurs
+      sListeDestinatairesTemp = ListeMembresAvecPouvoir(Vrai, Vrai)
+      
+      // On vérifie ensuite pour chacun des utilisateurs, s'ils souhaitent être notifiés
+      POUR TOUTE CHAINE sDestinataire DE sListeDestinatairesTemp SEPAREE PAR RC
+      	
+      	// Vérification (par défaut, la notification est active)
+      	SI ParamètreLit(sTypeNotification + "_" + sModule, sDestinataire, "On") = "On" ALORS
+      		// On l'ajoute seulement si il ne s'agit pas de l'utilisateur en cours (on n'envoie pas de notifications aux personnes qui provoquent la notification)
+      		SI val(sDestinataire) <> UtilisateurEnCours:IDUtilisateur ALORS
+      			sListeDestinatairesParDéfaut += [";"] + RécupèreLogin(sDestinataire)
+      		fin
+      	FIN
+      	
+      FIN	
+      
+      // Si un destinataire personnalisé est spécifié
+      si nIDDestinataire <> -1 ALORS
+      	// On l'ajoute seulement si il ne s'agit pas de l'utilisateur en cours (on n'envoie pas de notifications aux personnes qui provoquent la notification)
+      	si nIDDestinataire <> UtilisateurEnCours:IDUtilisateur ALORS
+      		sListeDestinataires += [";"] + RécupèreLogin(nIDDestinataire)		
+      	FIN	
+      FIN
+      
+      // Gestion du type de notification	
+      selon sTypeNotification
+      	
+      	// Création, Modification, Suppresssion
+      	cas NOTIFICATION_CREATION, NOTIFICATION_MODIFICATION, NOTIFICATION_SUPPRESSION
+      		
+      		// C'est la liste des destinataires 'administrateurs' ou 'modérateurs'
+      		sListeDestinataires = sListeDestinatairesParDéfaut
+      	
+      	// Suppression d'un wiki par un admin ou un modérateur, Ajout d'un commentaire sur un billet d'un blog
+      	cas NOTIFICATION_SUPPRESSION_WIKI, NOTIFICATION_BLOGS_COMMENTAIRES
+      		
+      		// On ne prévient que le propriétaire passé en paramètre
+      		SI nIDDestinataire <> UtilisateurEnCours:IDUtilisateur ALORS
+      			sListeDestinataires = RécupèreLogin(nIDDestinataire)
+      		fin
+      		
+      	// Ajout d'un billet dans un blog
+      	cas NOTIFICATION_BLOGS_CREATIONBILLET
+      
+      		// Récupère les destinataires liés à la notification
+      		sListeDestinataires += [";"] + NotificationTrouveDestinataires(sTypeNotification + "_" + sModule + Billet.IDBlog)	
+      		
+      		// On ajoute les administrateurs et modérateurs
+      		sListeDestinataires += [";"] + sListeDestinatairesParDéfaut
+      	
+      	cas NOTIFICATION_WIKI_MODIFICATION, NOTIFICATION_WIKI_CREATION
+      		
+      		// Nom du paramètre de sauvegarde pour les notifications du forum
+      		si sTypeNotification = NOTIFICATION_WIKI_MODIFICATION alors	sParamètre = sTypeNotification + "_" + sModule + WIKI.IDWIKI
+      		si sTypeNotification = NOTIFICATION_WIKI_CREATION alors	sParamètre = sTypeNotification + "_" + sModule + "0"
+      					
+      		// Récupère les destinataires liés à la notification
+      		sListeDestinataires += [";"] + NotificationTrouveDestinataires(sParamètre)		
+      					
+      		// On ajoute les administrateurs et modérateurs
+      		sListeDestinataires += [";"] + sListeDestinatairesParDéfaut	
+      				
+      	// Création d'une réponse dans un sujet
+      	cas NOTIFICATION_FORUM_CREATION_REPONSE, NOTIFICATION_FORUM_CREATION_SUJET
+      				
+      		// Nom du paramètre de sauvegarde pour les notifications du forum
+      		sParamètre = sTypeNotification + "_" + sModule
+      		
+      		si sTypeNotification = NOTIFICATION_FORUM_CREATION_REPONSE alors sParamètre += Topic.IDTopic
+      		si sTypeNotification = NOTIFICATION_FORUM_CREATION_SUJET alors sParamètre += Topic.IDForum
+      			
+      		// Récupère les destinataires liés à la notification
+      		sListeDestinataires += [";"] + NotificationTrouveDestinataires(sParamètre)		
+      		
+      		// On ajoute les administrateurs et modérateurs
+      		sListeDestinataires += [";"] + sListeDestinatairesParDéfaut
+      					
+      	AUTRE CAS
+      		sListeDestinataires	= ""
+      FIN
+      	
+      renvoyer sListeDestinataires
+     type : 458752
+   -
+     name : MessagePrépare
+     procedure_id : 1561440304740226134
+     type_code : 15
+     code : |1-
+      // Résumé : Prépare l'envoi d'un message
+      // Syntaxe :
+      //MessagePrépare (<sSujet>, <sMessage>, <sListeDestinataires>, <sListePièceJointes>)
+      //
+      // Paramètres :
+      //	sSujet : Sujet du message
+      //	sMessage : Contenu du message
+      //	sListeDestinataires : Liste des destinataires (Login 1 <TAB> Login 2 <TAB> .... Login N)
+      //	sListePièceJointes : Liste des clés des pièces jointes au message (Clé 1 <TAB> Clé 2 <TAB> .... Clé N)
+      // Valeur de retour :
+      // 	Aucune
+      //
+      Procédure MessagePrépare(sSujet, sMessage, sListeDestinataires, sListePièceJointes)
+      
+      // Ouvre la page de saisie d'un message
+      pageaffiche(PAGE_Messagerie_NouveauMessage, sSujet, sMessage, sListeDestinataires, sListePièceJointes)
+     type : 458752
+   -
+     name : NotificationTrouveDestinataires
+     procedure_id : 1562659250411827140
+     type_code : 15
+     code : |1-
+      // Résumé : Trouve tous les destinataires abonnés à une notification
+      // Syntaxe :
+      //[ <Résultat> = ] NotificationTrouveDestinataires (<sParamètreNotification>)
+      //
+      // Paramètres :
+      //	sParamètreNotification : Notification
+      // Valeur de retour :
+      // 	chaîne : Liste des destintaires trouvés
+      //
+      Procédure RESTREINTE NotificationTrouveDestinataires(sParamètreNotification)
+      
+      // Variables locales
+      sListeClé,sClé 			sont des chaines
+      sListeDestinataires 	est une chaine
+      
+      // Envoie une notification à tous les utilisateurs enregistrés
+      sListeClé = ParamètreListe(PourTous, sParamètreNotification)
+      POUR TOUTE CHAINE sClé DE sListeClé SEPAREE PAR RC			
+      	
+      	// Construit la liste des destinataire du message
+      	// on n'a pas besoin de vérifier les doublons de destinataires, c'est la fonction MessageEnvoie qui s'en occupe			
+      	SI val(ExtraitChaîne(sClé, rangDernier, "_")) <> UtilisateurEnCours:IDUtilisateur ALORS	
+      		sListeDestinataires += [";"] + RécupèreLogin(ExtraitChaîne(sClé, rangDernier, "_"))
+      	fin
+      	
+      FIN
+      	
+      renvoyer sListeDestinataires
+     type : 458752
+   -
+     name : MessageLecturePOP
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1562906168023701567
+     type_code : 15
+     group : 3
+     code : |1-
+      // Résumé : Récupère les messages emails d'une boite email de l'utilisateur spécifié
+      // Syntaxe :
+      //[ <Résultat> = ] MessageLecturePOP ( [<bLectureTotale> est booléen [, <nPosMessage> est entier [, <sUserPop> est chaîne [, <sEmailUtilisateur> est chaîne [, <nIDUtilisateur>]]]]])
+      //
+      // Paramètres :
+      //	bLectureTotale (booléen - valeur par défaut=1) : Vrai pour effectuer une lecture complète du comte email, Faux pour une lecture partielle
+      //	nPosMessage (entier - valeur par défaut=0) : Numéro du message à lire dans le cas d'une lecture partielle
+      //	sUserPop (chaîne - valeur par défaut="") : < indiquez ici le rôle de sUserPop >
+      // 	sEmailUtilisateur (chaîne - valeur par défaut="") : <indiquez ici le rôle de sEmailUtilisateur>
+      //	nIDUtilisateur : Identifiant de l'utilisateur
+      // Valeur de retour :
+      // 	Type indéterminé : Vrai si la lecture a réussi, Faux sinon
+      //
+      Procédure MessageLecturePOP(bLectureTotale est un booléen = vrai, nPosMessage est un entier = 0, sUserPop est une chaine = "", sEmailUtilisateur est une chaine = "", nIDUtilisateur = UtilisateurEnCours:IDUtilisateur)
+      
+      quand exception
+      	exceptionactive()
+      	renvoyer faux
+      FIN
+      
+      // On vérifie que l'utilisateur est connecté
+      si EstConnecté(nIDUtilisateur) = faux alors renvoyer Faux
+      
+      // Variables locales
+      nIDDernierMsgLu 					est un entier
+      nTotalMessages 						est un entier
+      sListeDestinataires 				est une chaîne
+      sListeDestinatairesCC 				est une chaîne
+      sListePiècesJointes 				est une chaine
+      nNbDestinataires 					est un entier
+      nNbPiècesJointes 					est un entier
+      sMessage 							est une chaine
+      sCopieLocale 						est une chaine
+      sClé 								est une chaine
+      sNomDestinataire					est une chaine
+      sEmailDestinataire 					est une chaine
+      
+      si bLectureTotale alors
+      
+      	// Connexion au serveur POP
+      	sRetourConnexion est une chaine = MessageLecturePOPConnecte(nIDUtilisateur)
+      	si sRetourConnexion = "" alors renvoyer faux
+      	
+      	// Extrait les infos de connexion
+      	sUserPop 			= extraitchaine(sRetourConnexion, 1)
+      	nIDDernierMsgLu 	= extraitchaine(sRetourConnexion, 3)
+      	nTotalMessages 		= extraitchaine(sRetourConnexion, 3)
+      	sEmailUtilisateur 	= extraitchaine(sRetourConnexion, 4)
+      		
+      	nIDDernierMsgLu += 1
+      
+      sinon
+      
+      	// On ne lit qu'un seul message
+      	nIDDernierMsgLu = nPosMessage
+      	nTotalMessages  = nPosMessage
+      
+      fin
+      
+      // Parcours les emails de la boîte POP
+      pour i = nIDDernierMsgLu a nTotalMessages
+      
+      	// Lit le message
+      	si EmaillitMessage(sUserPop, i) alors
+      		si email.EnDehors = faux alors
+      			
+      			sIdentifiant est une chaine
+      			si Email.MessageID = "" alors
+      				sIdentifiant = email.Expéditeur + email.DateRéception
+      			sinon
+      				sIdentifiant = Email.MessageID
+      			FIN
+      			
+      			// Vérifie si on a déjà importé l'email
+      			HRecherchePremier(message, Identifiant, sIdentifiant)
+      			si htrouve(message) alors continuer
+      			
+      			// Récupère le message
+      			sMessage = Email.HTML
+      			si sMessage ~= "" alors sMessage = Email.Message
+      			
+      			sListeDestinataires = ""
+      			sListeDestinatairesCC = ""
+      			sListePiècesJointes = ""
+      		
+      			// Récupère les destinataires
+      			nNbDestinataires = email.NbDestinataire
+      		
+      			pour j = 1 a nNbDestinataires					
+      				
+      				// Extrait les informations email du destinataire
+      				MessagePOPExtraitInfoEmail(Email.Destinataire[j], sNomDestinataire, sEmailDestinataire)
+      					
+      				si minuscule(sEmailDestinataire) = minuscule(sEmailUtilisateur) alors 
+      					sListeDestinataires += [";"] 	+ RécupèreLogin(nIDUtilisateur)
+      				sinon
+      					sListeDestinataires += [";"] + sNomDestinataire + tab + sEmailDestinataire					
+      				FIN					
+      			FIN
+      		
+      			// Récupère les destinataires CC
+      			nNbDestinataires = Email.cc
+      			
+      			POUR j = 1 a nNbDestinataires				
+      				
+      				// Extrait les informations email du destinataire
+      				MessagePOPExtraitInfoEmail(Email.Cc[j], sNomDestinataire, sEmailDestinataire)
+      					
+      				SI Minuscule(sEmailDestinataire) = Minuscule(sEmailUtilisateur) ALORS 
+      					sListeDestinatairesCC += [";"] 	+ RécupèreLogin(nIDUtilisateur)
+      				SINON
+      					sListeDestinatairesCC += [";"] + sNomDestinataire + TAB + sEmailDestinataire					
+      				FIN	
+      			FIN
+      		
+      			// Récupère les pièces jointes
+      			nNbPiècesJointes = Email.NbAttache
+      			
+      			pour j = 1 a nNbPiècesJointes
+      				
+      				// Détermine le nom local où sera copié la pièce jointe
+      				sCopieLocale = completerep(fRépertoireTemp()) + Email.Attache[j]
+      				
+      				// Sauve la pièce jointe
+      				EmailSauveFichierAttaché(Email.Attache[j], sCopieLocale)
+      				
+      				// On supprimera la pièce jointe sur le disque en fermeture
+      				CorbeilleAjouteFichier(sCopieLocale)
+      				
+      				// Enregistre la pièce jointe (avec son identifiant)
+      				PJEnregistre(sClé, sCopieLocale, pjautre, Email.IdentifiantAttache[j], nIDUtilisateur)
+      										
+      				sListePiècesJointes += [";"] + sClé											
+      
+      			FIN
+      			
+      			// Extrait les informations email de l'expéditeur
+      			MessagePOPExtraitInfoEmail(Email.Expéditeur, sNomDestinataire, sEmailDestinataire)
+      			
+      			// Simule l'envoie du mail dans la messagerie
+      			MessageEnvoie(sListeDestinataires, sListeDestinatairesCC, "", Email.Sujet, sMessage, ...
+      						  sNomDestinataire + tab + sEmailDestinataire, Email.Priorité, (Email.Priorite = PrioritéElevée), sListePiècesJointes)
+      		
+      		fin
+      	FIN
+      		
+      FIN
+      
+      si bLectureTotale alors
+      	
+      	// Fermeture de la connexion au serveur POP
+      	MessageLecturePOPDéconnecte(sUserPop, nTotalMessages, nIDUtilisateur)
+      	
+      fin	
+      	
+      SI bLectureTotale ALORS 
+      	renvoyer vrai
+      sinon
+      	renvoyer nPosMessage	
+      fin
+     type : 458752
+   -
+     name : MessageRécupèreDate
+     procedure_id : 1562912722323644516
+     type_code : 15
+     code : |1-
+      // Résumé : Transforme une date POP en DateHeure WLangage
+      // Syntaxe :
+      //[ <Résultat> = ] MessageRécupèreDate (<sEmailDateRéception>)
+      //
+      // Paramètres :
+      //	sEmailDateRéception : Date POP
+      // Valeur de retour :
+      // 	dateheure : DateHeure WLangage
+      //
+      Procédure RESTREINTE MessageRécupèreDate(sEmailDateRéception <utile>)
+      
+      // Variables locales
+      dhDateHeure est une dateheure
+      	
+      renvoyer dhDateHeure
+     type : 458752
+   -
+     name : MessageErreurInfo
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1562936941740568453
+     type_code : 15
+     code : |1-
+      // Résumé : Renvoie le dernier message d'erreur
+      // Syntaxe :
+      //[ <Résultat> = ] MessageErreurInfo ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	chaîne : Message d'erreur
+      //
+      Procédure MessageErreurInfo()
+      
+      renvoyer gsMessagerieErreurInfo
+     type : 458752
+   -
+     name : MessagePOPExtraitInfoEmail
+     procedure_id : 1562944492392612689
+     type_code : 15
+     code : |1-
+      // Résumé : Récupère le nom et l'adresse email d'une adresse email complète
+      // Syntaxe :
+      //MessagePOPExtraitInfoEmail (<sAdresseComplète>, <sNom>, <sEmail>)
+      //
+      // Paramètres :
+      //	sAdresseComplète : Adresse email complète
+      //	sNom : Nom
+      //	sEmail : Adresse email
+      // Valeur de retour :
+      // 	Aucune
+      //
+      Procédure RESTREINTE MessagePOPExtraitInfoEmail(sAdresseComplète, sNom, sEmail)
+      
+      // Est-ce qu'il y a des "<"
+      si position(sAdresseComplète, "<") > 0 ALORS
+      	// Il y a un nom et une adresse email
+      	sEmail = extraitchaine(extraitchaine(sAdresseComplète, 2, "<"), 1, ">")
+      	sNom  = remplace(sansespace(ExtraitChaîne(sAdresseComplète, 1, "<")), caract(34), "")
+      sinon
+      	sEmail = sAdresseComplète
+      	sNom = sAdresseComplète
+      FIN
+     type : 458752
+   -
+     name : NotificationSupprime
+     procedure_id : 1569318747682199816
+     type_code : 15
+     code : |1-
+      // Résumé : Supprime une notification dans un module
+      // Syntaxe :
+      //NotificationSupprime (<sModule>, <sNotification>, <sIdentifiant>)
+      //
+      // Paramètres :
+      // 	sModule : Module concerné
+      // 	sNotification : Identifiant de la notification
+      // 	sIdentifiant : Identifiant de l'élément notifié
+      // Valeur de retour :
+      // 	Aucune
+      //
+      Procédure NotificationSupprime(sModule, sNotification, sIdentifiant)
+      
+      // Recherche du module
+      selon sModule
+      	// Notification des actualités
+      	cas MODULE_ACTUALITES
+      		ActualitéNotificationSupprime(sIdentifiant, sNotification, UtilisateurEnCours:IDUtilisateur)
+      	
+      	// Notifications des blogs
+      	cas MODULE_BLOGS
+      		si sNotification = NOTIFICATION_BLOGS_CREATIONBILLET ALORS
+      			BlogNotificationSupprime(sIdentifiant, UtilisateurEnCours:IDUtilisateur)		
+      		FIN
+      	
+      	// Notification des forums
+      	cas MODULE_FORUM
+      		
+      		si sNotification = NOTIFICATION_FORUM_CREATION_SUJET alors
+      			ForumNotificationSupprime(sIdentifiant, UtilisateurEnCours:IDUtilisateur)
+      		fin
+      		
+      		si sNotification = NOTIFICATION_FORUM_CREATION_REPONSE alors
+      			SujetNotificationSupprime(sIdentifiant, UtilisateurEnCours:IDUtilisateur)
+      		fin
+      	
+      	// Notification des partages
+      	cas MODULE_PARTAGES
+      		PartageNotificationSupprime(sIdentifiant, sNotification, UtilisateurEnCours:IDUtilisateur)
+      	
+      	// Notification WIKI
+      	cas MODULE_WIKI
+      		WIKINotificationSupprime(sIdentifiant, sNotification, UtilisateurEnCours:IDUtilisateur)
+      
+      FIN
+     type : 458752
+   -
+     name : ConstruitDateHeureMessage
+     procedure_id : 1577385649355102967
+     type_code : 15
+     code : |1-
+      // Résumé : Renvoie la date et l'heure du message en langage naturel
+      // Syntaxe :
+      //[ <Résultat> = ] ConstruitDateHeureMessage (<sDateHeure>)
+      //
+      // Paramètres :
+      //	sDateHeure : Date et heure du message
+      // Valeur de retour :
+      // 	chaîne : Date et heure en langage naturel
+      //
+      Procédure RESTREINTE ConstruitDateHeureMessage(sDateHeure)
+      
+      // Variables locales
+      sDateHeureMsg 			est une chaine
+      dhDateHeure 			est une dateheure = sDateHeure
+      
+      // Récupère la date et heure en langage naturel
+      sDateHeureMsg = DateHeureNaturelle(dhDateHeure)
+      	
+      renvoyer sDateHeureMsg
+     type : 458752
+   -
+     name : ConstruitSujetMessage
+     procedure_id : 1577385653650136002
+     type_code : 15
+     code : |1-
+      // Résumé : Construit le code HTML d'un sujet de message
+      // Syntaxe :
+      //[ <Résultat> = ] ConstruitSujetMessage (<nIDMessage> [, <nListe>])
+      //
+      // Paramètres :
+      //	nIDMessage : Identifiant du message
+      // 	nListe (valeur par défaut=1) : < indiquez ici le rôle de nListe >
+      // Valeur de retour :
+      // 	chaîne : Code HTML
+      //
+      Procédure RESTREINTE ConstruitSujetMessage(nIDMessage, nListe = BoîteRéception)
+      
+      // Variables locales
+      sSujetMsg 			est une chaine
+      bAfficheEtiquette est un booléen
+      
+      // Recherche du message
+      HLitRecherchePremier(Message, IDMessage, nIDMessage)
+      si htrouve(Message) ALORS
+      	// Construction du sujet			
+      	si Message.Sujet ~= "" alors Message.Sujet = <§@15544fb30201b50c0005§>
+      	sSujetMsg = message.sujet + "#g!" + remplace(HTMLVersTexte(message.Contenu), rc, " ") + "#/g!"		
+      		
+      	
+      	selon Vrai
+      		cas nListe = BoîteEnvoyés
+      			bAfficheEtiquette = faux
+      			
+      		cas nListe = BoîteRecherche, nListe = BoîteSupprimés
+      			si message.IDExpéditeur = UtilisateurEnCours:IDUtilisateur ALORS
+      				bAfficheEtiquette = vrai
+      			sinon
+      				bAfficheEtiquette = Faux
+      			FIN
+      		
+      		cas nListe = etiquettes
+      			bAfficheEtiquette = Vrai
+      		
+      		autre cas
+      			bAfficheEtiquette = vrai
+      			
+      	FIN
+      	
+      	// Seulement si on n'est pas dans la liste des messages supprimés ni dans la liste des éléments envoyés
+      	si bAfficheEtiquette  alors
+      		
+      		// Recherche de l'étiquette		
+      		HLitRecherchePremier(MessageEtiquette, UtilisateurParMessage, [UtilisateurEnCours:IDUtilisateur, Message.idmessage])
+      		si htrouve(MessageEtiquette) ALORS
+      			HLitRecherchePremier(Etiquette, IDEtiquette, MessageEtiquette.IDEtiquette)
+      			si htrouve(Etiquette) ALORS
+      				// Le message possède une étiquette
+      				sSujetMsg = "#v!" + etiquette.Libellé + "#/v!" + sSujetMsg
+      			sinon
+      				dbgAssertion(faux, <§@15544fb30201b50c0006§>)
+      				hsupprime(MessageEtiquette)
+      			FIN			
+      		FIN
+      		
+      	fin
+      FIN	
+      
+      // Tronque
+      sSujetMsg = ellipse(sSujetMsg, 900)
+      si position(sSujetMsg, "#g!") > 0 _et_ position(sSujetMsg, "#/g!") < 1 alors sSujetMsg += "#/g!"
+      
+      // Remplace les marqueurs
+      sSujetMsg = Remplace(sSujetMsg, "#v!", "<font size=-2 color=green>")
+      sSujetMsg = Remplace(sSujetMsg, "#/v!", "</font>&nbsp;")	
+      sSujetMsg = remplace(sSujetMsg, "#g!", "<font color=gray> - ")
+      sSujetMsg = remplace(sSujetMsg, "#/g!", "</font>")
+      	
+      // On renvoie le sujet	
+      renvoyer sSujetMsg
+     type : 458752
+   -
+     name : RécupèreNomAffichéEmail
+     procedure_id : 1577386254965686032
+     type_code : 15
+     code : |1-
+      PROCEDURE RESTREINTE RécupèreNomAffichéEmail(sEmailStocké)
+      
+      RENVOYER ExtraitChaîne(sEmailStocké, 1)
+     type : 458752
+   -
+     name : EtiquetteMessageApplique
+     procedure_id : 1577391189921155373
+     type_code : 15
+     code : |1-
+      // Résumé : Applique une étiquette à une liste de message
+      // Syntaxe :
+      //[ <Résultat> = ] EtiquetteMessageApplique (<sListeID>, <nCombo> [, <bAutomatique> [, <nIDUtilisateur>]])
+      //
+      // Paramètres :
+      //	sListeID : Liste des identifiants des messages
+      //	nCombo : Identifiant de l'étiquette à appliquer
+      //	bAutomatique (valeur par défaut=0) : Vrai pour une application automatique
+      // 	nIDUtilisateur : <indiquez ici le rôle de nIDUtilisateur>
+      // Valeur de retour :
+      // 	booléen : Vrai si l'étiquette a été appliquée
+      //
+      Procédure EtiquetteMessageApplique(sListeID, nCombo, bAutomatique = faux, nIDUtilisateur = UtilisateurEnCours:IDUtilisateur)
+      
+      externe COMBO_ACTIONS
+      EXTERNE SAI_INFOETIQUETTEAUTO
+      
+      // Variables locales
+      sID 			est une chaine
+      nIDEtiquette 	est un entier
+      sExpéditeur		est une chaine
+      sOldExpéditeur	est une chaine
+      nCptExpéditeur	est un entier
+      sExpéditeurAuto est une chaine
+      
+      // Récupération de l'étiquette à appliquer
+      si bAutomatique alors
+      	nIDEtiquette = nCombo
+      sinon
+      	nIDEtiquette = COMBO_ACTIONS[nCombo]..ValeurMémorisée
+      FIN
+      	
+      // Pour chaque message
+      POUR TOUTE CHAINE sID DE sListeID SEPAREE PAR TAB
+      
+      	SI sID ~= "" ALORS CONTINUER
+      
+      	si bAutomatique = faux alors
+      
+      		// Récupère l'expéditeur
+      		HLitRecherchePremier(message, IDMessage, sID)
+      		si htrouve(message) ALORS
+      			sExpéditeur = message.EmailExpéditeur = "" ? message.IDExpéditeur sinon message.EmailExpéditeur
+      		sinon
+      			dbgAssertion(faux, <§@15544fb30201b50c0007§> + sID + <§@15544fb30201b50c0008§>)
+      			sortir
+      		FIN
+      		
+      		// On vérifie qu'il n'y a pas déjà d'etiquette automatique sur cet expéditeur avec cet étiquette
+      		si ParamètreExiste(MODULE_MESSAGERIE + "_AUTOLABEL;FROM;" + sExpéditeur + ";" + nIDEtiquette, nIDUtilisateur) ALORS
+      			// Il y a déjà une étiquette automatique
+      		sinon
+      			// Si l'expéditeur a changé
+      			SI sOldExpéditeur <> sExpéditeur ALORS
+      				sOldExpéditeur = sExpéditeur
+      				sExpéditeurAuto = sExpéditeur
+      				nCptExpéditeur = 0
+      			SINON
+      				// Si l'expéditeur est toujours le même pour la même étiquette
+      				nCptExpéditeur ++
+      				sExpéditeurAuto = sExpéditeur
+      			FIN			
+      		FIN		
+      		
+      	fin
+      
+      	// Vérifie si l'étiquette n'a pas déjà été appliquée sur ce message
+      	HRecherchePremier(MessageEtiquette, EtiquetteParMessage, [nIDEtiquette, sID])
+      	SI pas HTrouve(MessageEtiquette) ALORS
+      		// Crée l'étiquette associée au message
+      		MessageEtiquette.IDEtiquette = nIDEtiquette
+      		MessageEtiquette.IDMessage = sID
+      		MessageEtiquette.IDUtilisateur = nIDUtilisateur
+      		hajoute(MessageEtiquette)
+      		dbgAssertion(pas HErreurDoublon(), <§@15544fb30201b50c0009§>)
+      	FIN
+      
+      FIN
+      
+      SI bAutomatique = Faux ALORS
+      	// Si on a appliqué au minimum trois fois la même étiquette au même expéditeur
+      	// on propose de l'ajouter automatiquement
+      	si nCptExpéditeur > 2 ALORS
+      		SAI_INFOETIQUETTEAUTO = nIDEtiquette + tab + sExpéditeurAuto
+      	FIN
+      fin
+      
+      renvoyer vrai
+     type : 458752
+   -
+     name : MarquerCommeLu
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1577391189921221205
+     type_code : 15
+     code : |1-
+      // Résumé : Marque des messages comme lus
+      // Syntaxe :
+      //[ <Résultat> = ] MarquerCommeLu (<sListeID>)
+      //
+      // Paramètres :
+      //	sListeID : Liste des messages à marquer comme lus
+      // Valeur de retour :
+      // 	booléen : // 	Aucune
+      //
+      Procédure MarquerCommeLu(sListeID)
+      
+      // Variables locales
+      sID 	est une chaine
+      
+      // Pour chaque message
+      POUR TOUTE CHAINE sID DE sListeID SEPAREE PAR TAB
+      	
+      	si sID ~= "" alors continuer
+      	
+      	// Récupère le message
+      	HLitRecherchePremier(Destinataire, IDUtilisateurParIDMessage, [UtilisateurEnCours:IDUtilisateur, sID])
+      	SI HTrouve(Destinataire) ALORS
+      		// Marque le message
+      		Destinataire.DateHeureLecture = datedujour + maintenant
+      		Destinataire.EstLu = vrai
+      		HModifie(Destinataire)
+      	FIN
+      FIN
+      	
+      renvoyer vrai
+     type : 458752
+   -
+     name : MarquerCommeNonLu
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1577391194216254319
+     type_code : 15
+     code : |1-
+      // Résumé : Marque des messages comme non lus
+      // Syntaxe :
+      //[ <Résultat> = ] MarquerCommeNonLu (<sListeID>)
+      //
+      // Paramètres :
+      //	sListeID : Liste des ID de messages à marquer comme non lus
+      // Valeur de retour :
+      // 	booléen : // 	Aucune
+      //
+      Procédure MarquerCommeNonLu(sListeID)
+      
+      // Variables locales
+      sID 		est une chaine
+      
+      // Pour chaque message
+      pour toute chaine sID de sListeID separee par TAB
+      
+      	SI sID ~= "" ALORS CONTINUER
+      
+      	// Récupère le message
+      	HLitRecherchePremier(Destinataire, IDUtilisateurParIDMessage, [UtilisateurEnCours:IDUtilisateur, sID])
+      	si htrouve(Destinataire) ALORS
+      		// Marque le message
+      		Destinataire.EstLu = faux
+      		HModifie(Destinataire)
+      	FIN
+      FIN
+      
+      renvoyer vrai
+     type : 458752
+   -
+     name : EtiquetteMessageSupprime
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1577391194216320152
+     type_code : 15
+     group : 3
+     code : |1-
+      // Résumé : Supprime les étiquettes associées à tous les messages sélectionnés
+      // Syntaxe :
+      //[ <Résultat> = ] EtiquetteMessageSupprime (<sListeID>)
+      //
+      // Paramètres :
+      //	sListeID : Liste des ID des messages sélectionnés
+      // Valeur de retour :
+      // 	booléen : // 	Aucune
+      //
+      Procédure EtiquetteMessageSupprime(sListeID)
+      
+      // Variables locales
+      sID 	est une chaine
+      
+      // Supprime les étiquettes associées à tous les messages sélectionnés
+      pour toute chaine sID de sListeID separee par tab
+      
+      	SI sID ~= "" ALORS CONTINUER
+      	
+      	pour toute MessageEtiquette avec UtilisateurParMessage = [UtilisateurEnCours:IDUtilisateur, sID]
+      		HSupprime(MessageEtiquette)
+      	FIN
+      	
+      FIN
+      
+      renvoyer vrai
+     type : 458752
+   -
+     name : SPIMRécupèreMessage
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1579604940563986017
+     type_code : 15
+     code : |1-
+      // Résumé : Vérifie si l'utilisateur a reçu un SPIM
+      // Syntaxe :
+      //[ <Résultat> = ] SPIMRécupèreMessage ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	chaîne : Infos sur le SPIM ou chaine vide ("") si aucun SPIM n'a été envoyé
+      //
+      Procédure RESTREINTE SPIMRécupèreMessage()
+      
+      SI gbErreurFatale = Vrai ALORS
+      	RENVOYER ""
+      FIN
+      
+      sSPIM est une chaine
+      
+      // Vérifie si l'utilisateur a reçu un SPIM
+      REQ_Messagerie_SPIM.pIDUtlisateur = "#" + UtilisateurEnCours:IDUtilisateur + "#"
+      HExécuteRequête(REQ_Messagerie_SPIM)
+      si erreurdetectee alors renvoyer ""
+      
+      // Lecture des résultats
+      hlitpremier(REQ_Messagerie_SPIM)
+      si hendehors(REQ_Messagerie_SPIM) ALORS
+      	// Pas de nouveau SPIM
+      	renvoyer ""
+      FIN
+      
+      // Récupère les informations du SPIM
+      HLitRecherchePremier(spim, IDSpim, REQ_Messagerie_SPIM.IDSpim)
+      si htrouve(Spim) ALORS
+      	
+      	// On bloque l'enregistrement
+      	hlit(Spim, hNumEnrEnCours, hBlocageEcriture)
+      	
+      	tantque HErreurBlocage()
+      		Multitâche(-20)	
+      		HLit(Spim, hNumEnrEnCours, hBlocageEcriture)
+      	FIN
+      
+      	// On supprime l'utilisateur de la liste des destinataires
+      	spim.ListeDestinataires = remplace(Spim.ListeDestinataires, "#" + UtilisateurEnCours:IDUtilisateur + "#", "")
+      
+      	// Stocke
+      	sSPIM = Spim.IDExpéditeur + "$!" + RécupèreNomUtilisateur(Spim.IDExpéditeur) + "$!" + Spim.DateHeureEnvoi + "$!" + Spim.Contenu
+      
+      	// Si il n'y a plus de destinataires, on peut supprimer
+      	si spim.ListeDestinataires = "" alors
+      		hsupprime(spim)
+      	sinon
+      		HModifie(Spim)
+      	FIN
+      
+      	// Débloque le fichier
+      	HDébloqueNumEnr(Spim, hNumEnrEnCours)		
+      	
+      FIN
+      	
+      renvoyer sSPIM
+     type : 458752
+   -
+     name : SPIMSupprimeMessage
+     procedure_id : 1579608595624669849
+     type_code : 15
+     code : |1-
+      // Résumé : Nettoyage des SPIMS
+      // Syntaxe :
+      // SPIMSupprimeMessage ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	Aucune
+      //
+      Procédure RESTREINTE SPIMSupprimeMessage()
+      
+      REQ_Messagerie_SPIM.pIDUtlisateur = "#" + UtilisateurEnCours:IDUtilisateur + "#"
+      HExécuteRequête(REQ_Messagerie_SPIM)
+      
+      // Pour tous les SPIMS reçus par cet utilisateur
+      hlitpremier(REQ_Messagerie_SPIM)
+      tantque pas hendehors(REQ_Messagerie_SPIM)
+      	
+      	// Récupère les informations du SPIM
+      	HLitRecherchePremier(Spim, IDSpim, REQ_Messagerie_SPIM.IDSpim)
+      	SI HTrouve(Spim) ALORS
+      		
+      		// On bloque l'enregistrement
+      		HLit(Spim, hNumEnrEnCours, hBlocageEcriture)
+      		
+      		TANTQUE HErreurBlocage()
+      			Multitâche(-20)	
+      			HLit(Spim, hNumEnrEnCours, hBlocageEcriture)
+      		FIN
+      		
+      		// On supprime l'utilisateur de la liste des destinataires
+      		Spim.ListeDestinataires = Remplace(Spim.ListeDestinataires, "#" + UtilisateurEnCours:IDUtilisateur + "#", "")
+      		
+      		// Si il n'y a plus de destinataires, on peut supprimer
+      		SI Spim.ListeDestinataires = "" ALORS
+      			HSupprime(Spim)
+      		SINON
+      			HModifie(Spim)
+      		FIN
+      		
+      		// Débloque le fichier
+      		HDébloqueNumEnr(Spim, hNumEnrEnCours)		
+      		
+      	FIN
+      	
+      	hlitsuivant(REQ_Messagerie_SPIM)
+      FIN
+     type : 458752
+   -
+     name : FiltreAutomatiqueExpéditeurCréé
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1580368121346534516
+     type_code : 15
+     group : 3
+     code : |1-
+      // Résumé : Enregistre une étiquette automatique
+      // Syntaxe :
+      //FiltreAutomatiqueExpéditeurCréé (<sInfoEtiquetteAuto>)
+      //
+      // Paramètres :
+      //	sInfoEtiquetteAuto : Informations sur l'étiquette automatique
+      // Valeur de retour :
+      // 	Aucune
+      //
+      Procédure PUBLIQUE  FiltreAutomatiqueExpéditeurCréé(sInfoEtiquetteAuto)
+      
+      	// Extrait l'identifiant de l'étiquette
+      	nIDEtiquette est un entier
+      	nIDEtiquette = extraitchaine(sInfoEtiquetteAuto, rangpremier, tab)
+      	
+      	// Extrait l'expéditeur
+      	sExpéditeur est une chaine
+      	sExpéditeur = ExtraitChaîne(sInfoEtiquetteAuto, rangdernier, tab)
+      	
+      	// Sauvegarde
+      	ParamètreEcrit(MODULE_MESSAGERIE + "_AUTOLABEL;FROM;" + sExpéditeur + ";" + nIDEtiquette, 1, UtilisateurEnCours:IDUtilisateur)
+     type : 458752
+   -
+     name : FiltreAutomatique
+     procedure_id : 1580369585964932713
+     type_code : 15
+     code : |1-
+      // Résumé : Applique automatique les étiquettes
+      // Syntaxe :
+      //FiltreAutomatique (<nIDUtilisateur>, <nIDMessage>, <nIDExpéditeur>, <sIDExpéditeur>, <sSujetMessage>, <sContenuMessage>)
+      //
+      // Paramètres :
+      //	nIDUtilisateur :Destinataire
+      //	nIDMessage :Identifiant du message
+      //	nIDExpéditeur :Expéditeur (via identifiant)
+      //	sIDExpéditeur :Expéditeur (via adresse email)
+      //	sSujetMessage :Sujet du message
+      //	sContenuMessage :Corps du message
+      // Valeur de retour :
+      // 	Aucune
+      //
+      Procédure RESTREINTE FiltreAutomatique(nIDUtilisateur, nIDMessage, nIDExpéditeur, sIDExpéditeur, sSujetMessage, sContenuMessage)
+      
+      sExpéditeur est une chaine
+      
+      // Récupère l'expéditeur
+      si sIDExpéditeur ~= "" alors
+      	sExpéditeur = nIDExpéditeur
+      sinon
+      	sExpéditeur = sIDExpéditeur
+      FIN
+      	
+      sListeEtiquettesAuto est une chaine
+      nIDEtiquette est un entier
+      sContient est une chaîne
+      sEtiquetteAuto est une chaine
+      sContenuBrut est une chaine = HTMLVersTexte(HHCodeVersHTML(sContenuMessage))
+      
+      // Recherche les filtres automatiques sur l'expéditeur
+      sListeEtiquettesAuto = ParamètreListe(nIDUtilisateur, MODULE_MESSAGERIE + "_AUTOLABEL;FROM;" + sExpéditeur + ";", faux)
+      pour toute chaine sEtiquetteAuto de sListeEtiquettesAuto separee par rc
+      	
+      	// Extrait l'identifiant de l'étiquette
+      	nIDEtiquette = val(sEtiquetteAuto[[PositionOccurrence(sEtiquetteAuto, ";", rangDernier) + 1 A]])
+      	
+      	// Applique l'étiquette
+      	FiltreAutomatiqueApplique(nIDEtiquette, nIDMessage, sEtiquetteAuto, nIDUtilisateur)	
+      			
+      FIN
+      
+      // Recherche les filtres automatiques sur le sujet
+      sListeEtiquettesAuto = ParamètreListe(nIDUtilisateur, MODULE_MESSAGERIE + "_AUTOLABEL;OBJET;", Faux)
+      POUR TOUTE CHAINE sEtiquetteAuto DE sListeEtiquettesAuto SEPAREE PAR RC
+      	
+      	// Extrait l'identifiant de l'étiquette
+      	nIDEtiquette = val(sEtiquetteAuto[[PositionOccurrence(sEtiquetteAuto, ";", rangDernier) + 1 a]])
+      	
+      	// Récupère le filtre
+      	sContient = sEtiquetteAuto[[PositionOccurrence(sEtiquetteAuto, ";", 2) +1 a PositionOccurrence(sEtiquetteAuto, ";", rangDernier) -1]]
+      	
+      	// Si le filtre correspond
+      	si position(sSujetMessage, sContient, 0, sanscasse) > 0 alors
+      		// Applique l'étiquette
+      		FiltreAutomatiqueApplique(nIDEtiquette, nIDMessage, sEtiquetteAuto, nIDUtilisateur)	
+      	fin
+      FIN
+      
+      // Recherche les filtres automatiques sur le contenu du message
+      sListeEtiquettesAuto = ParamètreListe(nIDUtilisateur, MODULE_MESSAGERIE + "_AUTOLABEL;MESSAGE;", Faux)
+      POUR TOUTE CHAINE sEtiquetteAuto DE sListeEtiquettesAuto SEPAREE PAR RC
+      	
+      	// Extrait l'identifiant de l'étiquette
+      	nIDEtiquette = Val(sEtiquetteAuto[[PositionOccurrence(sEtiquetteAuto, ";", rangDernier) + 1 A]])
+      	
+      	// Récupère le filtre
+      	sContient = sEtiquetteAuto[[PositionOccurrence(sEtiquetteAuto, ";", 2) +1 A PositionOccurrence(sEtiquetteAuto, ";", rangDernier) -1]]
+      	
+      	// Si le filtre correspond
+      	SI Position(sContenuBrut, sContient, 0, SansCasse) > 0 ALORS
+      		// Applique l'étiquette
+      		FiltreAutomatiqueApplique(nIDEtiquette, nIDMessage, sEtiquetteAuto, nIDUtilisateur)	
+      	FIN
+      FIN
+     type : 458752
+   -
+     name : EtiquetteLibellé
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1580386478940906092
+     type_code : 15
+     group : 3
+     code : |1-
+      // Résumé : Renvoie le libellé d'une étiquette
+      // Syntaxe :
+      //[ <Résultat> = ] EtiquetteLibellé (<nIDEtiquette>)
+      //
+      // Paramètres :
+      //	nIDEtiquette : Identifiant de l'étiquette
+      // Valeur de retour :
+      // 	Type indéterminé : Libellé de l'étiquette
+      //
+      Procédure EtiquetteLibellé(nIDEtiquette)
+      
+      	GUID est une chaine
+      	GUID = HFSauvePosition(etiquette..nom)
+      	
+      	HLitRecherchePremier(Etiquette,IDEtiquette,nIDEtiquette)
+      	si htrouve(Etiquette) ALORS
+      		retour = etiquette.Libellé
+      	sinon
+      		retour = ""
+      	FIN
+      
+      fin:	
+      	HFRetourPosition(GUID)
+     type : 458752
+   -
+     name : ExpéditeurNom
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1580386959992101594
+     type_code : 15
+     group : 3
+     code : |1-
+      // Résumé : Renvoie le nom de l'expéditeur passé en paramètre
+      // Syntaxe :
+      //[ <Résultat> = ] ExpéditeurNom (<sExpéditeur>)
+      //
+      // Paramètres :
+      //	sExpéditeur : Identifiant ou adresse email
+      // Valeur de retour :
+      // 	chaîne : Nom de l'expéditeur
+      //
+      Procédure ExpéditeurNom(sExpéditeur)
+      
+      	sNomExpéditeur est une chaine	
+      	sNomExpéditeur = EstNumérique(sExpéditeur) ? RécupèreNomUtilisateur(sExpéditeur) sinon RécupèreNomAffichéEmail(sExpéditeur)
+      	
+      renvoyer sNomExpéditeur
+     type : 458752
+   -
+     name : MessageLecturePOPConnecte
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1580450341441914113
+     type_code : 15
+     group : 3
+     code : |1-
+      // Résumé : Début de la lecture des messages du compte email de l'utilisateur
+      // Syntaxe :
+      //[ <Résultat> = ] MessageLecturePOPConnecte ( [<nIDUtilisateur>])
+      //
+      // Paramètres :
+      //	nIDUtilisateur : Identifiant de l'utilisateur
+      // Valeur de retour :
+      // 	chaîne : Informations sur le compte mail
+      //
+      Procédure MessageLecturePOPConnecte(nIDUtilisateur = UtilisateurEnCours:IDUtilisateur)
+      
+      	// On vérifie que l'utilisateur est connecté
+      	SI EstConnecté(nIDUtilisateur) = Faux ALORS RENVOYER ""
+      	
+      	// Variables locales
+      	sUserPOP, sMDPPOP, sServeurPOP 		sont des chaines
+      	sUserSMTP, sMDPSMTP, sServeurSMTP 	sont des chaines
+      	nPortPOP 							est un entier
+      	nPortSMTP 							est un entier
+      	nIDDernierMsgLu 					est un entier
+      	nTotalMessages 						est un entier
+      	sEmailUtilisateur					est une chaine
+      	bConfigOK 							est un booléen
+      	
+      	// Récupère le paramétrage email de l'utilisateur
+      	bConfigOK = RécupèreParamètresEmailPOP(nIDUtilisateur, sEmailUtilisateur, sUserPOP, sMDPPOP, sServeurPOP, nPortPOP)
+      	SI bConfigOK = Faux ALORS 
+      		gsMessagerieErreurInfo = <§@15544fb30201b50c000a§>
+      		RENVOYER ""	
+      	FIN
+      	bConfigOK = RécupèreParamètresEmailSMTP(nIDUtilisateur, "", "", sUserSMTP, sMDPSMTP, sServeurSMTP, nPortSMTP)
+      	SI bConfigOK = Faux ALORS 
+      		gsMessagerieErreurInfo = <§@15544fb30201b50c000a§>
+      		RENVOYER ""
+      	FIN
+      	
+      	// 10 secondes maximum pour se connecter
+      	EmailChangeTimeOut(10)
+      	
+      	// Connexion au serveur POP
+      	EmailOuvreSession(sUserPOP, sMDPPOP, sServeurPOP, sServeurSMTP, nPortPOP, nPortSMTP, Vrai)
+      	SI ErreurDétectée ALORS
+      		gsMessagerieErreurInfo = EmailMsgErreur(Email.Erreur)
+      		RENVOYER ""
+      	FIN
+      	
+      	// Récupère le dernier message lu sur la boîte
+      	nIDDernierMsgLu = ParamètreLit("EMAIL_POP_DERNIER", nIDUtilisateur, 0)
+      	nTotalMessages = EmailNbMessage(sUserPOP)
+      
+      renvoyer sUserPOP + tab + nIDDernierMsgLu + tab + nTotalMessages + tab + sEmailUtilisateur
+     type : 458752
+   -
+     name : MessageLecturePOPDéconnecte
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1580452647944550369
+     type_code : 15
+     group : 3
+     code : |1-
+      // Résumé : Déconnexion du serveur email
+      // Syntaxe :
+      //[ <Résultat> = ] MessageLecturePOPDéconnecte (<sUserPOP>, <nTotalMessages> [, <nIDUtilisateur>])
+      //
+      // Paramètres :
+      //	sUserPOP : Identifiant de la connexion
+      //	nTotalMessages : Total de messages
+      //	nIDUtilisateur : Identifiant de l'utilisateur
+      // Valeur de retour :
+      // 	booléen : Vrai 
+      //
+      Procédure MessageLecturePOPDéconnecte(sUserPOP, nTotalMessages, nIDUtilisateur = UtilisateurEnCours:IDUtilisateur)
+      
+      	si nTotalMessages <> -1 alors
+      
+      		// Sauvegarde le numéro du dernier mail lu 
+      		ParamètreEcrit("EMAIL_POP_DERNIER", nTotalMessages, nIDUtilisateur)
+      	
+      	fin
+      	
+      	// Fermeture de la connexion au serveur POP
+      	EmailFermeSession(sUserPOP)	
+      	
+      renvoyer vrai
+     type : 458752
+   -
+     name : FiltreAutomatiqueApplique
+     procedure_id : 1580728134704643282
+     type_code : 15
+     code : |1-
+      // Résumé : Applique une étiquette automatique
+      // Syntaxe :
+      //FiltreAutomatiqueApplique (<nIDEtiquette>, <nIDmessage>, <sEtiquetteAuto>, <nIDUtilisateur>)
+      //
+      // Paramètres :
+      //	nIDEtiquette : Identifiant de l'étiquette
+      //	nIDmessage : Identifiant du message
+      //	sEtiquetteAuto : Clé de l'étiquette
+      //	nIDUtilisateur : Identifiant de l'utilisateur
+      // Valeur de retour :
+      // 	Aucune
+      //
+      Procédure RESTREINTE FiltreAutomatiqueApplique(nIDEtiquette, nIDMessage, sEtiquetteAuto, nIDUtilisateur)
+      
+      // Vérifie si l'étiquette existe toujours
+      HRecherchePremier(Etiquette,IDEtiquette,nIDEtiquette)
+      SI HTrouve(Etiquette) ALORS			
+      	// Applique l'étiquette
+      	EtiquetteMessageApplique("" + nIDMessage, nIDEtiquette, Vrai, nIDUtilisateur)			
+      SINON
+      	// Supprime l'étiquette automatique
+      	ParamètreSupprime(sEtiquetteAuto, nIDUtilisateur)
+      FIN
+     type : 458752
+   -
+     name : FiltreAutomatiqueSupprimeDepuisEtiquette
+     procedure_id : 1581168654174145654
+     type_code : 15
+     code : |1-
+      // Résumé : Supprime tous les filtres automatiques reliés à une étiquette
+      // Syntaxe :
+      //FiltreAutomatiqueSupprimeDepuisEtiquette (<nIDEtiquette>)
+      //
+      // Paramètres :
+      // 	nIDEtiquette : Identifiant de l'étiquette
+      // Valeur de retour :
+      // 	Aucune
+      //
+      Procédure FiltreAutomatiqueSupprimeDepuisEtiquette(nIDEtiquette)
+      
+      	// Récupère la liste des filtres de l'utilisateur
+      	sListeFiltres est une chaine
+      	sListeFiltres = ParamètreListe(UtilisateurEnCours:IDUtilisateur, MODULE_MESSAGERIE + "_AUTOLABEL;", faux)
+      		
+      	nIDEtiquetteFiltre est un entier
+      	sFiltre est une chaine
+      	
+      	// Parcours les filtres
+      	pour toute chaine sFiltre de sListeFiltres separee par rc
+      		si sFiltre ~= "" alors continuer
+      		
+      		nIDEtiquetteFiltre = extraitchaine(sFiltre, rangdernier, ";")
+      		si nIDEtiquetteFiltre = nIDEtiquette ALORS
+      			// Il faut supprimer ce filtre
+      			ParamètreSupprime(sFiltre, UtilisateurEnCours:IDUtilisateur)
+      		FIN		
+      	FIN
+      	
+      	
+     type : 458752
+   -
+     name : SPIMEnvoie
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1582632369425976204
+     type_code : 15
+     code : |1-
+      // Résumé : Envoie un SPIM
+      // Syntaxe :
+      //SPIMEnvoie (<sSPIM>)
+      //
+      // Paramètres :
+      //	sSPIM : Message
+      // Valeur de retour :
+      // 	Aucune
+      //
+      Procédure RESTREINTE SPIMEnvoie(sSPIM)
+      
+      // Envoie le SPIM
+      sListeUtilisateurs est une chaine
+      
+      POUR TOUT Utilisateur AVEC EstConnecté = Vrai
+      	SI Utilisateur.EstSupprimé = Vrai ALORS CONTINUER	
+      	SI Utilisateur.IDUtilisateur = UtilisateurEnCours:IDUtilisateur ALORS CONTINUER	
+      	sListeUtilisateurs += "#" + Utilisateur.IDUtilisateur + "#"	
+      FIN
+      
+      si sListeUtilisateurs ~= "" alors retour
+      
+      // Création du SPIM
+      HRAZ(Spim)
+      Spim.Contenu = sSPIM
+      Spim.DateHeureEnvoi = DateDuJour + Maintenant
+      Spim.ListeDestinataires = sListeUtilisateurs
+      Spim.IDExpéditeur = UtilisateurEnCours:IDUtilisateur
+      HAjoute(Spim)
+     type : 458752
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : COL_Collection1
+resources :
+ string_res :
+  identifier : 0x15544fb30201b50c
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+  strings :
+   -
+     text :
+      fr-FR : Destinataire '
+     index : 0
+   -
+     text :
+      fr-FR : "' inconnu"
+     index : 1
+   -
+     text :
+      fr-FR : Impossible d'enregistrer la pièce jointe <
+     index : 2
+   -
+     text :
+      fr-FR : Impossible de joindre le fichier <%1>
+     index : 3
+   -
+     text :
+      fr-FR : Vous n'avez pas les droits suffisants pour envoyer/recevoir un email ou votre paramétrage POP/SMTP est incorrect
+     index : 4
+   -
+     text :
+      fr-FR : (Sans objet)
+     index : 5
+   -
+     text :
+      fr-FR : L'étiquette n'existe plus !
+     index : 6
+   -
+     text :
+      fr-FR : "Le message "
+     index : 7
+   -
+     text :
+      fr-FR : " n'existe plus"
+     index : 8
+   -
+     text :
+      fr-FR : Erreur de doublon détectée lors de l'application automatique d'une étiquette
+     index : 9
+   -
+     text :
+      fr-FR : Le paramétrage de votre compte email n'est pas complet
+     index : 10
+   -
+     text :
+      fr-FR : Aucune adresse email renseignée en tant qu'expéditeur. Veuillez configurer vos paramètres emails.
+     index : 11
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ

@@ -1,0 +1,208 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : pHonoluluNav
+ major_version : 28
+ minor_version : 0
+ type : 65539
+ description : ""
+ subtype : 0
+procedure_set :
+ identifier : 0x15507534000d41b6
+ internal_properties : CAAAAAgAAABGLu41kG7fjQV3iS4F72qmnKaNh5694reolNKIW0iw
+ code_elements :
+  type_code : 41
+  p_codes :
+   -
+     type : 983040
+     role : N
+   -
+     type : 983042
+     role : N
+  procedures :
+   -
+     name : GOTOURL
+     internal_properties : CAAAAAgAAAAY0QMGBI16yhfPzCXucxFHA4aI/2g2RQrn8FTHaypR0FEc9R9RwTs3mk5iY+w+Ge1UxskKL6iQYZRkI5rPu19bbxRfqEMUcw==
+     procedure_id : 1577492573713595811
+     type_code : 15
+     code : |1-
+      Procédure GOTOURL(sURLComplete)
+      
+      // Si cette adresse ne comporte pas l'entête "http://"...
+      SI Position(Minuscule(sURLComplete),"http://", 1)=0 ALORS
+      	// ...ajoute l'entête à l'adresse en cours
+      	sURLComplete = "http://" + sURLComplete
+      FIN
+      
+      // Ouvre le site correspondant au lien
+      NavigateurOuvre(sURLComplete)
+     type : 458752
+     role : N
+   -
+     name : Deconnexion
+     internal_properties : CAAAAAgAAADM5YHKk4H5JAm666TjZysefXO3HlQYRYCvIlJ8nvYYIJKAhiwYO41JdEhwUiHgg5ueTp3bPirX40oR3s8VoRs=
+     procedure_id : 1580433956642426755
+     type_code : 15
+     code : |1-
+      // Résumé : Déconnexion de l'utilisateur
+      // Syntaxe :
+      //Deconnexion ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	Aucune
+      //
+      Procédure Deconnexion()
+      
+      	// Déconnexion l'utilisateur
+      	AJAXExécute(DéconnecteUtilisateur)
+      	
+      	// Empeche le login automatique
+      	Cookieecrit("HONOLULU_AUTOLOGIN", "NO")
+      	
+      //	pageaffiche(page_login)
+     type : 458752
+     role : N
+   -
+     name : Download
+     internal_properties : CAAAAAgAAAAY0QMGBI16yhfPzCXucxFHA4aI/2g2RQrn8FTHaypR0FEc9R9RwTs3mk5iY+w+Ge1UxskKL6iQYZRkI5rPu19bbxRfqEMUcw==
+     procedure_id : 1581076718903536204
+     type_code : 15
+     code : |1-
+      Procédure Download(sCle)
+      		
+      	FichierAffiche(repertoireweb() + "FR/PAGE_PJ." + awp_ext + "?cle=" + sCle + "&AWPSESSIONID=" + gsIdentifiant, NouveauNavigateur)
+     type : 458752
+     role : N
+   -
+     name : Focus
+     internal_properties : CAAAAAgAAAAPPGtCuplRTbkWemnY3n1JfYFwN69JuOysc7mamvM5vW+5apZB+ddbG7Gm6opSW8nqvhhBgZCeJRnht1FTDVWGaopdUDxAYJsAbPXOVlasMeHaD+Jg8vKUoJ3hYqeU3Ow34oPhCosScA3z1dSkcqxXqmXy5Q==
+     procedure_id : 1585608118837651037
+     type_code : 15
+     code : |1+
+      function Focus(VALIAS)
+      {
+      	var obj;
+      	obj = document.getElementById(VALIAS)
+      	
+      	if (obj) 
+      		obj.focus();
+      }
+     language : JS
+     type : 458752
+     role : N
+   -
+     name : WMsgBoxBoutons
+     internal_properties : CAAAAAgAAACkjc/CuJXGoZsOfPVmq4nf6/4wHwC21ULn+PyPK7rBYGE8hTv9BUfDBuq2hzBydeGQ6jUG+1wsnTDAh47znpwzH2ATZIfILw==
+     procedure_id : 1715818648302124897
+     type_code : 15
+     group : 2
+     code : |1-
+      Procédure WMsgBoxBoutons(sListeBoutons, sFonctionNavRetour)
+      
+      	sHTMLBouton est une chaine
+      	sBoutons est une chaine
+      	sUnBouton est une chaine
+      	nID est un entier
+      
+      	// Pour chaque bouton
+      	sUnBouton = ExtraitChaîne(sListeBoutons, (nID + 1), RC)
+      	TANTQUE sUnBouton <> EOT
+      		
+      		nID ++
+      		
+      		// Crée le code du bouton
+      		sHTMLBouton = Remplace(Remplace([
+      			<div style="float:left;margin:0 0 0 6px;min-height:22px;height:auto!important;height:22px;">
+      				<div style="min-width:80px;width:auto!important;width:80px">
+      					<table style="width:80px;border-spacing:0;height:22px;border-collapse:separate;border:0;background:none;outline:none;" id="bzBTN%id%">
+      						<tr>
+      							<td style="border:none;" id="tzBTN%id%" class="valignmiddle">
+      								<button type="button" id="BTN%id%" name="BTN%id%" style="display:block;width:100%;height:auto;min-height:22px;width:auto;min-width:80px;width:80px\9;height:auto;min-height:22px;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;"
+      									onclick="if(%fonction%){OnFermetureBoiteDialogue();}" 
+      									class="BTN-PERSO-LIGHT wblien padding webdevclass-riche"
+      								>
+      									%libelle%
+      								</button>
+      							</td>
+      						</tr>
+      					</table>
+      				</div>
+      			</div>			
+      		], rc, ""), tab, "")
+      				
+      		// Remplace les éléments
+      		sHTMLBouton = Remplace(sHTMLBouton, "%id%", "" + nID)
+      		sHTMLBouton = Remplace(sHTMLBouton, "%libelle%", ExtraitChaîne(sUnBouton, 1))
+      		sHTMLBouton = Remplace(sHTMLBouton, "%fonction%", sFonctionNavRetour)
+      		sHTMLBouton = Remplace(sHTMLBouton, "%valeur%", ExtraitChaîne(sUnBouton, 2))
+      		sHTMLBouton = Remplace(sHTMLBouton, "%web%", RépertoireWeb())
+      		
+      		
+      		// Ajoute le bouton
+      		SI sBoutons <> "" ALORS
+      			sBoutons += Répète("&nbsp;", 2)
+      		FIN		
+      		sBoutons += sHTMLBouton
+      		
+      		sUnBouton = ExtraitChaîne(sListeBoutons, (nID + 1), RC)
+      	FIN
+      	
+      	// Alignement à droite
+      	sBoutons = ChaîneConstruit([
+      	<div style="float:right">%1</div>
+      	], sBoutons)
+      	
+      renvoyer sBoutons
+     type : 458752
+     role : N
+   -
+     name : WMsgBoxImage
+     internal_properties : CAAAAAgAAADaxXHzXjOUe6BKyQbCLL56bFtnGHxfhiye0EanerBYzfMml2etodNvYSgduLDTpwPd2EqS88xJECFaoc6swpWW
+     procedure_id : 1715818648302518472
+     type_code : 15
+     group : 2
+     code : |1-
+      Procédure WMsgBoxImage(sImageIcone)
+      
+      	sHTML est une chaine
+      
+      	// Pas d'image
+      	si sImageIcone = "" alors renvoyer ""
+      
+      	SI Droite(sImageIcone, 3) ~= "png" et EnFireFoxOuNetscapeNav() = faux ALORS
+      		sHTML = remplace([
+      		<td width=70 height=85 align=center valign=top>
+      			<br>
+      			<img	 src="%web%images/msgbox/blank.gif" 
+      				width=48 height=48 
+      				style="filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(sizingMethod=scale src=%image%)"
+      			/>
+      		</td>
+      		], "%image%", sImageIcone)	
+      	SINON
+      		sHTML = Remplace([
+      		<td width=70 height=85 align=center valign=top>
+      			<br>
+      			<img src="%image%" width=48 height=48/>
+      		</td>
+      		], "%image%", sImageIcone)
+      	FIN
+      	
+      	sHTML = Remplace(sHTML, "%web%", RépertoireWeb())
+      	
+      renvoyer sHTML
+     type : 458752
+     role : N
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : NAV_CollectionNavigateur1
+resources :
+ string_res :
+  identifier : 0x10ed9151275dd5b4
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ

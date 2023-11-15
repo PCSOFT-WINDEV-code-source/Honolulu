@@ -1,0 +1,1062 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : pUtilisateurs
+ major_version : 28
+ minor_version : 0
+ type : 7
+ description : ""
+ subtype : 0
+procedure_set :
+ identifier : 0x1551c1f201902e2d
+ internal_properties : CAAAAAgAAABGLu41kG7fjQV3iS4F72qmnKaNh5694reolNKIW0iw
+ code_elements :
+  type_code : 31
+  p_codes :
+   -
+     code : |1-
+      // Collection de procédures de gestion des utilisateurs
+      
+      constant
+      	LOGIN_SYSTEM = "SYSTEM"
+      FIN
+     type : 720896
+  procedures :
+   -
+     name : RécupèreNomUtilisateur
+     procedure_id : 1536222210242722855
+     type_code : 15
+     code : |1+
+      // Résumé : Renvoie le nom d'utilisateur
+      // Syntaxe :
+      // [ <Résultat> = ] RécupèreNomUtilisateur (<nID>)
+      //
+      // Paramètres :
+      // 	nID : Identifiant de l'utilisateur
+      // Valeur de retour :
+      // 	chaîne : Nom de l'utilisateur
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure RécupèreNomUtilisateur(nID)
+      
+      // Variables locales
+      sNomAffiché est une chaine
+      sGUID 		est une chaine
+      
+      si nID = UtilisateurEnCours:IDUtilisateur ALORS
+      	
+      	// On récupère le nom à afficher
+      	sNomAffiché = UtilisateurEnCours:NomAffiché
+      	
+      	SI sNomAffiché ~= "" ALORS
+      		// Le nom affiché est vide, on prend nom + prénom
+      		sNomAffiché = UtilisateurEnCours:Nom + " " + UtilisateurEnCours:Prénom
+      		SI sNomAffiché ~= "" ALORS
+      			// Nom + prénom est vide, on prend le login
+      			sNomAffiché = UtilisateurEnCours:Login
+      		FIN
+      	FIN
+      	
+      sinon
+      	
+      	// Sauvegarde du contexte
+      	sGUID = HFSauvePosition(Utilisateur..Nom)
+      	
+      	HLitRecherchePremier(Utilisateur,IDUtilisateur,nID)
+      	SI HTrouve(Utilisateur) ALORS
+      		
+      		// On récupère le nom à afficher
+      		sNomAffiché = Utilisateur.NomAffiché
+      		SI sNomAffiché ~= "" ALORS
+      			// Le nom affiché est vide, on prend nom + prénom
+      			sNomAffiché = Utilisateur.Nom + " " + Utilisateur.Prénom
+      			SI sNomAffiché ~= "" ALORS
+      				// Nom + prénom est vide, on prend le login
+      				sNomAffiché = Utilisateur.Login
+      			FIN
+      		FIN
+      	FIN
+      	
+      	// Restauration du contexte
+      	HFRetourPosition(sGUID)
+      
+      FIN
+      	
+      renvoyer sNomAffiché
+     type : 458752
+   -
+     name : EstAdministrateur
+     procedure_id : 1536245218405383077
+     type_code : 15
+     code : |1-
+      // Résumé : Permet de savoir si un utilisateur est administrateur
+      // Syntaxe :
+      //[ <Résultat> = ] EstAdministrateur ( [<nIDUtilisateur> [, <bSansLecture>]])
+      //
+      // Paramètres :
+      //	nIDUtilisateur : Identifiant de l'utilisateur
+      //	bSansLecture (valeur par défaut=0) : Passer Vrai pour ne pas relire l'enregistrement (optimisation : à utiliser après vérification du code d'appel)
+      // Valeur de retour :
+      // 	Type indéterminé : Vrai si l'utilisateur est administrateur, Faux sinon
+      //
+      Procédure EstAdministrateur(nIDUtilisateur = UtilisateurEnCours:IDUtilisateur, bSansLecture = Faux)
+      
+      // Variables locales
+      bEstAdministrateur 	est un booléen
+      sGUID 				est une chaine
+      
+      // Si c'est l'utilisateur courant
+      SI nIDUtilisateur = UtilisateurEnCours:IDUtilisateur ALORS
+      	RENVOYER UtilisateurEnCours:EstAdministrateur
+      FIN
+      
+      // Optimisation : on renvoie directement l'état courant
+      SI bSansLecture = Vrai alors renvoyer Utilisateur.EstAdministrateur
+      
+      // Sauvegarde du contexte
+      sGUID = HFSauvePosition(Utilisateur..Nom)
+      
+      // Recherche de l'utilisateur	
+      HLitRecherchePremier(Utilisateur,IDUtilisateur,nIDUtilisateur)
+      si htrouve(Utilisateur) ALORS
+      	bEstAdministrateur = utilisateur.EstAdministrateur
+      FIN
+      	
+      // Restauration du contexte
+      HFRetourPosition(sGUID)
+      
+      	
+      renvoyer bEstAdministrateur
+     type : 458752
+   -
+     name : EstModérateur
+     procedure_id : 1536245579182654530
+     type_code : 15
+     code : |1-
+      // Résumé : Permet de savoir si un utilisateur est modérateur
+      // Syntaxe :
+      //[ <Résultat> = ] EstModérateur ( [<nIDUtilisateur> [, <bSansLecture>]])
+      //
+      // Paramètres :
+      //	nIDUtilisateur : Identifiant de l'utilisateur
+      //	bSansLecture (valeur par défaut=0) : Passer Vrai pour ne pas relire l'enregistrement (optimisation : à utiliser après vérification du code d'appel)
+      // Valeur de retour :
+      // 	Type indéterminé : Vrai si l'utilisateur est modérateur, Faux sinon
+      //
+      Procédure EstModérateur(nIDUtilisateur = UtilisateurEnCours:IDUtilisateur, bSansLecture = Faux)
+      
+      // Variables locales
+      bEstModérateur 	est un booléen
+      sGUID 			est une chaine
+      
+      // Si c'est l'utilisateur courant
+      SI nIDUtilisateur = UtilisateurEnCours:IDUtilisateur ALORS
+      	RENVOYER UtilisateurEnCours:EstModérateur
+      FIN
+      
+      // Optimisation : on renvoie directement l'état courant
+      SI bSansLecture = Vrai ALORS RENVOYER Utilisateur.EstModérateur
+      
+      // Sauvegarde du contexte
+      sGUID = HFSauvePosition(Utilisateur..Nom)
+      
+      // Recherche de l'utilisateur	
+      HLitRecherchePremier(Utilisateur,IDUtilisateur,nIDUtilisateur)
+      si htrouve(Utilisateur) ALORS
+      	bEstModérateur = utilisateur.EstModérateur
+      FIN
+      	
+      // Restauration du contexte
+      HFRetourPosition(sGUID)
+      
+      	
+      renvoyer bEstModérateur
+     type : 458752
+   -
+     name : EstAdministrateurOuModerateur
+     procedure_id : 1536245768161324636
+     type_code : 15
+     code : |1-
+      // Résumé : Permet de savoir si un utilisateur est administrateur et/ou modérateur
+      // Syntaxe :
+      //[ <Résultat> = ] EstAdministrateurOuModerateur ( [<nIDUtilisateur> [, <bSansLecture>]])
+      //
+      // Paramètres :
+      //	nIDUtilisateur : Identifiant de l'utilisateur
+      //	bSansLecture (valeur par défaut=0) : Passer Vrai pour ne pas relire l'enregistrement (optimisation : à utiliser après vérification du code d'appel)
+      // Valeur de retour :
+      // 	booléen : Vrai si l'utilisateur possède des droits, Faux sinon
+      //
+      
+      Procédure EstAdministrateurOuModerateur(nIDUtilisateur = UtilisateurEnCours:IDUtilisateur, bSansLecture = Faux)
+      
+      // Variables locales
+      bEstUtilisateurAvecPouvoir 	est un booléen
+      sGUID 						est une chaine
+      
+      // Si c'est l'utilisateur courant
+      SI nIDUtilisateur = UtilisateurEnCours:IDUtilisateur ALORS
+      	RENVOYER (UtilisateurEnCours:EstModérateur ou UtilisateurEnCours:EstAdministrateur)
+      FIN
+      
+      // Optimisation : on renvoie directement l'état courant
+      SI bSansLecture = Vrai ALORS RENVOYER (Utilisateur.EstModérateur OU Utilisateur.EstAdministrateur)
+      
+      // Sauvegarde du contexte
+      sGUID = HFSauvePosition(Utilisateur..Nom)
+      
+      // Recherche de l'utilisateur	
+      HLitRecherchePremier(Utilisateur,IDUtilisateur,nIDUtilisateur)
+      si htrouve(Utilisateur) ALORS
+      	bEstUtilisateurAvecPouvoir = utilisateur.EstModérateur ou utilisateur.EstAdministrateur
+      FIN
+      	
+      // Restauration du contexte
+      HFRetourPosition(sGUID)
+      
+      	
+      renvoyer bEstUtilisateurAvecPouvoir
+     type : 458752
+   -
+     name : EstPropriétaire
+     procedure_id : 1536246201953057356
+     type_code : 15
+     code : |1-
+      // Résumé : Permet de savoir si un utilisateur est propriétaire d'un enregistrement dans un fichier
+      // Syntaxe :
+      //[ <Résultat> = ] EstPropriétaire (<sQuoi>, <nIDQuoi> [, <nIDUtilisateur>])
+      //
+      // Paramètres :
+      //	sQuoi : Fichier
+      //	nIDQuoi : Identifiant de l'enregistrement à tester
+      //	nIDUtilisateur : Identifiant de l'utilisateur
+      // Valeur de retour :
+      // 	booléen : Vrai si l'utilisateur est propriétaire d'un enregistrement, Faux sinon
+      //
+      Procédure EstPropriétaire(sQuoi, nIDQuoi, nIDUtilisateur = UtilisateurEnCours:IDUtilisateur)
+      
+      // Variables locales
+      bEstPropriétaire 	est un booléen
+      sGUID 				est une chaine
+      
+      // Sauvegarde du contexte
+      sGUID = HFSauvePosition(sQuoi)
+      
+      // Protection de l'indirection
+      QUAND EXCEPTION
+      	ExceptionActive()
+      	HFRetourPosition(sGUID)
+      	RENVOYER Faux
+      FIN
+      
+      // Recherche générique du propriétaire d'un élément
+      HLitRecherchePremier(sQuoi, "ID" + sQuoi, nIDQuoi)
+      si htrouve(Utilisateur) ALORS
+      	bEstPropriétaire = ({sQuoi + ".IDUtilisateur", indrubrique} = nIDUtilisateur)
+      FIN
+      	
+      // Restauration du contexte
+      HFRetourPosition(sGUID)
+      
+      	
+      renvoyer bEstPropriétaire
+     type : 458752
+   -
+     name : RécupèreLogin
+     procedure_id : 1536944224322332723
+     type_code : 15
+     code : |1+
+      // Résumé : Récupère le login d'un utilisateur
+      // Syntaxe :
+      //[ <Résultat> = ] RécupèreLogin (<nID> [, <bSansLecture>])
+      //
+      // Paramètres :
+      //	nID : Identifiant de l'utilisateur
+      //	bSansLecture (valeur par défaut=0) : Passer Vrai pour ne pas relire l'enregistrement (optimisation : à utiliser après vérification du code d'appel)
+      // Valeur de retour :
+      // 	Type indéterminé : login de l'utilisateur
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure RécupèreLogin(nID, bSansLecture = Faux)
+      
+      // Variables locales
+      sNom 		est une chaine
+      sGUID 		est une chaine
+      
+      // Si c'est l'utilisateur courant
+      SI nID = UtilisateurEnCours:IDUtilisateur ALORS
+      	RENVOYER UtilisateurEnCours:Login
+      FIN
+      
+      // Optimisation : on renvoie directement l'état courant
+      SI bSansLecture = Vrai ALORS RENVOYER Utilisateur.Login
+      
+      // Sauvegarde du contexte
+      sGUID = HFSauvePosition(Utilisateur..Nom)
+      
+      // Recherche de l'utilisateur	
+      HLitRecherchePremier(Utilisateur,IDUtilisateur,nID)
+      si htrouve(Utilisateur) ALORS
+      	sNom = utilisateur.login
+      FIN
+      	
+      // Restauration du contexte
+      HFRetourPosition(sGUID)
+      
+      renvoyer sNom
+      
+     type : 458752
+   -
+     name : ListeMembresGroupe
+     procedure_id : 1536991962865258184
+     type_code : 15
+     code : |1-
+      // Résumé : Renvoie la liste des utilisateurs d'un groupe
+      // Syntaxe :
+      //[ <Résultat> = ] ListeMembresGroupe (<nIDUtilisateur>, <sTitreGroupe>)
+      //
+      // Paramètres :
+      //	nIDUtilisateur : Identifiant de l'utilisateur
+      //	sTitreGroupe : Nom du groupe
+      // Valeur de retour :
+      // 	chaîne : liste des utilisateurs
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure ListeMembresGroupe(nIDUtilisateur, sTitreGroupe)
+      	
+      // Variables locales
+      sListe 		est une chaine
+      sGUID 		est une chaine
+      
+      // Sauvegarde du contexte
+      sGUID = HFSauvePosition(Groupe..Nom)
+      
+      // Recherche du groupe
+      HLitRecherchePremier(Groupe,TitreParUtilisateur,[sTitreGroupe,nIDUtilisateur])
+      SI Htrouve(Groupe) = Faux alors
+      	// Recherche générique
+      	HLitRecherchePremier(Groupe,TitreParUtilisateur,[sTitreGroupe,PourTous])
+      	SI Htrouve(Groupe) = faux alors
+      		dbgAssertion(Faux,<§@1551c1ed018e1ac40000§>)
+      		RENVOYER ""
+      	FIN	
+      FIN
+      
+      // Mémorisation de la liste
+      sListe = Groupe.Liste
+      	
+      // Restauration du contexte
+      HFRetourPosition(sGUID)
+      
+      // On renvoie la liste
+      RENVOYER sListe
+     type : 458752
+   -
+     name : RécupèreParamètresEmailSMTP
+     procedure_id : 1537005758388159708
+     type_code : 15
+     code : |1-
+      // Résumé : Renvoie les paramètres d'envoi des emails pour un utilisateur
+      // Syntaxe :
+      //[ <Résultat> = ] RécupèreParamètresEmailSMTP (<nIDUtilisateur>, <sAdresseExpediteur>, <sEmailExpediteur>, <sUserSMTP>, <sMDPSMTP>, <sServeurSMTP>, <nPortSMTP>)
+      //
+      // Paramètres :
+      //	nIDUtilisateur : Identifiant de l'utilisateur
+      //	sAdresseExpediteur : Adresse complète de l'expéditeur
+      //	sEmailExpediteur : Email de l'expéditeur
+      //	sUserSMTP : Nom d'utilisateur SMTP
+      //	sMDPSMTP : Mot de passe SMTP
+      //	sServeurSMTP : Serveur SMTP
+      //	nPortSMTP : Port SMTP
+      // Valeur de retour :
+      // 	booléen : Vrai si l'utilisateur a le droit d'envoyer des emails et si son paramétrage est effectué, Faux dans le cas contraire
+      //
+      Procédure RécupèreParamètresEmailSMTP(nIDUtilisateur, sAdresseExpediteur, sEmailExpediteur, sUserSMTP, sMDPSMTP, sServeurSMTP, nPortSMTP)
+      
+      // Variables locales
+      bRetour 	est un booléen
+      sGUID 		est une chaine
+      
+      // Sauvegarde du contexte
+      sGUID = HFSauvePosition(Utilisateur..Nom)
+       
+      // Vérifie si l'utilisateur peut recevoir/envoyer des emails
+      bEmailAutorisé est un booléen
+      
+      // Si c'est l'utilisateur courant
+      SI nIDUtilisateur = UtilisateurEnCours:IDUtilisateur ALORS
+      	bEmailAutorisé = UtilisateurEnCours:EmailAutorisé
+      sinon
+      	// Recherche de l'utilisateur 
+      	HLitRecherchePremier(Utilisateur, IDUtilisateur, nIDUtilisateur)
+      	SI HTrouve(Utilisateur) ALORS	
+      		bEmailAutorisé = utilisateur.EmailAutorisé
+      	FIN
+      FIN
+       
+       // Si l'utilisateur a le droit de recevoir/envoyer des emails
+       si bEmailAutorisé ALORS
+       	
+       	// Paramètrage
+       	HLitRecherchePremier(ParametreEmail, IDUtilisateur, nIDUtilisateur)
+       	SI HTrouve(ParametreEmail) ALORS
+       
+       		// Expéditeur
+       		sEmailExpediteur 	= ParametreEmail.Email
+       		sAdresseExpediteur 	= ParametreEmail.NomAffiché + " <" + ParametreEmail.Email + ">"				
+       		sUserSMTP 	 		= ParametreEmail.UserSMTP
+       		sMDPSMTP 	 		= Décrypte(ParametreEmail.MdpSMTP, csCryptageMdp, crypteSécurisé, Vrai)
+       		sServeurSMTP 		= ParametreEmail.ServeurSMTP
+       		nPortSMTP 	 		= ParametreEmail.PortSMTP				
+       		
+       		SI sServeurSMTP <> "" ALORS
+       			bRetour = Vrai		
+       		FIN
+       	FIN				
+       	
+       FIN
+      	
+      // Restauration du contexte
+      HFRetourPosition(sGUID)
+      
+      	
+      renvoyer bRetour
+     type : 458752
+   -
+     name : RécupèreParamètresEmailPOP
+     procedure_id : 1537024286891548342
+     type_code : 15
+     code : |1-
+      // Résumé : Renvoie les paramètres de réception des emails pour un utilisateur
+      // Syntaxe :
+      //[ <Résultat> = ] RécupèreParamètresEmailPOP (<nIDUtilisateur>, <sEmailUtilisateur>, <sUserPOP>, <sMDPPOP>, <sServeurPOP>, <nPortPOP>)
+      //
+      // Paramètres :
+      //	nIDUtilisateur : Identifiant de l'utilisateur
+      // 	sEmailUtilisateur : <indiquez ici le rôle de sEmailUtilisateur>
+      //	sUserPOP : Nom d'utilisateur POP
+      //	sMDPPOP : Mot de passe POP
+      //	sServeurPOP : Serveur POP
+      //	nPortPOP : Port POP
+      // Valeur de retour :
+      // 	booléen : Vrai si l'utilisateur a le droit de recevoir des emails et si son paramétrage est valide, Faux dans le cas contraire
+      //
+      Procédure RécupèreParamètresEmailPOP(nIDUtilisateur, sEmailUtilisateur, sUserPOP, sMDPPOP, sServeurPOP, nPortPOP)
+      
+      // Variables locales
+      bRetour 	est un booléen	
+      sGUID 		est une chaine
+      
+      // Sauvegarde du contexte
+      sGUID = HFSauvePosition(Utilisateur..Nom)
+      
+      // Vérifie si l'utilisateur peut recevoir/envoyer des emails
+      bEmailAutorisé est un booléen
+      
+      // Si c'est l'utilisateur courant
+      SI nIDUtilisateur = UtilisateurEnCours:IDUtilisateur ALORS
+      	bEmailAutorisé = UtilisateurEnCours:EmailAutorisé
+      SINON
+      	// Recherche de l'utilisateur 
+      	HLitRecherchePremier(Utilisateur, IDUtilisateur, nIDUtilisateur)
+      	SI HTrouve(Utilisateur) ALORS	
+      		bEmailAutorisé = Utilisateur.EmailAutorisé
+      	FIN
+      FIN
+      
+      // Si l'utilisateur a le droit de recevoir/envoyer des emails
+      si bEmailAutorisé ALORS
+      	
+      	// Paramètrage
+      	HLitRecherchePremier(ParametreEmail, IDUtilisateur, nIDUtilisateur)
+      	si htrouve(ParametreEmail) ALORS
+      		
+      		sUserPOP 	= ParametreEmail.UserPOP
+      		sMDPPOP 	= Decrypte(ParametreEmail.MdpPOP, csCryptageMdp, crypteSécurisé, vrai)
+      		sServeurPOP = ParametreEmail.ServeurPOP
+      		nPortPOP 	= ParametreEmail.PortPOP	
+      		sEmailUtilisateur = ParametreEmail.Email			
+      	
+      		si sServeurPOP <> "" alors
+      			bRetour = vrai		
+      		fin
+      	FIN			
+      	
+      FIN	
+      	
+      // Restauration du contexte
+      HFRetourPosition(sGUID)
+      	
+      renvoyer bRetour
+     type : 458752
+   -
+     name : RécupèreID
+     procedure_id : 1537031863222176273
+     type_code : 15
+     code : |1-
+      // Résumé : Recherche d'un identifiant d'utilisateur par son login
+      // Syntaxe :
+      // [ <Résultat> = ] RécupèreID (<sLogin>)
+      //
+      // Paramètres :
+      // 	sLogin : Login de l'utilisateur
+      // Valeur de retour :
+      // 	entier : Identifiant de l'utilisateur
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure RécupèreID(sLogin)
+      
+      // Variables locales
+      nID 		est un entier
+      sGUID 		est une chaine
+      
+      // Si c'est l'utilisateur courant
+      si sLogin = UtilisateurEnCours:Login ALORS
+      	renvoyer utilisateurencours:IDUtilisateur
+      FIN
+      
+      // Sauvegarde du contexte
+      sGUID = HFSauvePosition(Utilisateur..Nom)
+      
+      // Recherche de l'utilisateur	
+      HLitRecherchePremier(Utilisateur,login,sLogin)
+      si htrouve(Utilisateur) ALORS
+      	nID = utilisateur.IDUtilisateur
+      FIN
+      	
+      // Restauration du contexte
+      HFRetourPosition(sGUID)
+      	
+      renvoyer nID
+     type : 458752
+   -
+     name : EstConnecté
+     procedure_id : 1551837354284395455
+     type_code : 15
+     code : |1-
+      // Résumé : Déterminer si un utilisateur est connecté
+      // Syntaxe :
+      // [ <Résultat> = ] EstConnecté ( [<nIDUtilisateur>])
+      //
+      // Paramètres :
+      // 	nIDUtilisateur : Identifiant de l'utilisateur
+      // Valeur de retour :
+      // 	booléen : Vrai si l'utilisateur est connecté, Faux sinon
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure EstConnecté(nIDUtilisateur = UtilisateurEnCours:IDUtilisateur)
+      
+      // Variables locales
+      bConnecté est un booléen
+      sGUID 		est une chaine
+      
+      si UtilisateurEnCours:IDUtilisateur = 0 alors renvoyer faux
+      
+      // Si c'est l'utilisateur en cours
+      SI nIDUtilisateur = UtilisateurEnCours:IDUtilisateur ALORS
+      	RENVOYER Vrai
+      FIN
+      
+      // Sauvegarde du contexte
+      sGUID = HFSauvePosition(Utilisateur..Nom)
+      
+      // Recherche de l'utilisateur
+      HLitRecherchePremier(Utilisateur,IDUtilisateur,nIDUtilisateur)
+      SI HTrouve(Utilisateur) ALORS
+      	bConnecté = Utilisateur.EstConnecté
+      FIN
+      
+      // Restauration du contexte
+      HFRetourPosition(sGUID)
+      
+      
+      RENVOYER bConnecté
+     type : 458752
+   -
+     name : DéconnecteUtilisateur
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1551841133691542440
+     type_code : 15
+     code : |1-
+      // Résumé : Deconnecte un utilisateur
+      // Syntaxe :
+      //[ <Résultat> = ] DéconnecteUtilisateur ( [<nIDUtilisateur>])
+      //
+      // Paramètres :
+      //	nIDUtilisateur : Identifiant de l'utilisateur
+      // Valeur de retour :
+      // 	booléen : Vrai si l'utilisateur a pu être déconnecté, Faux sinon
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure DéconnecteUtilisateur(nIDUtilisateur = UtilisateurEnCours:IDUtilisateur)
+      
+      // Variables locales
+      bRetour 	est un booléen
+      sGUID 		est une chaine
+      
+      // En mode AWP on ne déconnecte pas
+      SI EnModeAWP() = Vrai ALORS RENVOYER Faux
+      
+      // Sauvegarde du contexte
+      sGUID = HFSauvePosition(Utilisateur..Nom)
+      
+      // Recherche de l'utilisateur	
+      HLitRecherchePremier(Utilisateur,IDUtilisateur,nIDUtilisateur)
+      SI HTrouve(Utilisateur) ALORS
+      	Utilisateur.EstConnecté = faux
+      	hmodifie(Utilisateur)
+      	bRetour = vrai
+      sinon
+      	bRetour = faux
+      FIN
+      
+      // Mise à jour de l'utlisateur courant
+      FichierVersMémoire(UtilisateurEnCours, utilisateur)
+      	
+      // Restauration du contexte
+      HFRetourPosition(sGUID)
+      		
+      
+      <SI CibleExécution=ApplicationWindows OU CibleExécution=Webservice OU CibleExécution=AssemblageDotNet OU CibleExécution=Java OU CibleExécution=ApplicationLinux32>
+      	
+      <SINON SI CibleExécution=SiteWindows>
+      	
+      	// Nettoyage	
+      	DiscussionDéconnecteUtilisateur()	
+      	SPIMSupprimeMessage()
+      	
+      <FIN>
+      
+      
+      
+      // On vide la corbeille
+      CorbeilleSupprimeTout()
+      
+      // RAZ
+      VariableRAZ(UtilisateurEnCours)
+      
+      RENVOYER bRetour
+     type : 458752
+   -
+     name : RécupèreAvatar
+     procedure_id : 1559263108790737700
+     type_code : 15
+     code : |1-
+      // Résumé : Renvoie l'avatar d'un utilisateur
+      // Syntaxe :
+      //[ <Résultat> = ] RécupèreAvatar (<nID>)
+      //
+      // Paramètres :
+      //	nID : Identifiant de l'utilisateur
+      // Valeur de retour :
+      // 	buffer : Avatar
+      //
+      Procédure RécupèreAvatar(nID)
+      
+      // Variables locales
+      bufImage 		est un buffer
+      bEstSupprimé 	est un booléen
+      sGUID 			est une chaine
+      
+      si nID = UtilisateurEnCours:IDUtilisateur ALORS
+      	bufImage = UtilisateurEnCours:Avatar
+      sinon
+      	// Sauvegarde du contexte
+      	sGUID = HFSauvePosition(Utilisateur..Nom)
+      	
+      	// Recherche de l'utilisateur	
+      	HLitRecherchePremier(Utilisateur,IDUtilisateur,nID)
+      	SI HTrouve(Utilisateur) ALORS
+      		bufImage = Utilisateur.Avatar
+      		bEstSupprimé = Utilisateur.EstSupprimé
+      	FIN
+      	
+      	// Restauration du contexte
+      	HFRetourPosition(sGUID)
+      FIN
+      
+      // Charge l'avatar par défaut
+      si bufImage ~="" alors
+      	bufImage = fchargetexte(ComplèteRep(fRepWeb()) + "ext\avatar-defaut" + (bEstSupprimé ? "-delete" sinon "") + ".gif")
+      FIN
+      
+      RENVOYER bufImage
+     type : 458752
+   -
+     name : RécupèreGroupe
+     procedure_id : 1559263357900865636
+     type_code : 15
+     code : |1-
+      // Résumé : Renvoie le groupe par défaut de l'utilisateur
+      // Syntaxe :
+      //[ <Résultat> = ] RécupèreGroupe (<nID>)
+      //
+      // Paramètres :
+      //	nID : Identifiant de l'utilisateur
+      // Valeur de retour :
+      // 	chaîne : Groupe d'appartenance
+      //
+      Procédure RécupèreGroupe(nID)
+      
+      // Variables locales
+      sGUID 			est une chaine
+      bLecture		est un booléen
+      
+      si nID = UtilisateurEnCours:IDUtilisateur
+      	// Sauvegarde du contexte
+      	sGUID = HFSauvePosition(Utilisateur..Nom)
+      
+      	// Optimisation : Recherche de l'utilisateur
+      	HLitRecherchePremier(Utilisateur,IDUtilisateur,nID)
+      	
+      	bLecture = vrai
+      sinon
+      	bLecture = faux
+      fin
+      
+      // Détermine le groupe de l'utilisateur
+      selon Vrai
+      	cas EstAdministrateur(nID, bLecture)
+      		retour = "Administrateur"
+      		
+      	cas EstModérateur(nID, bLecture)
+      		retour = "Modérateur"
+      		
+      	cas RécupèreLogin(nID, bLecture) <> ""
+      		retour = "Membre"
+      		
+      	autres cas
+      		retour = "Invité"
+      FIN
+      
+      fin:
+      si bLecture alors
+      	// Restauration du contexte
+      	HFRetourPosition(sGUID)
+      fin
+     type : 458752
+   -
+     name : ListeMembresAvecPouvoir
+     procedure_id : 1559686720638150466
+     type_code : 15
+     code : |1-
+      // Résumé : Renvoie la liste des utilisateurs avec pouvoir
+      // Syntaxe :
+      //[ <Résultat> = ] ListeMembresAvecPouvoir ( [<bAdministrateurs> [, <bModérateurs>]])
+      //
+      // Paramètres :
+      //	bAdministrateurs (valeur par défaut=1) : Vrai si les administrateurs doivent être listés
+      //	bModérateurs (valeur par défaut=1) : Vrai si les modérateurs doivent être listés
+      // Valeur de retour :
+      // 	chaîne : Liste des utilisateurs avec pouvoir
+      //
+      Procédure ListeMembresAvecPouvoir(bAdministrateurs = vrai, bModérateurs = vrai)
+      
+      // Variables locales
+      sCondition 	est une chaine
+      sListe 		est une chaine
+      
+      // On devra lister les administrateur
+      si bAdministrateurs ALORS
+      	sCondition = "EstAdministrateur=1"
+      FIN
+      
+      // On devra aussi lister les administrateur
+      si bModérateurs alors
+      	sCondition +=  [" OU "] + "EstModérateur=1"
+      FIN
+      
+      // Récupère les utilisateurs concernés
+      pour chaque Utilisateur avec sCondition
+      	// On ne prend pas les utilisateurs supprimés
+      	si Utilisateur.EstSupprimé = faux ALORS
+      		// On ne prend pas les administrateurs et modérateurs souhaitant ne pas recevoir les notifications systèmes
+      		si val(ParamètreLit("NOTIFICATIONS_INACTIVES", utilisateur.IDUtilisateur, "0")) = 0 alors
+      			sListe += [RC] + Utilisateur.IDUtilisateur	
+      		fin
+      	FIN		
+      FIN
+      	
+      renvoyer sListe
+     type : 458752
+   -
+     name : EstSupprimé
+     procedure_id : 1561428913785087366
+     type_code : 15
+     code : |1-
+      // Résumé : Permet de déterminer si un utilisateur a été supprimé
+      // Syntaxe :
+      //[ <Résultat> = ] EstSupprimé (<nIDUtilisateur>)
+      //
+      // Cette procédure permet de savoir si l'utilisateur est supprimé ou pas
+      
+      // Paramètres :
+      //	nIDUtilisateur : L'identifiant de l'utilisateur
+      // Valeur de retour :
+      // 	booléen : Vrai si l'utilisateur est supprimé, faux sinon
+      
+      Procédure EstSupprimé(nIDUtilisateur)
+      
+      // Variables locales
+      bSupprimé 	est un booléen
+      sGUID 		est une chaine
+      
+      // Utilisateur courant
+      si nIDUtilisateur = UtilisateurEnCours:IDUtilisateur ALORS
+      	renvoyer UtilisateurEnCours:EstSupprimé
+      FIN
+      
+      // Sauvegarde du contexte
+      sGUID = HFSauvePosition(Utilisateur..Nom)
+      
+      // Recherche de l'utilisateur
+      HLitRecherchePremier(Utilisateur,IDUtilisateur,nIDUtilisateur)
+      SI HTrouve(Utilisateur) ALORS
+      	bSupprimé = Utilisateur.estSupprimé
+      FIN
+      
+      // Restauration du contexte
+      HFRetourPosition(sGUID)
+      
+      RENVOYER bSupprimé
+     type : 458752
+   -
+     name : ListeMembresGroupeParIDGroupe
+     procedure_id : 1561448327447321648
+     type_code : 15
+     code : |1-
+      // Résumé : Renvoie la liste des membres d'un groupe
+      // Syntaxe :
+      //[ <Résultat> = ] ListeMembresGroupeParIDGroupe (<nIDGroupe>)
+      //
+      // Cette procédure permet de récupérer la liste des utilisateurs membres d'un groupe
+      //
+      // Paramètres :
+      //	nIDGroupe : L'identifiant du groupe dont on veut les membres
+      // Valeur de retour :
+      // 	chaîne : La liste des id Utilisateurs séparés par ';'
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure ListeMembresGroupeParIDGroupe(nIDGroupe)
+      
+      // Variables locales
+      sListeMembres 	est une chaine
+      sGUID 			est une chaine
+      
+      // Sauvegarde du contexte
+      sGUID = HFSauvePosition(Groupe..Nom)
+      
+      // recherche du groupe
+      hlitrecherchepremier(groupe, IDGroupe, nIDGroupe)
+      si htrouve(groupe) ALORS
+      	sListeMembres = Groupe.Liste
+      sinon
+      	sListeMembres = Groupe.Liste
+      FIN
+      
+      // Restauration du contexte
+      HFRetourPosition(sGUID)
+      
+      
+      renvoyer sListeMembres
+     type : 458752
+   -
+     name : EmailAutorisé
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1562905403499094099
+     type_code : 15
+     code : |1-
+      // Résumé : Vérifie si un utilisateur possède les droits d'envoyer un email
+      // Syntaxe :
+      //[ <Résultat> = ] EmailAutorisé ( [<nIDUtilisateur>])
+      //
+      // Paramètres :
+      //	nIDUtilisateur : Identifiant de l'utilisateur
+      // Valeur de retour :
+      // 	booléen : Vrai si l'utilisateur peut envoyer et recevoir des emails de l'extérieur, Faux sinon
+      //
+      Procédure EmailAutorisé(nIDUtilisateur = UtilisateurEnCours:IDUtilisateur)
+      
+      // Variables locales
+      bRetour 	est un booléen
+      sGUID 		est une chaine
+      
+      // Utilisateur courant
+      si nIDUtilisateur = UtilisateurEnCours:IDUtilisateur ALORS
+      	renvoyer UtilisateurEnCours:EmailAutorisé
+      FIN
+      
+      // Sauvegarde du contexte
+      sGUID = HFSauvePosition(Utilisateur..Nom)
+      
+      // Recherche de l'utilisateur	
+      HLitRecherchePremier(utilisateur, IDUtilisateur, nIDUtilisateur)
+      si htrouve(Utilisateur) ALORS	
+      	// L'utilisateur a t il le droit d'envoyer et de recevoir des emails extérieurs ?
+      	bRetour = utilisateur.EmailAutorisé	
+      FIN
+      
+      // Restauration du contexte
+      HFRetourPosition(sGUID)
+      
+      
+      renvoyer bRetour
+     type : 458752
+   -
+     name : RécupèreSignatureUtilisateur
+     procedure_id : 1580349803094088084
+     type_code : 15
+     code : |1+
+      // Résumé : Renvoie la signature d'un utilisateur
+      // Syntaxe :
+      //[ <Résultat> = ] RécupèreSignatureUtilisateur (<nID> [, <bHHCode>])
+      //
+      // Paramètres :
+      //	nID : Identifiant de l'utilisateur
+      // 	bHHCode (valeur par défaut=0) : < indiquez ici le rôle de bHHCode >
+      // Valeur de retour :
+      // 	chaîne : Signature de l'utilisateur
+      //
+      Procédure RécupèreSignatureUtilisateur(nID, bHHCode = faux)
+      
+      // Variables locales
+      sSign 		est une chaine
+      sGUID 		est une chaine
+      
+      // Utilise la signature de l'utilisateur connecté si c'est le cas
+      SI nID = UtilisateurEnCours:IDUtilisateur ALORS 	
+      	sSign = UtilisateurEnCours:Signature
+      sinon
+      	// Sauvegarde du contexte
+      	sGUID = HFSauvePosition(Utilisateur..Nom)
+      	
+      	// Recherche de l'utilisateur	
+      	HLitRecherchePremier(Utilisateur,IDUtilisateur,nID)
+      	SI HTrouve(Utilisateur) ALORS
+      		sSign = Utilisateur.Signature
+      	FIN
+      	
+      	// Restauration du contexte
+      	HFRetourPosition(sGUID)
+      FIN
+      
+      // Si c'est pour une signature dans le forum ou la messagerie
+      si bHHCode alors
+      	// Si la signature n'est pas vide
+      	si pas sSign ~= "" alors
+      		// Entoure la signature d'une ligne horizontale
+      		sSign = "<i><hr style='height:1px;border:none' color=#cecece />" + sSign + "</i>"
+      	FIN
+      FIN
+      
+      RENVOYER sSign
+      
+     type : 458752
+   -
+     name : HFCSActiveDroitAdministrateur
+     procedure_id : 1595998125333675680
+     type_code : 15
+     code : |1+
+      // Résumé : Applique les droits administrateurs HFSQLCS à un utilisateur
+      // Syntaxe :
+      //HFCSActiveDroitAdministrateur (<cnxConnexion> est connexion HFSQL, <sUtilisateur>)
+      //
+      // Paramètres :
+      //	cnxConnexion (connexion HFSQL) : Connexion
+      //	sUtilisateur : Utilisateur
+      // Valeur de retour :
+      // 	Aucune
+      //
+      Procédure HFCSActiveDroitAdministrateur(cnxConnexion est une connexion, sUtilisateur)
+      
+      // Donnes les droits au niveau des fichiers
+      sListeFichiers est une chaine
+      sFichier	   est une chaine
+      
+      sListeFichiers = HListeFichier(cnxConnexion)
+      POUR TOUTE CHAINE sFichier DE sListeFichiers separee par rc
+      	HModifieDroitFichier(cnxConnexion, sUtilisateur, hDroitChangeDroit , hAutorisé, cnxConnexion..BaseDeDonnées, sFichier)
+      	HModifieDroitFichier(cnxConnexion, sUtilisateur, hDroitBlocage, hAutorisé, cnxConnexion..BaseDeDonnées, sFichier)
+      FIN
+      
+      // Donne les droits d'administration au niveau de la base de données
+      HModifieDroitBaseDeDonnées(cnxConnexion, sUtilisateur, CS_DROITS_UTILISATEURS_ADMIN, hAutorisé, cnxConnexion..BaseDeDonnées)
+      
+      // Donne les droits d'administration au niveau du serveur
+      HModifieDroitServeur(cnxConnexion, sUtilisateur, hDroitGestionUtilisateur		, hAutorisé)
+      HModifieDroitServeur(cnxConnexion, sUtilisateur, hDroitChangeDroit				, hAutorisé)
+      HModifieDroitServeur(cnxConnexion, sUtilisateur, hDroitVisualisationUtilisateur	, hAutorisé)
+      
+      
+     type : 458752
+   -
+     name : HFCSDésactiveDroitAdministrateur
+     procedure_id : 1595999134739108985
+     type_code : 15
+     code : |1+
+      // Résumé : Supprime les droits administrateurs HFSQLCS à un utilisateur
+      // Syntaxe :
+      //HFCSDésactiveDroitAdministrateur (<cnxConnexion> est connexion HFSQL, <sUtilisateur>)
+      //
+      // Paramètres :
+      //	cnxConnexion (connexion HFSQL) : Connexion
+      //	sUtilisateur : Utilisateur
+      // Valeur de retour :
+      // 	Aucune
+      //
+      Procédure HFCSDésactiveDroitAdministrateur(cnxConnexion est une connexion, sUtilisateur)
+      
+      // Supprime les droits au niveau des fichiers
+      sListeFichiers est une chaine
+      sFichier	   est une chaine
+      
+      sListeFichiers = HListeFichier(cnxConnexion)
+      POUR TOUTE CHAINE sFichier DE sListeFichiers SEPAREE PAR RC
+      	HModifieDroitFichier(cnxConnexion, sUtilisateur, hDroitChangeDroit , hInterdit, cnxConnexion..BaseDeDonnées, sFichier)
+      	HModifieDroitFichier(cnxConnexion, sUtilisateur, hDroitBlocage, hInterdit, cnxConnexion..BaseDeDonnées, sFichier)
+      FIN
+      
+      // Redonne les droits classiques au niveau de la base de données
+      HModifieDroitBaseDeDonnées(cnxConnexion, sUtilisateur, CS_DROITS_UTILISATEUR, hAutorisé, cnxConnexion..BaseDeDonnées)
+      
+      // Supprime les droits d'administration au niveau de la base de données
+      HModifieDroitBaseDeDonnées(cnxConnexion, sUtilisateur, hDroitChangeDroit, hInterdit, cnxConnexion..BaseDeDonnées)
+      HModifieDroitBaseDeDonnées(cnxConnexion, sUtilisateur, hDroitBlocage, hInterdit, cnxConnexion..BaseDeDonnées)
+      
+      // Supprime les droits d'administration au niveau du serveur
+      HModifieDroitServeur(cnxConnexion, sUtilisateur, hDroitGestionUtilisateur		, hInterdit)
+      HModifieDroitServeur(cnxConnexion, sUtilisateur, hDroitChangeDroit				, hInterdit)
+      HModifieDroitServeur(cnxConnexion, sUtilisateur, hDroitVisualisationUtilisateur	, hInterdit)
+      
+      
+     type : 458752
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : COL_Collection1
+resources :
+ string_res :
+  identifier : 0x1551c1ed018e1ac4
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+  strings :
+   -
+     text :
+      fr-FR : Groupe non trouvé
+     index : 0
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ

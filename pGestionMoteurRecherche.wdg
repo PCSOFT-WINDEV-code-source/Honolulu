@@ -1,0 +1,178 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : pGestionMoteurRecherche
+ major_version : 28
+ minor_version : 0
+ type : 7
+ description : ""
+ subtype : 0
+procedure_set :
+ identifier : 0x1582814f04f0fad3
+ internal_properties : CAAAAAgAAABGLu41kG7fjQV3iS4F72qmnKaNh5694reolNKIW0iw
+ code_elements :
+  type_code : 31
+  p_codes :
+   -
+     code : |1-
+      // Collection de procédures de gestion du moteur de recherche
+      
+      CONSTANTE
+      	// Indexation
+      	CLE_INDEX_FORUM      = "IDX_FORUM,"
+      	CLE_INDEX_WIKI       = "IDX_WIKI,"
+      	CLE_INDEX_BLOG       = "IDX_BLOGS,"
+      	CLE_INDEX_BILLET     = "IDX_BLOGS_BILLETS,"
+      	CLE_INDEX_PARTAGES   = "IDX_PARTAGES,"
+      	CLE_INDEX_MESSAGERIE = "IDX_MESSAGERIE,"
+      	CLE_INDEX_ACTUALITES = "IDX_ACTUALITES,"
+      FIN
+     type : 720896
+  procedures :
+   -
+     name : Moteur_Rechercher
+     internal_properties : CAAAAAgAAAAeQeZWqR4YD9gNuw5ISpse4q5d4YfQh8vxSSLWonylqfGpzXAstIQfjtu5yNZJ9N/c91UXiZv53fcJCNn0zKQH2jXtD1BPimLproJX87E+1RbRiyhFUUvyPW0p6P5mipLcRRthNLb+/G4cHMU2fOcWaLmnLrlIMic+6HTcyeP/rQgO
+     procedure_id : 1551418375776208850
+     type_code : 15
+     code : |1+
+      // Résumé : Effectue une recherche dans le moteur de recherche
+      // Syntaxe :
+      //[ <Résultat> = ] Moteur_Rechercher (<sListeMots> est chaîne [, <sFiltre> est chaîne])
+      //
+      // Paramètres :
+      //	sListeMots (chaîne) : <indiquez ici le rôle de sListeMots>
+      //	sFiltre (chaîne - valeur par défaut="") : <indiquez ici le rôle de sFiltreDebut>
+      // Valeur de retour :
+      // 	chaîne : La liste des résultats de la recherche
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //// Traitement automatique des exceptions :   exécuter le bloc de code CAS EXCEPTION:
+      //
+      
+      Procédure Moteur_Rechercher(LOCAL sListeMots est une chaine, LOCAL sFiltre est une chaine = "")
+      
+      // Variables
+      sdReqFulltext  est une Source de données
+      sListeResultat est une chaine
+      sRequeteSQL    est une chaine = [
+      SELECT 
+      %1 AS IDItem,  
+      MATCH(%2) AGAINST(%4) AS PertinenceFullText1
+      FROM 
+      %3
+      WHERE 
+      PertinenceFullText1 > 0
+      ORDER BY 
+      PertinenceFullText1 DESC
+      ]
+      
+      //SELECT 
+      //Billet.IDBillet AS IDBillet,  
+      //MATCH(Billet.Contenu, Billet.Titre) AGAINST(pRecherche) AS PertinenceFullText1
+      //FROM 
+      //Billet
+      //WHERE 
+      //PertinenceFullText1 > 0
+      //ORDER BY 
+      //PertinenceFullText1 DESC
+      
+      // Initialisation
+      sListeMots =_TraitementParametre(sListeMots)
+      
+      SELON sFiltre
+      	CAS CLE_INDEX_FORUM:
+      		sRequeteSQL = ChaîneConstruit(sRequeteSQL, Post.IDPost..Nom, Post.Contenu..Nom, Post..Nom, sListeMots)
+      		
+      	CAS CLE_INDEX_WIKI:   
+      		sRequeteSQL = ChaîneConstruit(sRequeteSQL, WIKI.IDWIKI..Nom, WIKI.Titre..Nom + "," + WIKI.Contenu..Nom, Wiki..Nom, sListeMots)
+      		  
+      	CAS CLE_INDEX_BLOG:      
+      		sRequeteSQL = ChaîneConstruit(sRequeteSQL, Blog.IDBlog..Nom, Blog.Titre..Nom + "," + Blog.Description..Nom, Blog..Nom, sListeMots)
+      		
+      	CAS CLE_INDEX_BILLET:  
+      		sRequeteSQL = ChaîneConstruit(sRequeteSQL, Billet.IDBillet..Nom, Billet.Titre..Nom + "," + Billet.Contenu..Nom, Billet..Nom, sListeMots) 
+      		  
+      	CAS CLE_INDEX_PARTAGES: 
+      		sRequeteSQL = ChaîneConstruit(sRequeteSQL, Partage.IDPartage..Nom, Partage.Libellé..Nom + "," + Partage.Description..Nom, Partage..Nom, sListeMots) 
+      		 
+      	CAS CLE_INDEX_MESSAGERIE: 
+      		sRequeteSQL = ChaîneConstruit(sRequeteSQL, Message.IDMessage..Nom,  Message.Sujet..Nom + "," + Message.EmailExpéditeur..Nom + "," + Message.Contenu..Nom, Message..Nom, sListeMots)
+      		
+      	CAS CLE_INDEX_ACTUALITES: 
+      		sRequeteSQL = ChaîneConstruit(sRequeteSQL, Actualite.IDActualite..Nom, Actualite.Titre..Nom + "," + Actualite.Contenu..Nom, Actualite..Nom, sListeMots) 
+      	CAS "":
+      		sListeResultat += [RC] + Moteur_Rechercher(sListeMots,CLE_INDEX_FORUM)                  
+      		sListeResultat += [RC] + Moteur_Rechercher(sListeMots,CLE_INDEX_WIKI)                  
+      		sListeResultat += [RC] + Moteur_Rechercher(sListeMots,CLE_INDEX_BLOG)                  
+      		sListeResultat += [RC] + Moteur_Rechercher(sListeMots,CLE_INDEX_BILLET)                  
+      		sListeResultat += [RC] + Moteur_Rechercher(sListeMots,CLE_INDEX_PARTAGES)                  
+      		sListeResultat += [RC] + Moteur_Rechercher(sListeMots,CLE_INDEX_MESSAGERIE)                  
+      		sListeResultat += [RC] + Moteur_Rechercher(sListeMots,CLE_INDEX_ACTUALITES)                  
+      	AUTRE CAS:
+      		dbgAssertion(Faux,"Type index inconnu")
+      FIN
+      
+      // Exécution de la requête
+      Si sListeResultat ~= "" ALORS
+      	SI HExécuteRequêteSQL(sdReqFulltext,hRequêteDéfaut,sRequeteSQL) = Vrai ALORS
+      		// Construction du résultat
+      		HLitPremier(sdReqFulltext)
+      		TANTQUE PAS HEnDehors(sdReqFulltext)
+      			sListeResultat += [RC] + sFiltre + sdReqFulltext.IDItem
+      			HLitSuivant(sdReqFulltext)
+      		FIN
+      	FIN
+      FIN
+      
+      RENVOYER sListeResultat
+      
+      CAS EXCEPTION:
+      	dbgAssertion(Faux,<§@1582814304eecb760000§>+ExceptionInfo())
+      	RENVOYER ""
+     type : 458752
+   -
+     name : _TraitementParametre
+     internal_properties : CAAAAAgAAACcf8fzpSfIammextD6YCy2xtk+8dbFEHa4HzE5GldxuMlljRn1cRT64zceAnzpUnhlb1bPdcnHASmlqWyXWtY/V2Jf3LP97R8/+hihzxPgFYHFqFm/x5tF0ZP6d382j3wqJrp3DhLVHX8vVhRQGDjjqnMMjPDk9CTFWfyhY+Os3zwt2nlwDCJwbPbc85OrJ9g6ZV1NDpPifii3Hjmimf15iA==
+     procedure_id : 2079961062296351062
+     type_code : 15
+     code : |1+
+      // Résumé : Liste des mots
+      // Syntaxe :
+      //[ <Résultat> = ] _TraitementParametre (<sListeMots>)
+      //
+      // Paramètres :
+      //	sListeMots : <indiquez ici le rôle de sListeMots>
+      // Valeur de retour :
+      // 	Type indéterminé : // 	Aucune
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      PROCEDURE PRIVE _TraitementParametre(LOCAL sListeMots)
+      
+      // Double les quotes existantes
+      sListeMots = Remplace(sListeMots,"'","''",SansCasse)
+      
+      // Ajoute les quotes debut et fin
+      sListeMots = "'" + sListeMots + "'"
+      
+      RENVOYER sListeMots
+      
+     type : 458752
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : COL_Collection1
+resources :
+ string_res :
+  identifier : 0x1582814304eecb76
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+  strings :
+   -
+     text :
+      fr-FR : "Exception non fatale détectée  : "
+     index : 0
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ

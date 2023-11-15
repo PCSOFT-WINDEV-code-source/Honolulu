@@ -1,0 +1,1029 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : pUtilitaires
+ major_version : 28
+ minor_version : 0
+ type : 7
+ description : ""
+ subtype : 0
+procedure_set :
+ identifier : 0x155097ec0010e345
+ internal_properties : CAAAAAgAAABGLu41kG7fjQV3iS4F72qmnKaNh5694reolNKIW0iw
+ code_elements :
+  internal_properties : CAAAAAgAAABktMbO/XzTkjypT7mAormnITd82jeYuUOY55qw7A4hYDUSkEcI8JEKJ9x4MA9vl2KH/qQ05gbDIp9gEXPYYblOt+uX4URR/jjxPLnS/BSJg0j+lXIDuy2vSJMLNr/p+R9Opanar5XhjeqiDm242hvqE7534XNGkkEO82aMkvgPnzFUy+iAYoYdk537TNoVAqFN1Ggd
+  type_code : 31
+  p_codes :
+   -
+     code : |1-
+      // Collection de procédures utilitaires
+      
+      // Structure permettant de sauvegarder une position HFSQL
+      STTabPositionHF est une structure
+      	tabPositionHF est un tableau de 0 entiers
+      FIN
+      
+      // Structure permettant de gérer une corbeille
+      STCORBEILLE est une structure
+      	sNomElement  est une chaine
+      	nTypeElement est un entier
+      FIN
+      
+      // Tableau de sauvegarde des positions HF
+      gtabPositionHF est un tableau de 0 STTabPositionHF
+      gtabCorbeille  est un tableau de 0 STCORBEILLE
+      
+      CONSTANT
+      	// Mode d'ouverture d'un élément
+      	cnModeCréation 		= 1
+      	cnModeModification 	= 2
+      	
+      	// Taille des vignettes
+      	vig48x48			= "48x48"
+      	vig32x32			= "32x32"
+      	vig16x16			= "16x16"
+      	
+      	// Mot de passe de cryptage
+      	csCryptageMdp		= "honolulu.hfcs.wx11"
+      FIN
+     type : 720896
+  procedures :
+   -
+     name : Ellipse
+     procedure_id : 1536194039552092403
+     type_code : 15
+     code : |1-
+      // Résumé : Effectue une ellipse sur un texte
+      // Syntaxe :
+      //[ <Résultat> = ] Ellipse (<sTexte>, <nLargeurMax>)
+      //
+      // Paramètres :
+      //	sTexte : Texte
+      //	nLargeurMax : Largeur maximale autorisée
+      // Valeur de retour :
+      // 	chaîne : Texte en ellipse
+      //
+      Procédure Ellipse(sTexte, nLargeurMax)
+      
+      // Variables locales 
+      sTexteEllipse est une chaine
+      
+      // Copie initiale du texte
+      sTexteEllipse = sTexte
+      
+      // Valeur arbitraire, 9 pixels pour un caractère
+      nNbCar est un entier
+      nNbCar = nLargeurMax / 9
+      
+      // Tronque le texte si nécessaire
+      si taille(sTexteEllipse) > nNbCar alors
+      	sTexteEllipse = Tronque(sTexteEllipse, nNbCar - 2) + "..."
+      fin
+      
+      // Renvoie le texte avec ellipse	
+      renvoyer sTexteEllipse
+     type : 458752
+   -
+     name : TypeMIME
+     internal_properties : CAAAAAgAAAC0D/BG2khZWRaG603Ketue25DcXFr/Ad4cxtglbfhq10IPQeS5HrR9fDTW0PYi5UrgEIxl/pLZc0yIqc60sDT5I5w6ekQWk6rakv66ZN32ZfbbMd2V3oso5In0dqtU7o8b2vlbrCHtluhTTm00yMEgvZsX2vClYAfwrWz+faFPhs4AIurHJm1IPGlr8TRUVW6w/hnUT0Q=
+     procedure_id : 1536953587354594041
+     type_code : 15
+     code : |1-
+      // Résumé : Renvoie le type MIME d'un fichier
+      // Syntaxe :
+      //[ <Résultat> = ] TypeMIME (<sFichier>)
+      //
+      // Paramètres :
+      //	sFichier : Chemin du fichier
+      // Valeur de retour :
+      // 	chaîne : Type MIME du fichier
+      //
+      Procédure TypeMIME(sFichier)
+      
+      // Variables locales
+      sTypeMIME 		est une chaine
+      sExtension 		est une chaine
+      
+      // Extrait l'extension du nom de fichier
+      sExtension = fExtraitChemin(sFichier,fExtension)
+      
+      // Recherche le type MIME associé à l'extension
+      HLitRecherchePremier(mime, Extension, sExtension)
+      si htrouve(mime) alors
+      	sTypeMIME = mime.TypeMIME
+      sinon
+      	// Type MIME inconnu
+      	sTypeMIME = "application/unknown"
+      FIN	
+      	
+      renvoyer sTypeMIME
+     type : 458752
+   -
+     name : IconeTypeMIME
+     internal_properties : CAAAAAgAAAD27OS5s0RwC4Uq8wDgYisMWlj+BlZ0yYCStyvwczapv2qrR4qQcVx4p0wIknFulbxGhOAo6Sd8UcCRjIzYlpfKBQeXwNv3DbSfl8ctQcLfQL9OD8PoY8xI0kcJSEsSxHkWaKjIhV4GbgfP6pZOj/ps5M1iM5n+xY0rdZTNu14Ulont4iu8DiZLmo8SifzdVTtT+Tuc725iabXZXwSuysIBMlvUMNFxit0/yq/Qf8JVwBYQL45MaVcXGjgX3yx7gQ==
+     procedure_id : 1536983935635373130
+     type_code : 15
+     code : |1-
+      // Résumé : Renvoie l'icone associé au type MIME d'un fichier
+      // Syntaxe :
+      //[ <Résultat> = ] IconeTypeMIME (<sFichier> [, <bVignette> [, <nTailleVignette>]])
+      //
+      // Paramètres :
+      //	sFichier : Chemin du fichier
+      //	bVignette (valeur par défaut=0) : Vrai pour récupérer une vignette de l'icone, Faux pour récupérer l'icone
+      //	nTailleVignette (valeur par défaut="48x48") : Taille de la vignette à récupérer (48x48, 32x32, 16x16)
+      // Valeur de retour :
+      // 	buffer : buffer de l'icone
+      //
+      Procédure IconeTypeMIME(sFichier, bVignette = faux, nTailleVignette = vig48x48)
+      
+      // Variables locales
+      bufIcone 		est un buffer
+      sExtension 		est une chaine
+      
+      // Extrait l'extension du nom de fichier
+      sExtension = fExtraitChemin(sFichier,fExtension)
+      
+      // Recherche le type MIME associé à l'extension
+      HLitRecherchePremier(mime, Extension, sExtension)
+      si htrouve(mime) alors
+      	si bVignette = faux alors
+      		
+      		// Taille normale
+      		bufIcone = mime.icone
+      	sinon
+      		// Vignette de l'icone
+      		selon nTailleVignette				
+      			// 32x32
+      			cas vig32x32
+      				bufIcone = MIME.Icone..Vignette[1]
+      			
+      			// 16x16
+      			cas vig16x16
+      				bufIcone = MIME.Icone..Vignette[2]
+      			
+      			// Taille normale
+      			AUTRE CAS
+      				bufIcone = MIME.Icone
+      		FIN
+      	fin
+      sinon
+      	// Type MIME inconnu
+      	SI bVignette = Faux ALORS
+      		
+      		// Taille normale
+      		bufIcone = fChargeTexte(ComplèteRep(fRepWeb()) + "ext/mime/unknown.gif")
+      	SINON
+      		SELON nTailleVignette
+      			// 32x32
+      			CAS vig32x32
+      				bufIcone = fChargeTexte(ComplèteRep(fRepWeb()) + "ext/mime/unknown32x.gif")
+      			// 16x16
+      			CAS vig16x16
+      				bufIcone = fChargeTexte(ComplèteRep(fRepWeb()) + "ext/mime/unknown16x.gif")
+      				
+      			// Taille normale
+      			AUTRE CAS
+      				bufIcone = fChargeTexte(ComplèteRep(fRepWeb()) + "ext/mime/unknown.gif")
+      		FIN
+      	FIN
+      FIN	
+      
+      	
+      	
+      renvoyer bufIcone
+     type : 458752
+   -
+     name : IDSYSTEM
+     procedure_id : 1537031790207518915
+     type_code : 15
+     code : |1-
+      // Résumé : Renvoie l'ID du système
+      // Syntaxe :
+      //[ <Résultat> = ] IDSYSTEM ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	entier : Renvoie l'ID du système
+      //
+      Procédure IDSYSTEM()
+      
+      renvoyer RécupèreID(LOGIN_SYSTEM)
+     type : 458752
+   -
+     name : NavigateurNonMSIE
+     procedure_id : 1551486223479675009
+     type_code : 15
+     code : |1-
+      // Résumé : Déterminer si le navigateur n'est pas Internet Explorer
+      // Syntaxe :
+      //[ <Résultat> = ] NavigateurNonMSIE ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	booléen : Vrai si le navigateur n'est pas Internet Explorer
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure NavigateurNonMSIE()
+      
+      // Selon la plateforme d'exécution, la procédure va avoir un comportement différent
+      RENVOYER Position(Majuscule(NavigateurNom()), "FIREFOX") > 0 OU Position(Majuscule(NavigateurNom()), "NETSCAPE") > 0
+     type : 458752
+   -
+     name : RemplaceJoker
+     procedure_id : 1552167594366488267
+     type_code : 15
+     code : |1-
+      // Résumé : Remplace les jokers dans une chaine
+      // Syntaxe :
+      //[ <Résultat> = ] RemplaceJoker (<sChaîneSource>, <sChaîneARemplacer>, <sChaîneRemplacement> [, <nOptions>])
+      //
+      // Paramètres :
+      //	sChaîneSource : La chaîne dans laquelle le remplacement doit être effectué
+      //	sChaîneARemplacer : La chaîne qu'il faut remplacer (ex : Remplacement de tous les liens : RemplaceJoker(sChaineSource,"<A*>","", sansCasse)
+      //	sChaîneRemplacement : La chaîne qu'il faut mettre en remplacement
+      //	nOptions (valeur par défaut=0) : Options, pour l'instant n'accepte que la constante sansCasse
+      // Valeur de retour :
+      // 	chaîne : la chaîne de résultat
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure RemplaceJoker(sChaîneSource,sChaîneARemplacer,sChaîneRemplacement,nOptions = 0)
+      
+      // Variables locales
+      sChaîneRetour 				est une chaine  	// La chaîne que l'on va retourner
+      nPosition 					est un entier		// La position du premier bloc
+      nPositionPremierJoker 		est un entier 		// La position du premier joker (pour l'instant on en gère qu'un)
+      nPositionFinBlocRecherché 	est un entier 		// La position de la fin du bloc (le bloc qu'il y a après le joker)
+      sChaineAvantJoker 			est une chaine		// La chaîne qui est située avant le caractère joker
+      sChaineAprèsJoker 			est une chaine		// La chaîne qui est située après le caractère joker
+      
+      // Initialisation de la chaine de retour
+      sChaîneRetour = sChaîneSource 
+      
+      // Recherche le caractère joker
+      nPositionPremierJoker = position(sChaîneARemplacer, "*")
+      
+      // Récupération de la chaîne située avant le caractère Joker
+      sChaineAvantJoker = sChaîneARemplacer[[ A nPositionPremierJoker -1]]
+      
+      // Récupération de la chaîne située après le caractère Joker
+      sChaineAprèsJoker = sChaîneARemplacer[[nPositionPremierJoker +1 A ]]
+      
+      // On recherche dans la chaine source la chaîne qu'il y a avant le premier joker
+      nPosition = position(sChaîneRetour,sChaineAvantJoker, 0, nOptions)
+      tantque nPosition > 0
+      	
+      	// On a une position, on recherche la position de la chaîne qu'il y a après le Joker
+      	nPositionFinBlocRecherché = position(sChaîneRetour,sChaineAprèsJoker, nPosition+1, nOptions)
+      	si nPositionFinBlocRecherché > 0 ALORS
+      		// On a trouvé une position, on la remplace par la chaîne de remplacement
+      		// On remplace dans la chaîne
+      		sChaîneRetour[[nPosition a nPositionFinBlocRecherché + taille(sChaineAprèsJoker)-1]] = sChaîneRemplacement
+      		
+      		// Recalcule la position (on enlève tout le bloc que l'on vient de remplacer)
+      		nPosition = max(0, nPosition - (nPositionFinBlocRecherché + Taille(sChaineAprèsJoker)-1 - nPosition))
+      		// puis on ajoute la taille de la chaîne de remplacement
+      		nPosition += taille(sChaîneRemplacement)
+      		
+      	FIN
+      	
+      	// Recherche la position suivante
+      	nPosition = Position(sChaîneRetour,sChaineAvantJoker, nPosition+1 , nOptions)	
+      FIN
+      
+      renvoyer sChaîneRetour
+     type : 458752
+   -
+     name : DateHeureNaturelle
+     internal_properties : CAAAAAgAAADhio2sN8xDE6sofP7sOK4qhczNf9RkcJVD5ervnzplodQ0qTy7hRGbbwBk7/atye/IVfL3sSISW4yABzY5uMl8Y1gJa6PekMk9mwsc6kjugUPIdGame41nxPsRJGH7/7pEVxX8INB4ByhJgdPeic7v7NaJDdoS29wGVTfSNVJu++oBzFK25+l1DGQcY9lqpiHFRzdfW31v46c0jQ6peZOhgSSHxxGFnnwiVPZ7DT2NebyHTHs=
+     procedure_id : 1557063706956515142
+     type_code : 15
+     code : |1-
+      // Résumé : Renvoie une date/heure en langage naturel (exemple : Il y a 15 minutes, Hier à 21h35, ...)
+      // Syntaxe :
+      //[ <Résultat> = ] DateHeureNaturelle (<dhDateHeure> est dateheure [, <bAvecHeure> [, <bDurée>]])
+      //
+      // Paramètres :
+      //	dhDateHeure (dateheure) : Date et heure à transformer
+      //	bAvecHeure (valeur par défaut=0) : < indiquez ici le rôle de bAvecHeure >
+      // 	bDurée (valeur par défaut=0) : < indiquez ici le rôle de bDurée >
+      // Valeur de retour :
+      // 	chaîne : Date/heure en langage naturel
+      //
+      Procédure DateHeureNaturelle(local dhDateHeure est une dateheure, bAvecHeure = faux, bDurée = faux)
+      
+      // Variables lcoales
+      sPhrase		 	est une chaine
+      dhAjd 			est une dateheure
+      duDurée 		est une duree
+      
+      // Calcule la durée 
+      dhAjd = datedujour + maintenant
+      si pas datevalide(dhDateHeure..partiedate) alors
+      	dhDateHeure = dhAjd
+      FIN
+      duDurée = ChaîneVersDurée(DateHeureDifférence(dhDateHeure, dhAjd), duréeCentième)
+      
+      selon vrai
+      	// Dans la journée
+      	cas duDurée..jour = 0 et dhDateHeure..jour = dhAjd..jour
+      		
+      		si bAvecHeure = faux alors renvoyer <§@155097e8000ed2da001b§>
+      		
+      		selon vrai
+      			// Dans l'heure
+      			cas duDurée..heure = 0
+      				
+      				// On ramène à une minute si nécessaire
+      				si duDurée..Minute = 0 alors duDurée..Minute = 1
+      				
+      				si duDurée..Minute < 0 ALORS
+      					// La date est future
+      					sPhrase = <§@155097e8000ed2da0001§> + abs(duDurée..Minute) + ChaîneConstruit(<§@155097e8000ed2da0004§>, abs(duDurée..Minute) > 1 ? "s" SINON "")	
+      				sinon
+      					// La date est passée
+      					si bDurée alors
+      						sPhrase = <§@155097e8000ed2da0018§> + duDurée..Minute + ChaîneConstruit(<§@155097e8000ed2da0004§>, duDurée..Minute > 1 ? "s" SINON "")	
+      					sinon
+      						sPhrase = <§@155097e8000ed2da0003§> + duDurée..Minute + ChaîneConstruit(<§@155097e8000ed2da0004§>, duDurée..Minute > 1 ? "s" SINON "")	
+      					FIN
+      					
+      				FIN
+      				
+      					
+      			AUTRE CAS
+      				si duDurée..heure < 0 ALORS
+      					// date future
+      					sPhrase = <§@155097e8000ed2da0001§> + abs(duDurée..Heure) + ChaîneConstruit(<§@155097e8000ed2da0007§>, abs(duDurée..Heure) > 1 ? "s" SINON "")
+      					
+      				sinon
+      					// Date passée
+      					SI bDurée ALORS
+      						sPhrase = <§@155097e8000ed2da0018§> + duDurée..Heure + ChaîneConstruit(<§@155097e8000ed2da0007§>, duDurée..Heure > 1 ? "s" SINON "")	
+      					sinon
+      						sPhrase = <§@155097e8000ed2da0003§> + duDurée..Heure + ChaîneConstruit(<§@155097e8000ed2da0007§>, duDurée..Heure > 1 ? "s" SINON "")	
+      					fin
+      				FIN
+      				
+      				
+      		FIN
+      		
+      	// Une journée
+      	cas duDurée..jour = 1, duDurée..Jour = 0 ET dhDateHeure..jour <> dhAjd..Jour
+      	
+      		si dhDateHeure..Jour < dhAjd..Jour ALORS
+      			sPhrase = <§@155097e8000ed2da000a§> + HeureVersChaîne(dhDateHeure..PartieHeure, "HH:MM")		
+      		sinon
+      			sPhrase = <§@155097e8000ed2da000b§> + HeureVersChaîne(dhDateHeure..PartieHeure, "HH:MM")
+      		FIN
+      			
+      	// Plus d'une journée	
+      	CAS duDurée..Jour > 1, duDurée..Jour < 0
+      		
+      		// Dans l'année
+      		si dhDateHeure..année = dhAjd..année alors
+      			sPhrase = dateverschaine(dhDateHeure..partiedate, "JJJ JJ/MM")
+      		sinon
+      			sPhrase = DateVersChaîne(dhDateHeure..PartieDate, <§@155097e8000ed2da001d§>)
+      		FIN
+      		
+      		// Ajoute l'heure si demandé
+      		si bAvecHeure alors
+      			sPhrase += <§@155097e8000ed2da000c§> + HeureVersChaîne(dhDateHeure..partieheure, "HH:MM")
+      		FIN
+      		
+      FIN
+      	
+      renvoyer sPhrase
+     type : 458752
+   -
+     name : DuréeEtendue
+     procedure_id : 1558953303982356817
+     type_code : 15
+     code : |1+
+      // Résumé : Renvoie une durée (en centièmes) par rapport à une date de référence
+      // Syntaxe :
+      //[ <Résultat> = ] DuréeEtendue (<sDurée> [, <dhDateRéférence>])
+      //
+      // Paramètres :
+      //	sDurée : <indiquez ici le rôle de sDurée>
+      //	dhDateRéférence : <indiquez ici le rôle de dDateRéférence>
+      // Valeur de retour :
+      // 	durée : // 	Aucune
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure DuréeEtendue(sDurée, dhDateRéférence = DateDujour() + maintenant())
+      
+      // Variables locales
+      dDateHeureRésultat 	est une dateheure
+      nPosition 			est un entier
+      
+      // Initialisation
+      dDateHeureRésultat 	= dhDateRéférence
+      nPosition 			= taille(sDurée)
+      
+      dDateHeureRésultat..Milliseconde += sDurée[[nPosition-1 sur 2]] + "0"
+      nPosition-=2
+      dDateHeureRésultat..Seconde += sDurée[[nPosition-1 sur 2]]
+      nPosition-=2
+      dDateHeureRésultat..Minute += sDurée[[nPosition-1 sur 2]]
+      nPosition-=2
+      dDateHeureRésultat..heure += sDurée[[nPosition-1 sur 2]]
+      nPosition-=2
+      dDateHeureRésultat..jour += sDurée[[nPosition-1 sur 2]]
+      nPosition-=2
+      dDateHeureRésultat..mois += sDurée[[nPosition-1 sur 2]]
+      nPosition-=2
+      
+      dDateHeureRésultat..Année += sDurée[[1 A nPosition]]
+      
+      renvoyer chaineversdurée(DateHeureDifférence(dhDateRéférence,dDateHeureRésultat),duréeCentième)
+     type : 458752
+   -
+     name : DernierJourDeLaSemaineEx
+     procedure_id : 1560059201628301785
+     type_code : 15
+     code : |1-
+      // Résumé : Renvoie le dernier jour de la semaine pour une date spécifiée
+      // Syntaxe :
+      //[ <Résultat> = ] DernierJourDeLaSemaineEx (<dDate>)
+      //
+      // Paramètres :
+      //	dDate : <indiquez ici le rôle de dDate>
+      // Valeur de retour :
+      // 	date : // 	Aucune
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure DernierJourDeLaSemaineEx(dDate)
+      
+      // Variables locales
+      dDernierJourSemaine 	est une date
+      dPremierJourSemaine 	est une date
+      
+      // Calcul du premier jour
+      dPremierJourSemaine = PremierJourDeLaSemaineEx(dDate)
+      
+      // Calcul du dernier jour de la semaine
+      dDernierJourSemaine = dPremierJourSemaine
+      dDernierJourSemaine..Jour += 6
+      
+      renvoyer dDernierJourSemaine
+     type : 458752
+   -
+     name : NumeroDeSemaineVersDate
+     procedure_id : 1560059205923531959
+     type_code : 15
+     code : |1-
+      // Résumé : Renvoie la date du premier jour du numéro de semaine indiqué
+      // Syntaxe :
+      //[ <Résultat> = ] NumeroDeSemaineVersDate (<nNuméroDeSemaine> [, <nAnnée>])
+      //
+      // Paramètres :
+      //	nNuméroDeSemaine : <indiquez ici le rôle de nNuméroDeSemaine>
+      //	nAnnée : <indiquez ici le rôle de gnAnnéeAffichée>
+      // Valeur de retour :
+      // 	date : // 	Aucune
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure NumeroDeSemaineVersDate(nNuméroDeSemaine, nAnnée = AnnéeEnCours())
+      
+      // Variables locales
+      dDate 		est une date
+      nJour		est un entier
+      
+      // On se positionne sur le 1er janvier de cette année
+      dDate..mois = 1
+      dDate..jour = 1
+      dDate..année = nAnnée
+      
+      // Jour de la semaine
+      nJour = DateVersJour(dDate)
+      
+      // On doit se positionner sur le premier lundi de l'année
+      si nJour <> 1 ALORS
+      	dDate..jour += 8 - nJour
+      FIN
+      // On se positionne sur le 1er jour de la semaine indiquée
+       dDate..jour += 7 * (nNuméroDeSemaine - 1)
+      
+      // Correction
+      BOUCLE
+      	si NuméroDeSemaine(dDate) = nNuméroDeSemaine alors sortir	
+      	dDate..Jour += 7
+      FIN
+       
+      renvoyer dDate
+     type : 458752
+   -
+     name : PremierJourDeLaSemaineEx
+     procedure_id : 1560059205923597682
+     type_code : 15
+     code : |1-
+      // Résumé : Renvoie la date du 1er jour de la semaine correspondant à la date indiquée
+      // Syntaxe :
+      //[ <Résultat> = ] PremierJourDeLaSemaineEx (<ddate>)
+      //
+      // Paramètres :
+      //	ddate : <indiquez ici le rôle de ddate>
+      // Valeur de retour :
+      // 	date : // 	Aucune
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure PremierJourDeLaSemaineEx(dDate)
+      
+      // Variables locales
+      nJourActuel 			est un entier
+      dPremierJourSemaine 	est une date
+      
+      // Calcul de la date du début de la semaine
+      // On récupère le jour de la semaine qui correspond à la date que l'on souhaite afficher
+      nJourActuel = DateVersJour(dDate)
+      dPremierJourSemaine = dDate
+      
+      // on enlève 1 au jour (si on est lundi, ca évite de reculer d'un jour)
+      nJourActuel--
+      
+      // On retire le nombre de jour -1 à la date actuel, ca nous amène au début de la semaine (à la date du jour 1 => Lundi)
+      dPremierJourSemaine..Jour -= nJourActuel
+      
+      renvoyer dPremierJourSemaine
+     type : 458752
+   -
+     name : CorbeilleAjouteFichier
+     procedure_id : 1560066898225251417
+     type_code : 15
+     code : |1-
+      // Résumé : Ajoute un fichier à la corbeille
+      // Syntaxe :
+      //CorbeilleAjouteFichier (<sNomFichier>)
+      //
+      // Paramètres :
+      // 	sNomFichier : Le chemin du fichier à supprimer lors de la déconnexion
+      //
+      Procédure CorbeilleAjouteFichier(sNomFichier)
+      
+      // Variables locales
+      nIndiceTableau 		est un entier
+      
+      // Si le fichier existe, on l'ajoute
+      si ffichierexiste(sNomFichier) ALORS
+      	nIndiceTableau = tableauajoute(gtabCorbeille)
+      	gtabCorbeille[nIndiceTableau]:nTypeElement = frfichier
+      	gtabCorbeille[nIndiceTableau]:sNomElement = sNomFichier
+      FIN
+     type : 458752
+   -
+     name : CorbeilleAjouteRépertoire
+     procedure_id : 1560067185990945110
+     type_code : 15
+     code : |1+
+      // Résumé : Ajoute un répertoire à la corbeille
+      // Syntaxe :
+      //CorbeilleAjouteRépertoire (<sNomRépertoire>)
+      //
+      // Cette procédure permet d'ajouter un répertoire à la corbeille
+      
+      // Paramètres :
+      // 	sNomRépertoire : Le chemin du répertoire à supprimer lors de la déconnexion
+      // Valeur de retour :
+      // 	Aucune
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure CorbeilleAjouteRépertoire(sNomRépertoire)
+      
+      // Variables locales
+      nIndiceTableau 		est un entier
+      
+      // Si le Répertoire existe, on l'ajoute
+      SI fRépertoireExiste(sNomRépertoire) ALORS
+      	nIndiceTableau = TableauAjoute(gtabCorbeille)
+      	gtabCorbeille[nIndiceTableau]:nTypeElement = frFichier
+      	gtabCorbeille[nIndiceTableau]:sNomElement = sNomRépertoire
+      FIN
+     type : 458752
+   -
+     name : CorbeilleSupprimeTout
+     procedure_id : 1560067555366606564
+     type_code : 15
+     code : |1+
+      // Résumé : Supprime le contenu de la corbeille
+      // Syntaxe :
+      //CorbeilleSupprimeTout ()
+      //
+      // Cette procédure permet de vider la corbeille
+      Procédure CorbeilleSupprimeTout()
+      
+      // Variables locales
+      stElement est un STCORBEILLE
+      
+      // Parcours des éléments du tableau
+      POUR TOUT ELEMENT stElement DE gtabCorbeille
+      	SI stElement:nTypeElement = frFichier ALORS
+      		
+      		// C'est un fichier, on le supprime
+      		fSupprime(stElement:sNomElement,frLectureSeule)
+      		
+      	SINON
+      		// C'est un répertoire on le supprime
+      		fRepSupprime(stElement:sNomElement,frRécursif+frLectureSeule)
+      			
+      	FIN
+      FIN
+     type : 458752
+   -
+     name : HFSauvePosition
+     procedure_id : 1560304444336871819
+     type_code : 15
+     code : |1+
+      // Résumé : Sauvegarde le contexte d'un ou plusieurs fichiers
+      // Syntaxe :
+      //[ <Résultat> = ] HFSauvePosition (<sListeFichiers>)
+      //
+      // Paramètres :
+      //	sListeFichiers : Liste des fichiers (séparés par ";")
+      // Valeur de retour :
+      // 	chaîne : GUID à conserver pour la restauration du contexte
+      //
+      Procédure HFSauvePosition(sListeFichiers)
+      
+      // Variables locales
+      sFichier 			est une chaine
+      sGUID 				est une chaine
+      dhDateHeure 		est une dateheure
+      stTableauPosition 	est un STTabPositionHF
+      
+      // Initialisation
+      dhDateHeure = datedujour + maintenant
+      
+      // Parcours des fichiers
+      pour toute chaine sFichier de sListeFichiers separee par ";"
+      
+      	// Enregistre le fichier dans une liste
+      	TableauAjoute(stTableauPosition:tabPositionHF, HSauvePosition(sFichier))
+      	
+      FIN
+      
+      // Sauvegarde toutes les informations
+      sGUID = tableauajoute(gtabPositionHF, stTableauPosition)
+      	
+      renvoyer sGUID
+     type : 458752
+   -
+     name : HFRetourPosition
+     procedure_id : 1560305960643788312
+     type_code : 15
+     code : |1-
+      // Résumé : Restaure la position sauvegardée par HFSauvePosition
+      // Syntaxe :
+      //HFRetourPosition (<sGUID>)
+      //
+      // Paramètres :
+      // 	sGUID : GUID renvoyé par HFSauvePosition
+      // Valeur de retour :
+      // 	Aucune
+      //
+      Procédure HFRetourPosition(sGUID)
+      
+      // Variables locales
+      stTableauPosition 		est un STTabPositionHF
+      nPosition 				est un entier
+      
+      // récupère la liste des position sauvegardée
+      stTableauPosition = gtabPositionHF[sGUID]
+      
+      // Parcours des positions
+      pour tout element nPosition de stTableauPosition:tabPositionHF
+      	
+      	// Restaure la position
+      	HRetourPosition(nPosition)
+      	
+      FIN
+      
+      // On ne conserve pas la position
+      TableauSupprime(gtabPositionHF, sGUID)
+     type : 458752
+   -
+     name : CompteurDécrémente
+     procedure_id : 1561544655005126231
+     type_code : 15
+     code : |1-
+      // Résumé : Décrémente un compteur
+      // Syntaxe :
+      //[ <Résultat> = ] CompteurDécrémente (<sCompteur> [, <nValeurIncrément>])
+      //
+      // Paramètres :
+      //	sCompteur : Compteur à décrémenter
+      //	nValeurIncrément (valeur par défaut=-1) : Pas de décrémentation
+      // Valeur de retour :
+      // 	entier : Valeur du compteur après décrémentation
+      //
+      Procédure CompteurDécrémente(sCompteur, nValeurIncrément = -1)
+      
+      // Variables locales
+      nCompteurRéponse 	est un entier
+      
+      // Décrémente
+      nCompteurRéponse = CompteurIncrémente(sCompteur, nValeurIncrément)
+      	
+      renvoyer nCompteurRéponse
+     type : 458752
+   -
+     name : CompteurIncrémente
+     procedure_id : 1561544659300159313
+     type_code : 15
+     code : |1-
+      // Résumé : Incrémente un compteur
+      // Syntaxe :
+      //[ <Résultat> = ] CompteurIncrémente (<sCompteur> [, <nValeurIncrément>])
+      //
+      // Paramètres :
+      //	sCompteur : Compteur à incrémenter
+      //	nValeurIncrément (valeur par défaut=1) : Pas d'incrémentation
+      // Valeur de retour :
+      // 	entier : Valeur du compteur après incrémentation
+      //
+      Procédure CompteurIncrémente(sCompteur, nValeurIncrément = 1)
+      
+      // Variables locales
+      nCompteurRéponse 		est un entier
+      
+      // Incrémente le compteur
+      nCompteurRéponse = ParamètreLit(sCompteur)
+      nCompteurRéponse += nValeurIncrément
+      
+      si nCompteurRéponse < 0 alors nCompteurRéponse = 0
+      
+      // Sauvegarde le compteur
+      ParamètreEcrit(sCompteur, nCompteurRéponse)	
+      	
+      renvoyer nCompteurRéponse
+     type : 458752
+   -
+     name : LibelléObjet
+     procedure_id : 1569323055703437930
+     type_code : 15
+     code : |1+
+      // Résumé : Renvoie le libellé d'un objet
+      // Syntaxe :
+      //[ <Résultat> = ] LibelléObjet (<nIDObjet>, <sModule> [, <nValEntier>])
+      //
+      // Paramètres :
+      //	nIDObjet :Identifiant de l'objet
+      //	sModule :Nom du module concerné
+      //	nValEntier (valeur par défaut=0) :Valeur entière supplémentaire retournée
+      // Valeur de retour :
+      // 	Type indéterminé : // 	Aucune
+      //
+      Procédure LibelléObjet(nIDObjet, sModule, nValEntier = 0)
+      
+      
+      SELON sModule
+      	CAS MODULE_ACTUALITES
+      		RENVOYER ActualitéRécupèreTitre(nIDObjet)
+      		
+      	CAS MODULE_BLOGS
+      		RENVOYER BlogLibellé(nIDObjet)
+      		
+      	CAS MODULE_WIKI
+      		RENVOYER WIKIRécupèreTitre(nIDObjet)
+      		
+      	CAS MODULE_FORUM + "_FORUM"
+      		RENVOYER ForumLibellé(nIDObjet)
+      		
+      	CAS MODULE_FORUM + "_SUJET"
+      		RENVOYER SujetLibellé(nIDObjet, nValEntier)
+      		
+      	AUTRE CAS
+      		RENVOYER ""		
+      FIN
+     type : 458752
+   -
+     name : URLHonolulu
+     internal_properties : CAAAAAgAAABWWI4sdH2nCa/c1CRD1Ns//OAL+rqZW81BxF77ayWA1DAhHUZ2tTPf16k7jHHO3JZlDHx5v9jxA4JsGzZZ/PymC0lFZZBJTP3VSshMno1tA9UHvl7dlBDcB9hd+nF4dRPAQjqghB2IhCGIvX2gun5aslXabVIju6E/mMWCuY/gyOVa43//1kJg78Cgm9Z8W7ZzP/bXbw==
+     procedure_id : 1570326161941534499
+     type_code : 15
+     code : |1-
+      // Résumé : Renvoie l'URL complète du portail honolulu
+      // Syntaxe :
+      //[ <Résultat> = ] URLHonolulu ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	chaîne : // 	Aucune
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure URLHonolulu()
+      
+      	// Variables locales
+      	sURL est une chaine
+      	
+      	// Récupération de l'adresse complète
+      	sURL = PageAdresse("", paCOMPLETE)
+      	
+      	// Ajout de la chaîne de connexion
+      	sURL = sURL[[a PositionOccurrence(sURL, "/", 5)]] + "CONNECT/HONOLULU"
+      	
+      renvoyer sURL
+     type : 458752
+   -
+     name : NavigateurVérifieCompatibilité
+     internal_properties : CAAAAAgAAAC1eAL4kdXSBO79DYuoCNjmrAfXon1m51SIJdAexNG+i/9hrppy0IoODQ219VDtUxrduYgqcq9kD5l+P2loENDTUvc63pQGbDog+b+BTfBprT5LKtdKf5K0P8lzunYxj7udzAS19pWjqTkVYoizgrGf9K4nNA8GyQI1vmio/zMz/i/2b5jWyfkNoUOD96gAzKHwGW+9l1kVAyyv+Oq27SlMTCu4Pr7ycZ2AeE7jX1+VK81r5pznZXA1VonvdoAAuysvU3jCL8tbJ3MzE/tpfzJHulygjT+FXXDZeNLPQnU=
+     procedure_id : 1577443479148007615
+     type_code : 15
+     code : |1+
+      // Résumé : Vérifie la compatibilité avec les navigateurs
+      // Syntaxe :
+      // NavigateurVérifieCompatibilité ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	Aucune
+      //
+      Procédure NavigateurVérifieCompatibilité()
+      
+      	sInfoNavigateur est une chaine
+      	sInfoNavigateur = extraitchaine(SysEnvironnement("HTTP_USER_AGENT"), 2, "=")
+      	
+      	rVersion est un reel
+      	
+      	// Stocke la version compatible de Mozilla
+      	NavigateurClientEnCours:MozillaVersion = val(extraitchaine(minuscule(sInfoNavigateur), 2, "mozilla/"))
+      	
+      	// Stocke le USER_AGENT
+      	NavigateurClientEnCours:UserAgent = sInfoNavigateur
+      	
+      	// Internet Explorer 6.0 minimum
+      	si position(sInfoNavigateur, "MSIE") > 0 ALORS
+      		NavigateurClientEnCours:Acronyme = "MSIE"
+      		
+      		rVersion = val(extraitchaine(sInfoNavigateur, 2, "MSIE"))
+      		NavigateurClientEnCours:Version = rVersion
+      		
+      		si rVersion < 6.0 alors rVersion = 0
+      		retour
+      	FIN
+      	
+      	// Firefox 1.5 minimum
+      	SI Position(sInfoNavigateur, "Firefox") > 0 ALORS
+      		NavigateurClientEnCours:Acronyme = "FIREFOX"
+      		
+      		rVersion = Val(ExtraitChaîne(sInfoNavigateur, 2, "Firefox/"))
+      		NavigateurClientEnCours:Version = rVersion
+      		
+      		SI rVersion < 1.5 ALORS rVersion = 0
+      		RETOUR
+      	FIN	
+      
+      	// Netscape 8.0 minimum
+      	SI Position(sInfoNavigateur, "Netscape") > 0 ALORS
+      		NavigateurClientEnCours:Acronyme = "NETSCAPE"
+      		
+      		rVersion = Val(ExtraitChaîne(sInfoNavigateur, 2, "Netscape/"))
+      		NavigateurClientEnCours:Version = rVersion
+      		
+      		SI rVersion < 8.0 ALORS rVersion = 0
+      		RETOUR
+      	FIN	
+      	
+      	// Opera 9
+      	SI Position(sInfoNavigateur, "Opera") > 0 ALORS
+      		NavigateurClientEnCours:Acronyme = "OPERA"
+      		
+      		rVersion = Val(ExtraitChaîne(sInfoNavigateur, 2, "Opera/"))
+      		NavigateurClientEnCours:Version = rVersion
+      		
+      		SI rVersion < 9.0 ALORS rVersion = 0
+      		RETOUR
+      	FIN	
+      	
+      	// Pour tous les autres navigateurs, Mozilla 5.0 minimum
+      	si rVersion = 0 ALORS
+      		si position(sInfoNavigateur, "Mozilla") > 0 ALORS
+      			NavigateurClientEnCours:Acronyme = "MOZILLA"
+      			
+      			rVersion = Val(ExtraitChaîne(sInfoNavigateur, 2, "Mozilla/"))
+      			NavigateurClientEnCours:Version = rVersion
+      			
+      			si rVersion < 5.0 alors rVersion = 0
+      		FIN
+      	FIN
+      
+      fin:
+      
+      	si rVersion = 0 alors
+      		PageAffiche(PAGE_Erreur, <§@155097e8000ed2da0019§> + RC + RC + sInfoNavigateur)
+      	FIN
+     type : 458752
+   -
+     name : LogErreur
+     procedure_id : 1604093826417424774
+     type_code : 15
+     code : |1-
+      // Résumé : Procédure de gestion des erreurs
+      // Syntaxe :
+      //[ <Résultat> = ] LogErreur ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	entier : opAnnuler
+      //
+      Procédure LogErreur()
+      
+      	// Charge le compte rendu d'erreur
+      	sLog est une chaine
+      	sLog = fChargeTexte(fRepDonnées() + "\error.log")
+      
+      	// Complète le compte rendu d'erreur
+      	sLog += [rc] + ...
+      			"====================" + rc + ...
+      			datedujour + heuresys + " - IDSESSION=" + gsIdentifiant + <§@155097e8000ed2da001a§> + rc + ...
+      			ExceptionInfo(errComplet)
+      
+      	// Sauvegarde le compte rendu d'erreur
+      	fSauveTexte(fRepDonnées() + "\error.log", sLog)
+      
+      renvoyer opannuler
+     type : 458752
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : COL_Collection1
+resources :
+ string_res :
+  identifier : 0x155097e8000ed2da
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+  strings :
+   -
+     text :
+      fr-FR : "Dans "
+     index : 1
+   -
+     text :
+      fr-FR : "Il y a "
+     index : 3
+   -
+     text :
+      fr-FR : " minute%1"
+     index : 4
+   -
+     text :
+      fr-FR : " heure%1"
+     index : 7
+   -
+     text :
+      fr-FR : "Hier, "
+     index : 10
+   -
+     text :
+      fr-FR : "Demain, "
+     index : 11
+   -
+     text :
+      fr-FR : " à "
+     index : 12
+   -
+     text :
+      fr-FR : "Depuis "
+     index : 24
+   -
+     text :
+      fr-FR : "\tHonolulu utilise les dernières technologies Internet et Web 2.0.\r\n\tVotre navigateur ne supporte pas ces technologies et ne peut donc être utilisé pour vous connecter à Honolulu.\r\n\t\r\n\tNous vous recommandons de mettre à jour votre navigateur Internet :\r\n\t- Internet Explorer 6.0 ou supérieur\r\n\t- Firefox 1.5 ou supérieur"
+     index : 25
+   -
+     text :
+      fr-FR : " - Erreur WLangage : "
+     index : 26
+   -
+     text :
+      fr-FR : Aujourd'hui
+     index : 27
+   -
+     text :
+      fr-FR : JJ/MM/AAAA
+     index : 29
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ
+associated_test :
+ name : TEST_pUtilitaires.wxt

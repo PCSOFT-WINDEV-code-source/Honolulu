@@ -1,0 +1,662 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : pAgenda
+ major_version : 28
+ minor_version : 0
+ type : 7
+ description : ""
+ subtype : 0
+procedure_set :
+ identifier : 0x15ab50250987593a
+ internal_properties : CAAAAAgAAABGLu41kG7fjQV3iS4F72qmnKaNh5694reolNKIW0iw
+ code_elements :
+  type_code : 31
+  p_codes :
+   -
+     code : |1+
+      // Collection de procédures de gestion de l'agenda
+      
+      // Définition de la structure mémoire d'un événement de l'agenda
+      STRUCT_EVENEMENT est une structure
+      	nIDTache 				est un entier
+      	sTitreTâche 			est une chaine
+      	sDescriptionTâche 		est une chaine
+      	bEstRépétée 			est un booléen
+      	sPériodeRépétition 		est une chaine
+      	dhDateHeureDébut 		est une dateheure
+      	dhDateHeureFin 			est une DateHeure
+      	dDuréeTâche 			est une durée
+      	bEstTacheJournée 		est un booléen
+      	nPeriodicité 			est un entier
+      	nIDUtilisateur 			est un entier	
+      FIN
+     type : 720896
+  procedures :
+   -
+     name : EvènementCréeGroupe
+     procedure_id : 1561429961849101412
+     type_code : 15
+     code : |1-
+      // Résumé : Crée un événement pour un groupe d'utilisateurs
+      // Syntaxe :
+      //[ <Résultat> = ] EvènementCréeGroupe (<nIDGroupe>, <stEvènement> est STRUCT_EVENEMENT)
+      //
+      // Paramètres :
+      //	nIDGroupe : Identifiant du groupe d'utilisateurs
+      //	stEvènement (STRUCT_EVENEMENT) : Evénement à affecter au groupe d'utilisateurs
+      // Valeur de retour :
+      // 	booléen : Vrai si l'événement a été créé, Faux sinon
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure EvènementCréeGroupe(nIDGroupe, stEvènement est un STRUCT_EVENEMENT)
+      
+      // Variables locales
+      sListeUtilisateur 		est une chaine
+      sUnUtilisateur 			est une chaine
+      sGUID 					est une chaine
+      
+      // Sauvegarde du contexte
+      sGUID = HFSauvePosition(Agenda..nom)
+      
+      // Récupération de tous les membres du groupe
+      sListeUtilisateur = ListeMembresGroupeParIDGroupe(nIDGroupe)
+      
+      // On vérifie que la tâche est possible (pas d'autre tâche à ce moment la pour tous les utilisateurs)
+      pour toute Chaine sUnUtilisateur de sListeUtilisateur separee par ";"
+      	
+      	si EvènementPossible(val(sUnUtilisateur), stEvènement) = Faux ALORS
+      		// Evénement pas possible pour au moins un utilisateur, on renvoie faux
+      		renvoyer faux
+      	FIN
+      FIN
+      
+      // Débute une transaction
+      htransactiondébut()
+      
+      // On vérifie que la tâche est possible (pas d'autre tâche à ce moment la pour tous les utilisateurs)
+      POUR TOUTE CHAINE sUnUtilisateur DE sListeUtilisateur SEPAREE PAR ";"
+      	
+      	SI EvènementCrée(Val(sUnUtilisateur), stEvènement) = Faux ALORS
+      		// Problème lors de la création de l'évenement
+      		htransactionannule()		
+      		RENVOYER Faux
+      	FIN
+      FIN
+      
+      // Termine la transaction
+      htransactionfin()
+      
+      // Restaure le contexte
+      HFRetourPosition(sGUID)
+      
+      // Par défaut, l'opération se déroule sans erreur
+      renvoyer vrai
+     type : 458752
+   -
+     name : EvènementCrée
+     procedure_id : 1561429974734071523
+     type_code : 15
+     code : |1-
+      // Résumé : Crée un événement pour un utilisateur
+      // Syntaxe :
+      //[ <Résultat> = ] EvènementCrée (<nIDUtilisateur>, <stEvènement> est STRUCT_EVENEMENT [, <nIDTache>])
+      //
+      // Paramètres :
+      //	nIDUtilisateur : Identifiant de l'utilisateur
+      //	stEvènement (STRUCT_EVENEMENT) : Evénement à affecter à l'utilisateur
+      // 	nIDTache (valeur par défaut=0) : < indiquez ici le rôle de nIDTache >
+      // Valeur de retour :
+      // 	booléen : Vrai si l'événement a été créé, Faux sinon
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure EvènementCrée(nIDUtilisateur, stEvènement est un STRUCT_EVENEMENT, nIDTache = 0)
+      
+      // Variables locales
+      duDurée 			est une duree
+      sGUID 				est une chaine
+      dhDateHeureDébut 	est une DateHeure
+      dhDateHeureFin	 	est une DateHeure
+      
+      // Sauvegarde du contexte
+      sGUID = HFSauvePosition(Agenda..nom)
+      
+      // Ajout de l'événement
+      Agenda.DateHeureDébut 		= stEvènement:dhDateHeureDébut
+      Agenda.DateHeureFin 		= stEvènement:dhDateHeureFin
+      Agenda.DateHeureCréation 	= DateSys() + HeureSys()
+      Agenda.Description 			= stEvènement:sDescriptionTâche
+      Agenda.Titre 				= stEvènement:sTitreTâche
+      Agenda.EstJournéeEntière 	= stEvènement:bEstTacheJournée
+      
+      SI stEvènement:nPeriodicité > 1 ALORS	
+      	
+      	// Si la tâche est répétée, elle ne peut avoir qu'une durée exprimée en heure
+      	dhDateHeureDébut 			= stEvènement:dhDateHeureDébut
+      	dhDateHeureFin  			= stEvènement:dhDateHeureFin	
+      	dhDateHeureFin..PartieDate 	= dhDateHeureDébut..partiedate
+      	
+      	duDurée = DateHeureDifférence(dhDateHeureDébut, dhDateHeureFin)
+      SINON
+      	// Dans les autres cas, la tâche peut durer plusieurs jours
+      	duDurée = DateHeureDifférence(stEvènement:dhDateHeureDébut, stEvènement:dhDateHeureFin)
+      FIN
+      
+      // Durée de la tâche
+      Agenda.Durée 				= ChaîneVersDurée(DuréeVersChaîne(duDurée,duréeMillième),duréeMillième) +"0"
+      Agenda.IDUtilisateur 		= nIDUtilisateur
+      
+      // Mise à jour de la périodicité
+      RécupèrePériodicité(stEvènement:nPeriodicité, Agenda.EstRépété, Agenda.IntervalleRépétition)
+      
+      // Ajout de l’événement
+      SI HAjoute(Agenda) = Faux alors
+      	HErreurDoublon()
+      	// Restauration du contexte
+      	HFRetourPosition(sGUID)
+      	RENVOYER Faux
+      FIN
+      
+      nIDTache = agenda.IDAgenda
+      
+      // Restauration du contexte
+      HFRetourPosition(sGUID)
+      
+      // Par défaut, l'opération se déroule sans erreur
+      RENVOYER Vrai
+     type : 458752
+   -
+     name : RécupèrePériodicité
+     internal_properties : CAAAAAgAAADt7tmWZ6Bhv0e8MNLgPC8IKkzzp4T0DHUj9dpvi8Kp/cwkWpvVJZEbHxD0j5YN6S9I5ZLnATICi4xA5+YpiPkMM5hZS0PekMmtyzv8iqiu4ePY9Lb2yz1XhLv5PHkTd8LMr+2kiFgQnwCB6atWAUZXdE4hlSL609Q+7V/qDWpmg5L5xDr+T0GNZDzkW/GCngsWGW2t9QvtmenaA5Rrz+FLqyjjFPaZmng+ICJ34VNb9yDDQHc=
+     procedure_id : 1561430906753923199
+     type_code : 15
+     code : |1-
+      // Résumé : permet de récupérer une période à partir de la valeur de la combo
+      // Syntaxe :
+      //RécupèrePériodicité (<nPeriodicité>, <bEstRépété>, <sDurée>)
+      //
+      // Cette procédure permet de récupérer une période à partir de la valeur de la combo
+      
+      // Paramètres :
+      //	nPeriodicité : La valeur de la combo
+      //	bEstRépété : Booléen qui va être mis à vrai si la tâche est répétée
+      //	sDurée : Chaîne qui va être remplie avec la durée
+      
+      Procédure RESTREINTE RécupèrePériodicité(nPeriodicité,bEstRépété,sDurée)
+      
+      SELON nPeriodicité
+      
+      	CAS 1 // Ponctuelle
+      		bEstRépété = Faux
+      		sDurée = ""
+      				
+      	CAS 2 // Tous les jours
+      		bEstRépété = Vrai
+      		sDurée = "00000100000000"
+      		
+      	CAS 3 // Toutes les semaines
+      		bEstRépété = Vrai
+      		sDurée = "00000700000000"
+      		
+      	CAS 4 // Tous les mois
+      		bEstRépété = Vrai
+      		
+      		sDurée = "00010000000000"
+      		
+      	CAS 5 // Tous les trimestres
+      		bEstRépété = Vrai
+      		sDurée = "00030000000000"		
+      		
+      	CAS 6 // Tous les semestres
+      		bEstRépété = Vrai
+      		sDurée = "00060000000000"
+      		
+      	CAS 7 // Tous les ans
+      		bEstRépété = Vrai
+      		sDurée = "01000000000000"
+      		
+      	AUTRE CAS
+      		dbgAssertion(Faux,<§@15ab501e09843bee0000§>)
+      		bEstRépété = faux
+      		sDurée = ""
+      FIN
+     type : 458752
+   -
+     name : EvènementPossible
+     internal_properties : CAAAAAgAAADCbS4IB3a5UShYN2FGBHu+eUZ+ylZRHQaaHLQBEarK20zJyzrp1PBJgiq2mI74aa4qUubD9mi1UxLOHYZ8bpShGdpojGhoHy7A6BLjS/B/5OXq2qzckV79m8izU06T40rKeZrKI6SIQ3eiHX7nJ3pngOZ8LZuMV2wXnEvHLPysoTHzqylKZWzJt9QW3vOXgmHjvF8e8Zo=
+     procedure_id : 1561450389053468823
+     type_code : 15
+     code : |1-
+      // Résumé : Détecter s'il est possible d'affecter un événement à un utilisateur
+      // Syntaxe :
+      //[ <Résultat> = ] EvènementPossible (<nIDUtilisateur>, <stEvènement> est STRUCT_EVENEMENT)
+      //
+      // Paramètres :
+      //	nIDUtilisateur : Identifiant de l'utilisateur
+      //	stEvènement (STRUCT_EVENEMENT) : définition de l'événement
+      // Valeur de retour :
+      // 	booléen : Vrai si l'agenda de l'utilisateur permet de lui affecter l'événement, Faux sinon
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure EvènementPossible(nIDUtilisateur, local stEvènement est un STRUCT_EVENEMENT)
+      
+      bPossible est un booléen
+      
+      // Calcul différent selon le type d'événement
+      si stEvènement:bEstTacheJournée ALORS
+      	
+      	// on vérifie que la tâche n'interfère pas avec une autre tâche à la journée
+      	// IL ne faut pas qu'un évenement à la journée existe dans cet intervalle de date
+      	SI EvènementJourneeExiste(stEvènement:dhdateHeuredébut, stEvènement:dhDateHeurefin, stEvènement:nIdTache)=Faux alors RENVOYER Vrai
+      		
+      sinon
+      	
+      	// -------------------
+      	// Régles de détection
+      	// -------------------
+      	//
+      	// Pour l'utilisateur spécifié :
+      	// - Aucune tâche ponctuelle ne doit se trouver dans l'intervalle de la tâche spécifiée
+      	// - Aucune tâche répétée ne doit avoir une occurrence se trouvant dans l'intervalle de la tâche spécifiée
+      	// - Les tâches à la journée ne doivent pas être prises en compte si la tâche spécifiée n'est pas une tâche à la journée
+      	// - Si une tâche existante est spécifiée, on ne la prend pas en compte
+      	// 
+      	
+      	STAgenda est une structure
+      		IDAgenda est un entier
+      		IDUtilisateur est un entier
+      		Titre est une chaine
+      		Description est une chaîne
+      		Durée est une durée
+      		EstRépété est un booléen
+      		IntervalleRépétition est une chaîne
+      		EstJournéeEntière est un booléen
+      		DateHeureDébut est une dateheure
+      		DateHeureFin est une DateHeure
+      		DateHeureCréation est une DateHeure
+      	FIN
+      	
+      	// Détermine la périodicité de la tâche
+      	RécupèrePériodicité(stEvènement:nPeriodicité, stEvènement:bEstRépétée, stEvènement:sPériodeRépétition)
+      	
+      	dhDateHeureDébutPlage est une dateheure
+      	dhDateHeureFinPlage	  est une dateheure
+      	dhDateHeureDébutOccurrence est une dateheure
+      	dhDateHeureFinOccurrence est une dateheure
+      	
+      	// Plage de détection
+      	dhDateHeureDébutPlage = stEvènement:dhDateHeureDébut
+      	dhDateHeureFinPlage	  = stEvènement:dhDateHeureFin
+      	dhDateHeureDébutPlage..Milliseconde += 1
+      	dhDateHeureFinPlage..Milliseconde -= 1
+      	
+      	// Récupère les tâches existantes dans l'intervalle déterminé
+      	REQ_Agenda_Tâches.pDateDébut 			= dhDateHeureDébutPlage
+      	REQ_Agenda_Tâches.pDateFin 				= dhDateHeureFinPlage
+      	REQ_Agenda_Tâches.pIDUtilisateur 		= nIDUtilisateur
+      	REQ_Agenda_Tâches.pIDTache 				= (stEvènement:nIDTache <> 0 ? stEvènement:nIDTache sinon null)
+      	REQ_Agenda_Tâches.pEstJournéeEntière 	= faux
+      
+      	// Exécution de la requête	
+      	HExécuteRequête(REQ_Agenda_Tâches, hRequêteInterruptible)
+      	bPossible = pas ErreurDétectée
+      	dbgAssertion(bPossible, herreurinfo())
+      		
+      	si bPossible alors
+      		
+      		n est un entier
+      		tabTachesExistantes est un tableau de STAgenda
+      		tabOccurrenceTacheSpécifiée est un tableau de stagenda
+      		
+      		// Récupère la liste des tâches
+      		pour tout REQ_Agenda_Tâches
+      			
+      			// On stocke toutes les tâches comprises dans l'intervalle
+      			n = TableauAjoute(tabTachesExistantes)
+      			
+      			// On calcule toutes les occurrences de la tâche
+      			si REQ_Agenda_Tâches.EstRépété ALORS
+      				// Première occurrence
+      				dhDateHeureDébutOccurrence = REQ_Agenda_Tâches.DateHeureDébut
+      				dhDateHeureFinOccurrence   = dhDateHeureDébutOccurrence + REQ_Agenda_Tâches.Durée
+      				
+      				TANTQUE dhDateHeureDébutOccurrence < stEvènement:dhDateHeureFin
+      					
+      					// Enregistre l'occurrence comme s'il s'agissait d'une tâche ponctuelle
+      					n = TableauAjoute(tabTachesExistantes)
+      					tabTachesExistantes[n]:DateHeureDébut 	= dhDateHeureDébutOccurrence
+      					tabTachesExistantes[n]:DateHeureFin 	= dhDateHeureFinOccurrence
+      					tabTachesExistantes[n]:Durée			= REQ_Agenda_Tâches.Durée
+      					tabTachesExistantes[n]:IDAgenda			= REQ_Agenda_Tâches.IDAgenda
+      					
+      					// Prochaine occurrence
+      					dhDateHeureDébutOccurrence = RécupèreProchaineOccurrence(dhDateHeureDébutOccurrence, REQ_Agenda_Tâches.IntervalleRépétition, REQ_Agenda_Tâches.DateHeureFin, Vrai)	
+      					dhDateHeureFinOccurrence   = dhDateHeureDébutOccurrence + REQ_Agenda_Tâches.Durée
+      				FIN
+      				
+      			sinon			
+      				// Stocke la seule occurrence de la tâche
+      				FichierVersMémoire(tabTachesExistantes[n], REQ_Agenda_Tâches)
+      			FIN
+      			
+      			
+      		FIN
+      		
+      		// Libère la requête et ses résultats
+      		HAnnuleDéclaration(REQ_Agenda_Tâches)
+      				
+      		// On calcule toutes les occurrences de la tâche spécifiée
+      		si stEvènement:bEstRépétée alors
+      			
+      			// Première occurrence
+      			dhDateHeureDébutOccurrence = stEvènement:dhDateHeureDébut
+      			dhDateHeureFinOccurrence   = dhDateHeureDébutOccurrence + stEvènement:dDuréeTâche
+      			
+      			tantque dhDateHeureDébutOccurrence < stEvènement:dhDateHeureFin
+      				
+      				// Enregistre l'occurrence comme s'il s'agissait d'une tâche ponctuelle
+      				n = TableauAjoute(tabOccurrenceTacheSpécifiée)
+      				tabOccurrenceTacheSpécifiée[n]:DateHeureDébut 	= dhDateHeureDébutOccurrence
+      				tabOccurrenceTacheSpécifiée[n]:DateHeureFin 	= dhDateHeureFinOccurrence
+      				tabOccurrenceTacheSpécifiée[n]:Durée			= stEvènement:dDuréeTâche
+      				tabOccurrenceTacheSpécifiée[n]:IDAgenda			= stEvènement:nIDTache
+      							
+      				// Prochaine occurrence
+      				dhDateHeureDébutOccurrence = RécupèreProchaineOccurrence(dhDateHeureDébutOccurrence, stEvènement:sPériodeRépétition, stEvènement:dhDateHeureFin, vrai)	
+      				dhDateHeureFinOccurrence   = dhDateHeureDébutOccurrence + stEvènement:dDuréeTâche
+      			fin
+      			
+      		sinon
+      			// Stocke la seule occurrence de la tâche spécifiée
+      			n = tableauajoute(tabOccurrenceTacheSpécifiée)
+      			tabOccurrenceTacheSpécifiée[n]:DateHeureDébut 	= stEvènement:dhDateHeureDébut
+      			tabOccurrenceTacheSpécifiée[n]:DateHeureFin 	= stEvènement:dhDateHeureFin
+      			tabOccurrenceTacheSpécifiée[n]:Durée			= stEvènement:dDuréeTâche
+      		FIN
+      		
+      		stTâcheTrouvée est un STAgenda
+      		stTâcheSpécifiée est un stagenda		
+      		bComparaison est un booléen
+      		
+      		// Compare les tâches trouvées et les occurrences de la tâche spécifiée
+      		pour tout element stTâcheSpécifiée de tabOccurrenceTacheSpécifiée
+      			pour tout element stTâcheTrouvée de tabTachesExistantes
+      			
+      				// L'occurrence de la tâche spécifiée ne doit pas croiser avec la tâche trouvée
+      				bComparaison = 	(stTâcheSpécifiée:DateHeureDébut <= stTâcheTrouvée:DateHeureDébut <= stTâcheSpécifiée:DateHeureFin) _ou_ ...
+      								(stTâcheSpécifiée:DateHeureDébut <= stTâcheTrouvée:DateHeurefin <= stTâcheSpécifiée:DateHeureFin) _ou_ ...
+      								(stTâcheTrouvée:DateHeureDébut <= stTâcheSpécifiée:DateHeureDébut <= stTâcheTrouvée:DateHeureFin) _OU_ ...
+      								(stTâcheTrouvée:DateHeureDébut <= stTâcheSpécifiée:DateHeureFin <= stTâcheTrouvée:DateHeureFin)
+      								
+      				// Si la comparaison est vraie, la tâche spécifiée croise avec la tâche trouvée
+      				si bComparaison = vrai alors
+      					// On ne peut donc pas créer la tâche spécifiée : on sort immédiatement
+      					bPossible = faux
+      					sortir
+      				FIN
+      			FIN		
+      			
+      			// Si on ne peut déjà plus créer la tâche spécifiée, on sort immédiatement
+      			si bPossible = Faux alors
+      				sortir
+      			FIN
+      		FIN
+      		
+      	fin
+      
+      	// Renvoie le résultat de l'analyse
+      	renvoyer bPossible
+      FIN
+      
+      // Par défaut, l'événement ne peut être créé
+      renvoyer faux
+     type : 458752
+   -
+     name : EvènementJourneeExiste
+     internal_properties : CAAAAAgAAAB8x7ieoDjJyKJKkaucnlloK4jIWNDjzkpV4LBZ6c4yp5DNO3qZyPQJ7oZiUJYEYcruHva7rjRxw16qEbbc2nw9VaZQ9FAMCz40TP51Xaqhiq8MfHoOcxgn9ZoV5cAtlTCsa4ww9fbahZmEXzBRySRNYtBWM53mwVYJ9vUBRuXDG/s1ZT9wb3JfCWYo/Enxy+AeZvGMhww=
+     procedure_id : 1561450728361141192
+     type_code : 15
+     group : 3
+     code : |1-
+      // Résumé : permet de savoir si des tâches à la journée sont déjà définies dans un intervalle de date
+      // Syntaxe :
+      //[ <Résultat> = ] EvènementJourneeExiste (<dDateDébut>, <dDateFin>, <nIDTacheExclue>)
+      //
+      // Cette procédure permet de savoir si des tâches à la journée sont déjà définies dans un intervalle de date
+      
+      // Paramètres :
+      //	dDateDébut : La date de début de la recherche
+      //	dDateFin : La date de fin de la recherche
+      //	nIDTacheExclue : L'identifiant de la tâche à exclure (si on est en modification, il faut exclure la tâche en cours)
+      // Valeur de retour :
+      // 	booléen : Vrai si une ou plusieurs tâche existent dans l'intervalle de date donnée, faux sinon
+      //
+      Procédure RESTREINTE EvènementJourneeExiste(dDateDébut, dDateFin, nIDTacheExclue)
+      
+      // Configuration et exécution de la requête
+      REQ_Agenda_RechercheTâchesJournée.pIDUtilisateur 	= UtilisateurEnCours:IDUtilisateur
+      REQ_Agenda_RechercheTâchesJournée.pDateDébut 		= dDateDébut 	+ "000000000"
+      REQ_Agenda_RechercheTâchesJournée.pDateFin 			= dDateFin		+ "235959999"
+      REQ_Agenda_RechercheTâchesJournée.pIDTache 			= nIDTacheExclue
+      hexecuterequête(REQ_Agenda_RechercheTâchesJournée)
+      
+      // Lit le premier résultat de la requête
+      hlitpremier(REQ_Agenda_RechercheTâchesJournée)
+      
+      // Si la lecture n'est possible, cela signfie qu'aucune tâche à la journée n'existe dans l'intervalle spécifié
+      si hendehors(REQ_Agenda_RechercheTâchesJournée) alors
+      	renvoyer faux
+      sinon
+      	// Sinon, au moins une tâche à la journée existe dans l'intervalle spécifié
+      	renvoyer vrai
+      FIN
+     type : 458752
+   -
+     name : EvènementSupprime
+     internal_properties : CAAAAAgAAAAIYxRyWux1sC7GDcNsEnkMT2RguNDPyrppxGzx6fJSU3xR+wKpjDDxQjoWUP5YuY6i0r7jvsitYxom1Sb0hkx5adLYtHhwjzbgiKLXX7SL+IkG5th4zbLRX3Svd7InXz4u9YYW3+Cs19se6VJb2zabJHL4SXfYm0A7uEf78Dcd6aVvF1U6eeTRu6h6toubjW4gskU46+A=
+     procedure_id : 1561453627634871995
+     type_code : 15
+     group : 3
+     code : |1-
+      // Résumé : Permet de supprimer un événement
+      // Syntaxe :
+      //[ <Résultat> = ] EvènementSupprime (<nIDTache>)
+      //
+      // Cette procédure permet de supprimer une tâche
+      
+      // Paramètres :
+      //	nIDTache : L'identifiant de la tâche à supprimer
+      
+      Procédure EvènementSupprime(nIDTache)
+      
+      // Est-ce que  l'utilisateur est connecté
+      si EstConnecté() = faux ALORS
+      	renvoyer faux	
+      FIN
+      
+      // Recherche de  l'événement
+      hlitrecherchepremier(Agenda,IDAgenda,nIDTache)
+      dbgAssertion(Htrouve(Agenda),<§@15ab501e09843bee0001§>)
+      
+      // Suppression de l'événement
+      si htrouve(Agenda) ALORS
+      	
+      	// Encore une Vérification
+      	Si UtilisateurEnCours:IDUtilisateur <> Agenda.IDUtilisateur ALORS
+      		// Seulement le propriétaire de la tâche peut la supprimer
+      		// Normalement ne devrait jamais arriver dans ce cas la (par l'interface) mais ajouté pour sécuriser encore un peu plus l'appel ajax
+      		renvoyer faux	
+      	FIN
+      	
+      	// Suppression
+      	renvoyer hsupprime(Agenda)
+      		
+      FIN
+      
+      // Par défaut l'événement n'est pas supprimé
+      RENVOYER Faux
+     type : 458752
+   -
+     name : EvenementModifie
+     procedure_id : 1561454327719488464
+     type_code : 15
+     code : |1-
+      // Résumé : permet de modifier un événement
+      // Syntaxe :
+      //[ <Résultat> = ] EvenementModifie (<stEvènement> est STRUCT_EVENEMENT)
+      //
+      // Paramètres :
+      //	stEvènement (STRUCT_EVENEMENT) : Définition de l'événement
+      // Valeur de retour :
+      // 	booléen : Vrai si l'événement a été modifié, Faux sinon
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      // 	nIDUtilisateur : <indiquez ici le rôle de nIDUtilisateur>
+      Procédure EvenementModifie(stEvènement est un STRUCT_EVENEMENT)
+      
+      // Variables locales
+      sGUID est une chaine
+      sDurée est une chaine
+      duDurée est une duree
+      dhDateHeureDébut est une dateheure
+      dhDateHeureFin est une dateheure
+      
+      // Sauvegarde du contexte
+      sGUID = HFSauvePosition(Agenda..nom)
+      
+      // Recherche de l'évenement
+      hlitrecherchepremier(agenda, IDAgenda, stEvènement:nIDtache)
+      si htrouve(Agenda) = faux alors 
+      	// Restauration du contexte
+      	HFRetourPosition(sGUID)
+      	RENVOYER Faux
+      FIN
+      
+      Si stEvènement:nIDUtilisateur <> UtilisateurEnCours:IDUtilisateur ALORS
+      	// Bizarre, on ne devrait pas arriver dans ce cas la
+      	// on renvoie faux plutôt que de modifier une tâche pour un autre utilisateur
+      	renvoyer faux
+      FIN
+      
+      // Ajout de l'évenement
+      Agenda.DateHeureDébut 			= stEvènement:dhDateHeureDébut
+      Agenda.DateHeureFin 			= stEvènement:dhDateHeureFin
+      Agenda.Description 				= stEvènement:sDescriptionTâche
+      Agenda.Titre 					= stEvènement:sTitreTâche
+      Agenda.EstJournéeEntière 		= stEvènement:bEstTacheJournée
+      
+      SI stEvènement:nPeriodicité > 1 ALORS	
+      	
+      	// Si la tâche est répétée, elle ne peut avoir qu'une durée exprimée en heure
+      	dhDateHeureDébut 			= stEvènement:dhDateHeureDébut
+      	dhDateHeureFin  			= stEvènement:dhDateHeureFin	
+      	dhDateHeureFin..PartieDate 	= dhDateHeureDébut..PartieDate
+      	
+      	sDurée = DateHeureDifférence(dhDateHeureDébut[[A 16]], dhDateHeureFin[[A 16]])
+      SINON
+      	// Dans les autres cas, la tâche peut durer plusieurs jours
+      	sDurée = DateHeureDifférence(stEvènement:dhDateHeureDébut[[a 16]], stEvènement:dhDateHeureFin[[A 16]])
+      FIN
+      
+      duDurée = ChaîneVersDurée(sDurée, duréeCentième)
+      
+      Agenda.Durée 					= duDurée
+      Agenda.IDUtilisateur			= UtilisateurEnCours:IDUtilisateur
+      
+      // Mise à jour de la périodicité
+      RécupèrePériodicité(stEvènement:nPeriodicité,Agenda.EstRépété,Agenda.IntervalleRépétition)
+      
+      // Mise à jour de la base de données
+      SI hmodifie(Agenda) = Faux alors
+      	// Restauration du contexte
+      	HFRetourPosition(sGUID)	
+      	RENVOYER Faux	
+      FIN
+      
+      // Restauration du contexte
+      HFRetourPosition(sGUID)
+      
+      // Par défaut, l'opération se déroule sans erreur
+      RENVOYER Vrai
+     type : 458752
+   -
+     name : RécupèreProchaineOccurrence
+     internal_properties : CAAAAAgAAAA0j3DGSTDakcbmS2Wq6svu88CUvMJ/ea70/mAVVaAiv5IHgZypFrQ1zOSG6HaS1dr4wMRFJrJh4wQgwS7MiLxx45SqkqQeo4Iags5u2EECafqH/clx+u98GLXwKu/oqtPfNkXHeF0hytxfOgHoDF0EoYeDVqxBJDs0uTjiYdVr2rJsLpbT4kEcwBWHhTh4oSMlfplUz8Q=
+     procedure_id : 1596731951502212751
+     type_code : 15
+     code : |1-
+      // Résumé : Récupère la prochaine occurrence dans l'agenda
+      // Syntaxe :
+      //[ <Résultat> = ] RécupèreProchaineOccurrence (<dhDateHeureDébut>, <sIntervalleRépétition> [, <dhDateHeureMax> [, <bUneOccurrence>]])
+      //
+      // Paramètres :
+      //	dhDateHeureDébut : Date de début
+      //	sIntervalleRépétition : Intervalle
+      //	dhDateHeureMax : Date de fin
+      //	bUneOccurrence (valeur par défaut=0) : < indiquez ici le rôle de bUneOccurrence >
+      // Valeur de retour :
+      // 	dateheure : // 	Aucune
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure RécupèreProchaineOccurrence(dhDateHeureDébut, sIntervalleRépétition, dhDateHeureMax = DateSys() + HeureSys(), bUneOccurrence = faux)
+      
+      duDurée est une durée
+      dhDateTâche est une dateheure
+      
+      // Récupération de la durée étendue au format durée
+      duDurée = DuréeEtendue(sIntervalleRépétition,dhDateHeureDébut)
+      dhDateTâche = dhDateHeureDébut
+      
+      
+      si duDurée = 0 alors
+      	dhDateTâche..jour ++
+      	renvoyer dhDateTâche
+      FIN
+      
+      si bUneOccurrence alors
+      	dhDateTâche += duDurée
+      sinon
+      	// Tantque l'on est pas dans la période que l'on souhaite afficher
+      	TANTQUE dhDateTâche < dhDateHeureMax
+      		
+      		// récupération de la durée étendue au format durée en tenant compte de la date de référence
+      		duDurée = DuréeEtendue(sIntervalleRépétition,dhDateTâche)
+      		// Incrémentation de la date
+      		dhDateTâche += duDurée
+      		
+      	FIN
+      FIN
+      
+      // On est sorti de la boucle
+      renvoyer dhDateTâche
+     type : 458752
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : COL_Collection1
+resources :
+ string_res :
+  identifier : 0x15ab501e09843bee
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+  strings :
+   -
+     text :
+      fr-FR : Type de périodicité non géré
+     index : 0
+   -
+     text :
+      fr-FR : Agenda non trouvé dans la base
+     index : 1
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ

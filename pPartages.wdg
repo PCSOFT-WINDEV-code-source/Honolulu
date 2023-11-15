@@ -1,0 +1,1449 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : pPartages
+ major_version : 28
+ minor_version : 0
+ type : 7
+ description : ""
+ subtype : 0
+procedure_set :
+ identifier : 0x158a978c1e21f5f3
+ internal_properties : CAAAAAgAAABGLu41kG7fjQV3iS4F72qmnKaNh5694reolNKIW0iw
+ code_elements :
+  type_code : 31
+  p_codes :
+   -
+     code : |1+
+      constant
+      	NOTIFICATION_SUPPRESSION_PARTAGE = "NOTIFICATION_SUPPRESSION_PARTAGE"	
+      	NOTIFICATION_PARTAGE_MODIFICATION = "NOTIFICATION_PARTAGE_MODIFICATION"
+      	NOTIFICATION_PARTAGE_CREATION = "NOTIFICATION_PARTAGE_CREATION"
+      FIN
+     type : 720896
+  procedures :
+   -
+     name : bUploaderFichier
+     internal_properties : CAAAAAgAAAC9zfs1g6e96T/s7nbUyMtksuTyfXoaRitBm4z1SRCzrzKeFUGDC/fVx/Biy3pFqZ+UKQ4JK5zsYSAkjd4pOLV4i4CxWcm89q9h73XY/vg2UTvAiKjwlSt5rLsIM6rCtO2XkoT7ReureAmi8FpnUJcWM/VYDAddLumzegYZ3vF38vlYwznz0sweZRnHhsalU77RTc0praOJ/W1qE+Ab972vD5tm72/g2Tlv/fVSxpwNKUngECc=
+     procedure_id : 1552219718359594177
+     type_code : 15
+     code : |1-
+      // Résumé : Procédure d'upload de fichier
+      // Syntaxe :
+      //[ <Résultat> = ] bUploaderFichier (<NomChamp>, <sCheminFicServeur>)
+      //
+      // Paramètres :
+      //	NomChamp : Nom du champ upload
+      //	sCheminFicServeur : Chemin du fichier sur le serveur
+      // Valeur de retour :
+      // 	booléen : vrai si réussi, Faux sinon
+      
+      Procédure prive bUploaderFichier(NomChamp,sCheminFicServeur)
+      
+      // Upload du fichier
+      NomDuFichier est une chaine
+      
+      NomDuFichier = UploadNomFichier(NomChamp,Faux)
+      NomDuFichier = fExtraitChemin(NomDuFichier,fFichier+fExtension)
+      SI fRépertoireExiste( fRepDonnées()+"\Fichiers" ) = "" ALORS
+      	fRepCrée( fRepDonnées()+"\Fichiers" )
+      FIN
+      
+      SI  UploadCopieFichier(NomChamp, fRepDonnées()+"\Fichiers" , NomDuFichier) = "" ALORS
+      	renvoyer faux
+      sinon
+      	sCheminFicServeur = fRepDonnées()+"\Fichiers\"+NomDuFichier
+      	renvoyer vrai
+      FIN
+     type : 458752
+   -
+     name : PartageAffecteDroitUtilisateurOuGroupe
+     procedure_id : 1557121422981667154
+     type_code : 15
+     code : |1+
+      // Résumé : Permet d'affecter (ajouter, modifier ou supprimer) un droit à un utilisateur ou à un groupe d'utilisateurs pour un partage donné
+      // Syntaxe :
+      //[ <Résultat> = ] PartageAffecteDroitUtilisateurOuGroupe (<nIDPartage>, <nIDGroupe>, <nIDUtilisateur>, <nDroit>)
+      //
+      // Paramètres :
+      //	nIDPartage : Identifiant du partage sur lequel on applique le droit
+      //	nIDGroupe : Identifiant du groupe pour lequel on applique le droit, -1 si on applique le droit à un utilisateur 
+      //	nIDUtilisateur :  Identifiant de l'utilisateur pour lequel on applique le droit, -1 si on applique le droit à un groupe 
+      //	nDroit : Entier correspondant au droit qu'on applique (0 : aucun droit, 1 : droit de lecture, 2 : droit de lecture - écriture, 3 : contrôle total)
+      // Valeur de retour :
+      // 	booléen : vrai si réussi, Faux sinon
+      
+      Procédure PartageAffecteDroitUtilisateurOuGroupe(nIDPartage,nIDGroupe,nIDUtilisateur,nDroit)
+      
+      bRetour est un booléen 
+      sMessage est une chaîne
+      
+      sGUID est une chaîne = HFSauvePosition(PartageDroit..Nom)
+      
+      
+      //Modification du droit sur le partage
+      HLitRecherche(PartageDroit,DroitParGroupeOuUtilisateurParPartage,[nIDGroupe,nIDUtilisateur,nIDPartage])
+      
+      SI HTrouve ALORS
+      	PartageDroit.Droit = nDroit
+      	si  hmodifie(PartageDroit) ALORS
+      		bRetour = vrai	
+      	FIN
+      SINON
+      	PartageDroit.IDPartage = nIDPartage
+      	PartageDroit.IDGroupe = nIDGroupe
+      	PartageDroit.IDUtilisateur = nIDUtilisateur
+      	PartageDroit.Droit = nDroit
+      	SI  hajoute(PartageDroit) ALORS
+      		bRetour =  vrai	
+      	FIN
+      FIN
+      
+      
+      //Si la modification a bien été réalisée : on envoie une notification de modification des droits d'un partage
+      si bRetour = vrai ALORS
+      
+      	sMessage = ChaîneConstruit(<§@158a97881e1fe3f20001§>,RécupèreLogin(UtilisateurEnCours:IDUtilisateur), PartageRécupèreNom(nIDPartage))
+      	
+      	NotificationEnvoie(	MODULE_PARTAGES, NOTIFICATION_MODIFICATION,<§@158a97881e1fe3f20002§>,sMessage)
+      FIN
+      
+      //Remise à zéro
+      HRAZ(PartageDroit)
+      HFRetourPosition(sGUID)
+      
+      renvoyer bRetour
+      
+      
+      
+     type : 458752
+   -
+     name : PartageEstPublic
+     procedure_id : 1557122548287870873
+     type_code : 15
+     code : |1-
+      // Résumé : Indique si un partage est public ou privé (NB : tous les dossiers sont publics)
+      // Syntaxe :
+      //[ <Résultat> = ] PartageEstPublic (<nIDPartage>)
+      //
+      // Paramètres :
+      //	nIDPartage : Identifiant du partage
+      // Valeur de retour :
+      // 	booléen : Vrai si le partage est public, Faux sinon
+      
+      
+      Procédure PartageEstPublic(nIDPartage)
+      
+      bEstPublic est un booléen
+      
+      sGUID est une chaîne = HFSauvePosition(Partage..Nom)
+      
+      HLitRecherche(Partage,IDPartage,nIDPartage)
+      si HTrouve(Partage) ALORS
+      	bEstPublic = Partage.EstPublic
+      FIN
+      
+      HFRetourPosition(sGUID)
+      
+      renvoyer bEstPublic
+     type : 458752
+   -
+     name : PartageModifie
+     internal_properties : CAAAAAgAAADCbS4IbG4GqSRE28lWGFOadQIuchbVoeauAPBZ6Q7y55AN+3rZiDQJLkbikNaEYcqunnZ7rjTxA16q0bZcGjz91eYQ9BDMyz70jP5V/QoBqs8snBou07jHVXq1RWCN9VBMi6xQlVb6pfnk/xBxqYRtAnB20z3GYfbp1hVhBh6O/3ul3X8Mzx4L4c6wWF1ZzOgKvF8e8Zo=
+     procedure_id : 1557328925763521436
+     type_code : 15
+     code : |1+
+      // Résumé : Permet de modifier un partage
+      // Syntaxe :
+      //[ <Résultat> = ] PartageModifie (<nIDPartage>, <sLibellé>, <sDescription>, <bPublic> [, <sMotDePasse>])
+      //
+      // Paramètres :
+      //	nIDPartage : Identifiant du partage à modifier
+      //	sLibellé : Nouveau libellé, nom du partage
+      //	sDescription : Nouvelle description du partage
+      //	bPublic : Nouveau type d'accès du partage : vrai si public, faux sinon
+      // 	sMotDePasse (valeur par défaut="") : < indiquez ici le rôle de sMotDePasse >
+      // Valeur de retour :
+      // 	booléen : Vrai si la modification a réussi, Faux sinon 
+      
+      
+      Procédure PartageModifie(nIDPartage,sLibellé,sDescription,bPublic,sMotDePasse="")
+      
+      bRetour est un booleen 
+      sMessage est une chaîne
+      nIDDossierParent est un entier 
+      
+      sGUID est une chaîne = HFSauvePosition(Partage..Nom)
+      
+      HLitRecherche(Partage,IDPartage,nIDPartage)
+      SI HTrouve(Partage) ALORS
+      	nIDDossierParent = partage.IDDossierParent
+      	
+      	//Modification du partage
+      	partage.Libellé = sLibellé
+      	partage.Description = sDescription
+      	partage.EstPublic = bPublic
+      	partage.DateHeureModification = DateDuJour() + Maintenant()
+      	partage.IDModificateur = UtilisateurEnCours:IDUtilisateur
+      	partage.MotDePasse = sMotDePasse
+      	
+      	SI HModifie(Partage) ALORS
+      
+      		// Récupère le propritaire du partage
+      		nIDPropriétaire est un entier
+      		nIDPropriétaire = PartageRécupèreIDpropriétaire(nIDPartage)
+      		
+      		// Si le propriétaire n'est pas l'utilisateur en cours et qu'il ne s'agit pas d'un administrateur
+      		si pas (nIDPropriétaire = utilisateurencours:IDUtilisateur et EstAdministrateurOuModerateur()) alors
+      		
+      			// Envoi d'une notification de modification d'un partage
+      			sMessage = ChaîneConstruit(<§@158a97881e1fe3f20003§>,RécupèreLogin(UtilisateurEnCours:IDUtilisateur), PartageRécupèreNom(nIDPartage), PartageRécupèreNom(nIDDossierParent))
+      												
+      			NotificationEnvoie(	MODULE_PARTAGES, NOTIFICATION_MODIFICATION,<§@158a97881e1fe3f20004§>,sMessage, nIDPropriétaire)
+      
+      		fin
+      		
+      		bRetour =  vrai
+      	FIN
+      	
+      FIN
+      
+      HFRetourPosition(sGUID)
+      
+      renvoyer bRetour
+      
+     type : 458752
+   -
+     name : PartageSupprimeDroitsUtilisateurOuGroupe
+     procedure_id : 1557334440504844819
+     type_code : 15
+     code : |1-
+      // Résumé : Permet de supprimer un droit sur un partage pour un utilisateur ou un groupe  
+      // Syntaxe :
+      //[ <Résultat> = ] PartageSupprimeDroitsUtilisateurOuGroupe (<nIDPartage>, <nIDGroupe>, <nIDUtilisateur>)
+      //
+      // Paramètres :
+      //	nIDPartage : Identifiant du partage
+      //	nIDGroupe : Identifiant du groupe : -1 si le droit est associé à un utilisateur
+      //	nIDUtilisateur : Identifiant de l'utilisateur : -1 si le droit est associé à un groupe
+      // Valeur de retour :
+      // 	booléen : Vrai si la suppression a réussi, Faux sinon
+      
+      Procédure PartageSupprimeDroitsUtilisateurOuGroupe(nIDPartage,nIDGroupe,nIDUtilisateur)
+      
+      bRetour est un booléen 
+      
+      sGUID est une chaîne = HFSauvePosition(PartageDroit..Nom)
+      
+      HLitRecherche(PartageDroit,DroitParGroupeOuUtilisateurParPartage,[nIDGroupe,nIDUtilisateur,nIDPartage])
+      
+      si HTrouve(PartageDroit) alors
+      	HSupprime(PartageDroit)
+      	bRetour = Vrai 
+      FIN
+      
+      HFRetourPosition(sGUID)
+      
+      RENVOYER bRetour
+     type : 458752
+   -
+     name : PartageSupprime
+     procedure_id : 1557335093340091300
+     type_code : 15
+     code : |1-
+      // Résumé : Permet de supprimer un partage
+      // Syntaxe :
+      //[ <Résultat> = ] PartageSupprime (<nIDPartage>)
+      //
+      // Paramètres :
+      //	nIDPartage : identifiant du partage à supprimer
+      // Valeur de retour :
+      // 	booléen : Vrai si la suppression a réussi, Faux sinon
+      
+      Procédure PartageSupprime(nIDPartage)
+      
+      bRetour est un booleen
+      sMessage est une chaîne
+      sNomPartage est une chaine
+      nIDDossierParent  est une chaine
+      sCléPartage est une chaîne
+      
+      sGUID est une chaîne = HFSauvePosition(Partage..Nom)
+      
+      //On recherche l'enregistrement à supprimer
+      HLitRecherche(Partage,IDPartage,nIDPartage)
+      
+      //On récupère son nom et l'identifiant de son dossier parent
+      sNomPartage = partage.Libellé
+      nIDDossierParent = partage.IDDossierParent
+      
+      //Si le partage est un fichier
+      si PARTAGE.TypePartage = 0 ALORS
+      	
+      	//On récupère la clé de partage pour pouvoir supprimer la pièce jointe associée, par la suite
+      	sCléPartage = partage.CléPartage
+      	
+      	//Suppression du partage
+      	SI HSupprime(Partage) ALORS
+      		
+      		//Suppression de la PJ liée au partage
+      		PJSupprime(sCléPartage)
+      		
+      		//Suppression du sujet lié au partage dans le forum "Partages" 
+      		ParametreSupprime("SUJET_PARTAGE_" + nIDPartage)
+      			
+      		//La suppression a réussi : envoi d'une notification de suppression d'un fichier de partage
+      		sMessage = ChaîneConstruit(<§@158a97881e1fe3f20005§>,RécupèreLogin(UtilisateurEnCours:IDUtilisateur), sNomPartage,PartageRécupèreNom(nIDDossierParent))
+      		
+      		NotificationEnvoie(	MODULE_PARTAGES, NOTIFICATION_SUPPRESSION,<§@158a97881e1fe3f20006§>,sMessage)
+      		
+      		bRetour = Vrai 
+      	FIN
+      	
+      sinon
+      	//Si le partage est un dossier
+      	
+      	//Suppression du partage
+      	SI HSupprime(Partage) ALORS
+      		
+      		//Et de tout ce qu'il contient
+      		PartageSupprimefils(nIDPartage)
+      		
+      		//Suppression du sujet lié au partage dans le forum "Partages" 
+      		ParamètreSupprime("SUJET_PARTAGE_" + nIDPartage)
+      
+      		//La suppression a réussi : envoi d'une notification de suppression d'un fichier de partage
+      		sMessage = ChaîneConstruit(<§@158a97881e1fe3f20007§>,RécupèreLogin(UtilisateurEnCours:IDUtilisateur), sNomPartage,PartageRécupèreNom(nIDDossierParent))
+      		
+      		NotificationEnvoie(	MODULE_PARTAGES, NOTIFICATION_SUPPRESSION,<§@158a97881e1fe3f20008§>,sMessage)
+      		
+      		bRetour = Vrai 
+      	FIN
+      FIN
+      
+      HFRetourPosition(sGUID)
+      
+      renvoyer bRetour
+     type : 458752
+   -
+     name : PartageCréeDossierPartage
+     procedure_id : 1557336098363655354
+     type_code : 15
+     code : |1+
+      // Résumé : Permet de créer un dossier de partage 
+      // Syntaxe :
+      //[ <Résultat> = ] PartageCréeDossierPartage (<sNomDossier>, <nIDDossierParent>, <sDescription> [, <sMotDePasse>])
+      //
+      // Paramètres :
+      //	sNomDossier : Nom pour le dossier à créer (c'est un libellé)
+      //	nIDDossierParent : Identifiant du dossier parent : dans quel dossier on crée ce partage ?
+      //	sDescription : Description pour le dossier à créer
+      // 	sMotDePasse (valeur par défaut="") : < indiquez ici le rôle de sMotDePasse >
+      // Valeur de retour :
+      // 	entier : Identifiant du dossier de partage créé
+      
+      Procédure PartageCréeDossierPartage(sNomDossier,nIDDossierParent,sDescription,sMotDePasse="")
+      
+      nIDDossierCréé est un entier
+      sMessage est une chaine
+      
+      //Remise à zéro
+      HRAZ(Partage)
+      
+      //Affectation des rubriques du fichier Partage
+      Partage.Libellé = sNomDossier
+      Partage.IDDossierParent= nIDDossierParent
+      Partage.DateHeureCréation = DateDuJour()+Maintenant()
+      Partage.Typepartage = 1
+      partage.IDPropriétaire = UtilisateurEnCours:IDUtilisateur
+      Partage.Description = sDescription
+      partage.MotDePasse = sMotDePasse
+      //Tous les dossiers sont publics
+      partage.EstPublic = 1
+      
+      //Ajout du dossier de partage
+      si  HAjoute(partage) = faux ALORS
+      	Erreur(<§@158a97881e1fe3f20009§>,HErreurInfo())
+      	Renvoyer -1
+      FIN
+      //Récupération de l'identifiant du dossier de partage créé
+      nIDDossierCréé = Partage.IDPartage
+      
+      //Si l'ajout a réussi : on envoie une notification de création d'un dossier de partage
+      sMessage = ChaîneConstruit(<§@158a97881e1fe3f2000a§>,RécupèreLogin(UtilisateurEnCours:IDUtilisateur), sNomDossier,PartageRécupèreNom(nIDDossierParent))
+      
+      NotificationEnvoie(	MODULE_PARTAGES, NOTIFICATION_CREATION,<§@158a97881e1fe3f2000b§>,sMessage)
+      
+      renvoyer nIDDossierCréé
+     type : 458752
+   -
+     name : PartageCréeFichierPartage
+     internal_properties : CAAAAAgAAAAyvX7YWL5aOTSki6mWaLNqhbK+8oZFIWZOsPBJmS6ih/DtW0qZ6CSZPkbyEBZ0oZp+jmYb/oTRo94akeaMWgy9NYaQ5DAMu44EjM6tlYJJMqc0lKKmi3APnTLtPXhlnfhks0T4Da6SzcF814jpASyVGniOG/V+OV4Rjs1ZnpYWB3Ot1WcEp7aTSSboMPWRlMzOjK9Owco=
+     procedure_id : 1557336965948824338
+     type_code : 15
+     code : |1-
+      // Résumé : Permet de créer un fichier de partage, une nouvelle ressource partagée
+      // Syntaxe :
+      //[ <Résultat> = ] PartageCréeFichierPartage (<sLibellé>, <sDescription>, <nIDDossierParent>, <sClé>, <bPublic> [, <sMotDePasse>])
+      //
+      // Paramètres :
+      //	sLibellé : Nom, libellé pour le fichier de partage à créer
+      //	sDescription : Description pour le fichier de partage à créer
+      //	nIDDossierParent : Identifiant du dossier parent
+      //	sClé : Clé de la pièce jointe associée au partage : avant de créer le partage pour le fichier, il faut d'abord créer la pièce  jointe correspondante
+      //	bPublic : Est ce que le fichier partagé est public ? (cad : lecture - écriture pour tout le monde et contrôle total pour admin, modérateurs et propriétaire)
+      // 	sMotDePasse (valeur par défaut="") : < indiquez ici le rôle de sMotDePasse >
+      // Valeur de retour :
+      // 	entier : Identifiant du fichier de partage créé
+      
+      
+      Procédure PartageCréeFichierPartage(sLibellé,sDescription,nIDDossierParent,sClé,bPublic,sMotDePasse="")
+      
+      nIDFichierCréé est un entier
+      sMessage est une chaîne
+      
+      //Remise à zéro
+      HRAZ(Partage)
+      
+      //Affectation des rubriques du fichier Partage
+      Partage.TypePartage = 0 //C'est un fichier
+      Partage.IDDossierParent = nIDDossierParent
+      Partage.IDPropriétaire = UtilisateurEnCours:IDUtilisateur
+      Partage.Libellé = sLibellé
+      partage.DateHeureCréation = DateDuJour()+Maintenant()
+      Partage.Description = sDescription
+      partage.EstPublic =bPublic
+      partage.CléPartage = sClé
+      partage.MotDePasse = sMotDePasse
+      
+      //Ajout de l'enregistrement
+      si HAjoute(Partage) = faux alors
+      	renvoyer -1
+      fin
+      
+      //Récupération de l'identifiant du dossier de partage créé
+      nIDFichierCréé = Partage.IDPartage
+      
+      //Si l'ajout a réussi : on envoie une notification de création d'un fichier de partage
+      sMessage = ChaîneConstruit(<§@158a97881e1fe3f2000c§>,RécupèreLogin(UtilisateurEnCours:IDUtilisateur), sLibellé,PartageRécupèreNom(nIDDossierParent))
+      
+      NotificationEnvoie(	MODULE_PARTAGES, NOTIFICATION_CREATION,<§@158a97881e1fe3f2000d§>,sMessage)
+      
+      
+      RENVOYER nIDFichierCréé
+     type : 458752
+   -
+     name : PartageRechercheRacine
+     procedure_id : 1557338426240076657
+     type_code : 15
+     code : |1-
+      // Résumé : Recherche le dossier racine
+      // Syntaxe :
+      //[ <Résultat> = ] PartageRechercheRacine ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	entier : Identifiant du dossier racine
+      
+      Procédure PartageRechercheRacine()
+      
+      nIDPartageRacine est un entier 
+      sGUID est une chaîne = HFSauvePosition(Partage..Nom)
+      
+      //Recherche du dossier racine : sa spécificité c'est qu'il n'a pas de dossier parent
+      HLitRecherche(Partage,IDDossierParent,0)
+      
+      //Si on ne le trouve pas : on le crée 
+      SI pas htrouve(Partage) ALORS
+      	//Création du dossier racine
+      	nIDPartageRacine = PartageCréeDossierPartage(<§@158a97881e1fe3f2000e§>,0,<§@158a97881e1fe3f2000f§>)
+      sinon
+      	nIDPartageRacine = Partage.IDPartage
+      FIN
+      
+      HFRetourPosition(sGUID)
+      
+      renvoyer nIDPartageRacine
+     type : 458752
+   -
+     name : PartageRecupèreDroitUtilisateurGroupe
+     internal_properties : CAAAAAgAAACgCDX5j8+btXrFOuQJbpXSv9qpF61Ri8e0pNq2vTvsvY4+Hga/yjLCguATNOjTIWd42ecS39W3Rtd6/H7ikrguD3MsKWLNu8Mci9v7fbsRHaRX/EdHCt9sPlNevJ9Y2rt5uMdthgnVDgAzjslIoumQp+1h6CY/OmFoVVSaUfG3bi3nF+WGO4RxBarMLGENFO+fNse+fbmLQzad8498L7O9P4oivlZD
+     procedure_id : 1557340273077820318
+     type_code : 15
+     code : |1+
+      // Résumé : Permet de récupérer le droit d'un utilisateur ou d'un groupe sur un partage
+      // Syntaxe :
+      //PartageRecupèreDroitUtilisateurGroupe (<nIDPartage>, <nIDUtilisateur>, <nDroitUtilisateur> [, <nDroitGroupe>])
+      //
+      // Paramètres :
+      //	nIDPartage : Identifiant du partage
+      //	nIDUtilisateur : Identifiant de l'utilisateur
+      //	nDroitUtilisateur : Variable qui vous permet de récupérer le droit de l'utilisateur
+      //	nDroitGroupe (valeur par défaut=0) : Variable qui vous permet de récupérer le droit du groupe de l'utilisateur
+      // Valeur de retour :
+      // 	Aucune
+      
+      //  Si l'utilisateur n'a pas de droit spécifique mais qu'il a un droit grâce à son appartenance à un groupe
+      Procédure PartageRecupèreDroitUtilisateurGroupe(nIDPartage,nIDUtilisateur,nDroitUtilisateur,nDroitGroupe=0)
+      
+      // Variables
+      sListeUtilisateurs est une chaîne
+      sIDUtilisateur est une chaîne
+      nIDGroupe est un entier
+      
+      //Remise à 0 des droits
+      nDroitUtilisateur = 0
+      nDroitGroupe = 0
+      
+      //Si l'utilisateur est propriétaire du partage ou est modérateur ou est l'admin :
+      //il a un contrôle total sur le partage
+      SI  PartageEstPropriétairePartage(nIDPartage, nIDUtilisateur) OU EstAdministrateurOuModerateur(nIDUtilisateur) ALORS
+      	nDroitUtilisateur = 3	
+      sinon
+      	//Si l'utilisateur n'est ni propriétaire du partage ni modérateur ni l'admin.
+      	
+      	//Si le partage est public, l'utilisateur a le droit de lecture
+      	si PartageEstPublic( nIDPartage) ALORS
+      		nDroitUtilisateur = 1
+      	sinon
+      		//Si le partage est privé
+      		sGUID est une chaîne = HFSauvePosition(PartageDroit..Nom)
+      		
+      		//Recherche des droits du partage pour l'utilisateur en tant qu'utilisateur
+      		HLitRecherche(PartageDroit,DroitParGroupeOuUtilisateurParPartage,[-1,nIDUtilisateur,nIDPartage])
+      		SI HTrouve(PartageDroit) ALORS
+      			nDroitUtilisateur = PartageDroit.Droit
+      		FIn
+      		
+      		//Si l'utilisateur a le droit maximal sur le partage, on sort
+      		//Sinon on continue pour voir s'il n'appartient pas à un groupe qui aurait des droits plus importants sur le partage
+      		SI nDroitUtilisateur = 3 ALORS 
+      			HFRetourPosition(sGUID)
+      			retour
+      		FIN
+      		
+      		//Recherche des droits du partage pour l'utilisateur en tant que membre d'un groupe
+      		
+      		//Parcours de tous les groupes publics
+      		POUR TOUT Groupe SUR Titre AVEC "Groupe.IDUtilisateur = -1"
+      			
+      			//Récupération de tous les utilisateurs du groupe parcouru
+      			sListeUtilisateurs = ListeMembresGroupe(-1, Groupe.Titre)
+      			
+      			//Parcours de tous les utilisateurs du groupe
+      			POUR TOUTE CHAINE sIDUtilisateur  DE sListeUtilisateurs  SEPAREE PAR ";"
+      				//Si l'utilisateur fait parti de ce groupe
+      				SI nIDUtilisateur =  Val(sIDUtilisateur) ALORS
+      					
+      					nIDGroupe = Groupe.IDGroupe
+      					
+      					//Recherche du droit du groupe sur le partage, qui sera aussi le droit de l'utilisateur sur le partage
+      					HLitRecherche(PartageDroit,DroitParGroupeOuUtilisateurParPartage,[nIDGroupe,-1,nIDPartage])
+      					SI HTrouve(PartageDroit)  ALORS
+      						nDroitGroupe = PartageDroit.Droit
+      						nDroitUtilisateur = PartageDroit.Droit
+      					FIN
+      					
+      					//Pas besoin de parcourir les autres utilisateurs du groupe
+      					sortir
+      				FIN
+      			FIN
+      			
+      			//Si l'utilisateur a le droit maximal sur le partage, on sort : pas besoin de parcourir les autres groupes
+      			//Sinon on continue pour voir si l'utilisateur n'appartiendrait pas à un autre groupe qui aurait des droits plus importants sur le partage
+      			si nDroitUtilisateur = 3 alors 
+      				sortir
+      			FIN
+      		FIN
+      		
+      		HFRetourPosition(sGUID)
+      	FIN
+      fin
+      
+      
+      
+      
+     type : 458752
+   -
+     name : PartageEstDossier
+     procedure_id : 1557412455220578764
+     type_code : 15
+     code : |1+
+      // Résumé : Indique si un partage est un dossier ou un fichier
+      // Syntaxe :
+      //[ <Résultat> = ] PartageEstDossier (<nIDPartage>)
+      //
+      // Paramètres :
+      //	nIDPartage : Identifiant du partage
+      // Valeur de retour :
+      // 	booléen : Vrai si le partage est un dossier, Faux sinon
+      
+      
+      Procédure PartageEstDossier(nIDPartage)
+      
+      bTypePartage est un booleen
+      
+      sGUID est une chaîne = HFSauvePosition(Partage..Nom)
+      
+      HLitRecherche(Partage,IDPartage,nIDPartage)
+      si HTrouve(Partage) ALORS
+      	bTypePartage = Partage.TypePartage
+      FIN
+      
+      HFRetourPosition(sGUID)
+      
+      renvoyer bTypePartage
+     type : 458752
+   -
+     name : PartageRécupèreClé
+     procedure_id : 1557413026452935714
+     type_code : 15
+     code : |1+
+      // Résumé : Permet de récupérer la clé de partage pour un fichier de partage
+      // Syntaxe :
+      //[ <Résultat> = ] PartageRécupèreClé (<nIDPartage>)
+      //
+      // Paramètres :
+      //	nIDPartage : Identifiant du partage
+      // Valeur de retour :
+      // 	chaîne : Clé de partage (utile pour récupérer la pièce jointe associée à un fichier de partage)
+      
+      Procédure PartageRécupèreClé(nIDPartage)
+      
+      sCléPartage est une chaine
+      sGUID est une chaîne = HFSauvePosition(Partage..Nom)
+      
+      HLitRecherche(Partage,IDPartage,nIDPartage)
+      si HTrouve(Partage) ALORS
+      	sCléPartage = Partage.CléPartage
+      FIN
+      
+      HFRetourPosition(sGUID)
+      
+      renvoyer sCléPartage
+     type : 458752
+   -
+     name : PartageRécupèreDescription
+     internal_properties : CAAAAAgAAABcp1h72HonlATcybfoKLFEuU6WQuylDvYD3oAVdcAiP5LHYdwJdpSVLGSmqJYy1Vr4wKQFBpLBAySgYS6sKLzxo1RKksT+g6I6Qq6e6DGymaoXDZmhqn+MaEWgWv8YmsNPhhVX6M1xGmyvKnG4fI10EVfTZlwx9ItEiSjSETwM4i6AOoo7jvFcNJGTlSAcwBkrO5Fspyw=
+     procedure_id : 1557415130989301252
+     type_code : 15
+     group : 3
+     code : |1+
+      // Résumé : Permet de récupérer la description d'un partage donné
+      // Syntaxe :
+      //[ <Résultat> = ] PartageRécupèreDescription (<nIDPartage>)
+      //
+      // Paramètres :
+      //	nIDPartage : Identifiant du partage
+      // Valeur de retour :
+      // 	Chaîne : Description du partage
+      
+      Procédure PartageRécupèreDescription(nIDPartage)
+      
+      sDescription est une chaine
+      
+      //Procédure Ajax => il faut la sécuriser
+      //Il faut que l'utilisateur soit connecté pour pouvoir accéder à ce type d'information
+      SI PAS EstConnecté(UtilisateurEnCours:IDUtilisateur) ALORS
+      	RENVOYER ""
+      FIN
+      
+      sGUID est une chaîne = HFSauvePosition(Partage..Nom)
+      
+      HLitRecherche(Partage,IDPartage,nIDPartage)
+      si HTrouve(Partage) ALORS
+      	
+      	sFichier est une chaine
+      	sFichier = PJRécupèreInfoFichier(partage.CléPartage)
+      	
+      	si partage.TypePartage = 1 ALORS
+      		sDescription = chaineconstruit(<§@158a97881e1fe3f20010§>, partage.Libellé)
+      	sinon
+      		sDescription = ChaîneConstruit(<§@158a97881e1fe3f20011§>, sFichier)
+      	FIN
+      	sDescription += [rc] + Partage.Description
+      FIN
+      
+      HFRetourPosition(sGUID)
+      
+      renvoyer sDescription
+     type : 458752
+   -
+     name : PartageSupprimeTousDroitsPartage
+     internal_properties : CAAAAAgAAADkxgX4jKSiPzmMqNJtwJNvikTxLuwTM6u/EGrR3SF0aIadOwrsJ8PhPS3L+tMqeBp3FJqFgbZ1FUgI51iHzBwOPdG/7aILbN+bHqWtNeiIeqrS8ZMADwXhwDGuo8ArOMIBjTX584wJBe6lok4f/UWlT2Adqg1O4EJcJaYbGBpfO2Zlhuya0VcFQOG9pN3P44V04FxxwQ==
+     procedure_id : 1557726862409665916
+     type_code : 15
+     code : |1+
+      // Résumé : Permet de supprimer tous les droits associés à un partage
+      // Syntaxe :
+      //PartageSupprimeTousDroitsPartage (<nIDPartage>)
+      //
+      // Paramètres :
+      //	nIDPartage : Identifiant du partage
+      // Valeur de retour :
+      // 	Aucune
+      
+      Procédure PartageSupprimeTousDroitsPartage(nIDPartage)
+      
+      sGUID est une chaîne = HFSauvePosition(PartageDroit..Nom)
+      
+      //Supression de tous les droits associés à un partage
+      HLitRecherchepremier(PartageDroit,IDPartage,nIDPartage)
+      
+      tantque HTrouve(PartageDroit)
+      	HSupprime(PartageDroit)
+      	HLitSuivant(PartageDroit)
+      FIN
+      
+      HFRetourPosition(sGUID)
+     type : 458752
+   -
+     name : PartageSupprimeFils
+     internal_properties : CAAAAAgAAACSPVfkmGDt/NZO6RmoBI/glwI7VZDaV6266PH3E5imyGqGFoxUHvoZDqegX7hH+Tst6qI21Pp9sMxl3DBwIsyws/4DeXYYMqLNktqfe2AZ/z48SnnWmE8I90qyG7SIjDXB9Hb9AadbsPGaWATv2POSOavWTpvRrCcNQDrRNkkTLpvhvGEN3wrLhpGWT+6hmROVMv9bYYAbqYjBoW3OlEy6jIQf6A==
+     procedure_id : 1558819648096245502
+     type_code : 15
+     code : |1+
+      // Résumé : Permet de supprimer les fils d'un dossier de partage de manière récusive
+      // Syntaxe :
+      //PartageSupprimeFils (<nIDPartage>)
+      //
+      // Paramètres :
+      //	nIDPartage : Identifiant du dossier de partage parent
+      // Valeur de retour :
+      // 	Aucune
+      
+      Procédure PartageSupprimeFils(nIDPartage)
+      
+      
+      sGUID est une chaîne = HFSauvePosition(Partage..Nom)
+      
+      //On recherche les fils du partage passé en paramètre
+      HLitRecherchepremier(Partage,IDDossierParent,nIDPartage)
+      
+      TANTQUE HTrouve(Partage) 
+      	
+      	PartageSupprime(partage.IDPartage)	
+      	//	//Mémorisation de l'ID du partage
+      	//	nIDPartageFils = partage.IDPartage
+      	//	//Suppression du partage
+      	//	hsupprime(partage)
+      	//	
+      	//	//Suppression des fils du partage
+      	//	nPos  = HSauvePosition(Partage)
+      	//	PartageSupprimeDescendance(nIDPartageFils)
+      	//	HRetourPosition(npos)
+      	
+      	HLitSuivant(Partage,IDDossierParent)
+      FIN 
+      
+      HFRetourPosition(sGUID)
+     type : 458752
+   -
+     name : PartageRécupèreNom
+     procedure_id : 1559713749351900116
+     type_code : 15
+     code : |1+
+      // Résumé : Permet de récupérer le nom d'un partage
+      // Syntaxe :
+      //[ <Résultat> = ] PartageRécupèreNom (<nIDPartage>)
+      //
+      // Paramètres :
+      //	nIDPartage : Identifiant du partage
+      // Valeur de retour :
+      // 	chaîne : Nom du partage
+      
+      Procédure PartageRécupèreNom(nIDPartage)
+      
+      sNomPartage est une chaine
+      sGUID est une chaîne = HFSauvePosition(Partage..Nom)
+      
+      HLitRecherche(Partage,IDPartage,nIDPartage)
+      si HTrouve(Partage) ALORS
+      	sNomPartage = Partage.Libellé
+      FIN
+      
+      HFRetourPosition(sGUID)
+      
+      renvoyer sNomPartage
+     type : 458752
+   -
+     name : PartageRecreePartageSurServeur
+     internal_properties : CAAAAAgAAACI45Tyx2zoiebmGy1qqhsua8AMHErvgR58dtgVfZj690LPYdSZ3uRNjDTm0HYSZdqwwLwlLkJZs+wYCV4EEATZg/yaigS2wzqq0s7S3FW+7W5DqaXttkPQrAGsbqMstpfTIrHDZHkFPnBrJmUs4CmItYMPoigd+A/YBaS2Vdl37qZoGpI/vuVQJIGDacys/fWjMsW4a2A=
+     procedure_id : 1560024442490023788
+     type_code : 15
+     code : |1+
+      // Résumé : Procédure qui recrée l'arborescence d'un dossier de partage, physiquement, sur le serveur 
+      // Syntaxe :
+      //PartageRecreePartageSurServeur (<nIDPartage>, <sChemin>, <bOKTelechargement>)
+      //
+      // Paramètres :
+      //	nIDPartage : Identifiant du dossier de partage pour lequel on recrée l'arboresence
+      //	sChemin : Chemin sur le serveur où on recrée l'arborescence
+      // 	bOKTelechargement : <indiquez ici le rôle de bOKTelechargement>
+      // Valeur de retour :
+      // 	Aucune
+      
+      Procédure privé PartageRecréePartageSurServeur(nIDPartage,sChemin,bOKTelechargement )
+      
+      //Création du répertoire s'il n'existe pas déjà
+      si fRépertoireExiste(sChemin) = faux ALORS
+      	fRepCrée(sChemin)
+      FIN
+      
+      sGUID est une chaîne = HFSauvePosition(Partage..Nom)
+      
+      //On recherche tous les partages contenus dans le dossier
+      HLitRecherchePremier(Partage,IDDossierParent,nIDPartage)
+      
+      TANTQUE HTrouve(Partage) 
+      	
+      	//Si c'est un dossier
+      	si partage.TypePartage ALORS
+      		//On recrée son contenu
+      		PartageRecreePartageSurServeur(Partage.IDPartage,sChemin+["\"]+ Partage.Libellé,bOKTelechargement)
+      	sinon
+      		// On n'ajoute pas les partages avec mot de passe
+      		si partage.MotDePasse = "" alors
+      			PartageRecreeRessourceSurServeur(partage.IDPartage,sChemin,bOKTelechargement)
+      		fin
+      	fin
+      	
+      	HLitSuivant(Partage,IDDossierParent)
+      FIN 
+      
+      HFRetourPosition(sGUID)
+     type : 458752
+   -
+     name : PartageEstPropriétairePartage
+     procedure_id : 1560032147675205983
+     type_code : 15
+     code : |1-
+      // Résumé : Indique si un utilisateur donné est propriétaire ou non d'un partage donné
+      // Syntaxe :
+      //[ <Résultat> = ] PartageEstPropriétairePartage (<nIDPartage>, <nIDUtilisateur>)
+      //
+      // Paramètres :
+      //	nIDPartage : Identifiant du partage
+      //	nIDUtilisateur : Identifiant de l'utilisateur
+      // Valeur de retour :
+      // 	booléen : Vrai si l'utilisateur est propriétaire du partage, Faux sinon
+      
+      Procédure PartageEstPropriétairePartage(nIDPartage,nIDUtilisateur)
+      
+      bRetour est un booleen
+      sGUID est une chaîne = HFSauvePosition(Partage..Nom)
+      
+      HLitRecherche(Partage,IDPartage,nIDPartage)
+      si HTrouve(Partage) ALORS
+      	si partage.IDPropriétaire = nIDUtilisateur ALORS
+      		bRetour = vrai
+      	sinon
+      		bRetour = faux
+      	fin
+      	
+      FIN
+      
+      HFRetourPosition(sGUID)
+      
+      renvoyer bRetour
+     type : 458752
+   -
+     name : PartageRécupèreIDpropriétaire
+     procedure_id : 1560330171366808396
+     type_code : 15
+     code : |1+
+      // Résumé : Permet de récupérer l'identifiant du propriétaire d'un groupe
+      // Syntaxe :
+      //[ <Résultat> = ] PartageRécupèreIDpropriétaire (<nIDPartage>)
+      //
+      // Paramètres :
+      //	nIDPartage : Identifiant du partage
+      // Valeur de retour :
+      // 	entier : Identifiant du propriétaire du partage
+      
+      Procédure PartageRécupèreIDpropriétaire(nIDPartage)
+      
+      nIDPropriétaire est un entier
+      
+      sGUID est une chaine = HFSauvePosition(Partage..Nom)
+      
+      HLitRecherche(Partage,IDPartage,nIDPartage)
+      si HTrouve(Partage) ALORS
+      	nIDPropriétaire = Partage.IDPropriétaire
+      FIN
+      
+      HFRetourPosition(sGUID)
+      
+      renvoyer nIDPropriétaire
+     type : 458752
+   -
+     name : PartageDiscuterSurForum
+     procedure_id : 1560336321303207346
+     type_code : 15
+     code : |1+
+      // Résumé : Permet de discuter d'un partage dans le forum de discussion correspondant
+      // Syntaxe :
+      //PartageDiscuterSurForum (<nIDPartage>)
+      //
+      // Paramètres :
+      //	nIDPartage : Identifiant du partage
+      // Valeur de retour :
+      // 	Aucune
+      //
+      Procédure PartageDiscuterSurForum(nIDPartage)
+      
+      nIDSujet est un entier
+      sNomPartage est une chaine = PartageRécupèreNom(nIDPartage)
+      sGUID est une chaine = HFSauvePosition(partage..Nom)
+      
+      // Vérifie si un sujet a été créé pour ce partage
+      nIDSujet = ParamètreLit("SUJET_PARTAGE_" + nIDPartage, pourtous, 0)
+      
+      // Si aucun sujet n'a encore été créé
+      si nIDSujet = 0 ALORS
+      	
+      	// Création du sujet
+      	nIDSujet = SujetCrée(<§@158a97881e1fe3f20012§>+sNomPartage+"'", RécupèreIDForumPartages(), <§@158a97881e1fe3f20013§> + sNomPartage+"'", <§@158a97881e1fe3f20014§> +sNomPartage + "'")
+      	
+      	// Sauvegarde de l'identifiant du sujet associé à ce partage
+      	ParamètreEcrit("SUJET_PARTAGE_" + nIDPartage, nIDSujet, PourTous)
+      FIN
+      
+      HFRetourPosition(sGUID)
+      
+      // Affiche le sujet correspondant au partage
+      PageAffiche(PAGE_Forum_Messages, nIDSujet)
+      
+     type : 458752
+   -
+     name : PartageRecreeRessourceSurServeur
+     procedure_id : 1560423672686692472
+     type_code : 15
+     code : |1-
+      // Résumé : Procédure qui permet de créer un fichier de partage, physiquement, sur le serveur 
+      // Syntaxe :
+      //PartageRecreeRessourceSurServeur (<nIDPartage>, <sChemin>, <bOKTelechargement>)
+      //
+      // Paramètres :
+      //	nIDPartage : Identifiant du partage
+      //	sChemin : Chemin sur le serveur
+      // 	bOKTelechargement : <indiquez ici le rôle de bOKTelechargement>
+      // Valeur de retour :
+      // 	Aucune
+      
+      Procédure PartageRecreeRessourceSurServeur(nIDPartage,sChemin,bOKTelechargement)
+      
+      nDroitUtilisateur est un entier
+      sNomFichier est une chaine
+      bufContenu est un Buffer
+      
+      //On récupère les droits de l'utilisateur sur le fichier partagé
+      PartageRecupèreDroitUtilisateurGroupe(nIDPartage,UtilisateurEnCours:IDUtilisateur,nDroitUtilisateur)
+      
+      //Et si l'utilisateur a au moins le droit de lecture sur le partage
+      SI nDroitUtilisateur > 0 ALORS	
+      	bOKTelechargement = vrai
+      	//On récupère le contenu du fichier de partage et on en fait un fichier physique sur le serveur
+      	//Avec la même arborescence que pour le fichier de partage auquel il correspond
+      	bufContenu = PJRécupère(PartageRécupèreClé(nIDPartage),"","",0,sNomFichier)
+      	fSauveTexte(sChemin+["\"]+sNomFichier,bufContenu)
+      FIN
+     type : 458752
+   -
+     name : PartageEstRespModifPartage
+     procedure_id : 1561496529509651651
+     type_code : 15
+     code : |1+
+      // Résumé : Indique si un utilisateur est la dernière personne qui ait modifié un partage
+      // Syntaxe :
+      //[ <Résultat> = ] PartageEstRespModifPartage (<nIDPartage>, <nIDUtilisateur>)
+      //
+      // Paramètres :
+      //	nIDPartage : Identifiant du partage
+      //	nIDUtilisateur : Identifiant de l'utilisateur
+      // Valeur de retour :
+      // 	booléen : // 	Aucune
+      
+      Procédure PartageEstRespModifPartage(nIDPartage,nIDUtilisateur)
+      
+      bRetour est un booléen
+      sGUID est une chaîne = HFSauvePosition(Partage..Nom)
+      
+      HLitRecherche(Partage,IDPartage,nIDPartage)
+      si HTrouve(Partage) ALORS
+      	si partage.IDModificateur = nIDUtilisateur ALORS
+      		bRetour =  vrai
+      	sinon
+      		bRetour = faux
+      	fin
+      	
+      FIN
+      
+      HFRetourPosition(sGUID)
+      renvoyer bRetour
+      
+     type : 458752
+   -
+     name : PartageNotificationSupprime
+     procedure_id : 1562991342696562531
+     type_code : 15
+     code : |1+
+      // Résumé : Cette procédure permet de supprimer une notification
+      // Syntaxe :
+      //PartageNotificationSupprime (<sIDPartage>, <sNotification> [, <nIDUtilisateur>])
+      //
+      // Paramètres :
+      //	sIDPartage : L'identifiant du WIKI concerné
+      //	sNotification : La notification concernée => NOTIFICATION_WIKI_CREATION, NOTIFICATION_WIKI_MODIFICATION
+      //	nIDUtilisateur : L'identifiant de l'utilisateur concerné
+      
+      Procédure PartageNotificationSupprime(sIDPartage, sNotification,nIDUtilisateur = UtilisateurEnCours:IDUtilisateur)
+      
+      // On doit être connecté
+      SI PAS EstConnecté() ALORS RETOUR
+      
+      // Si le document est vide, c'est le partage global
+      si sIDPartage~= "" ALORS
+      	ParamètreSupprime(sNotification + "_" + MODULE_PARTAGES + "0_" + nIDUtilisateur)	
+      sinon
+      	ParamètreSupprime(sNotification + "_" + MODULE_PARTAGES + sIDPartage + "_" + nIDUtilisateur)
+      FIN
+      
+      
+     type : 458752
+   -
+     name : PartageNotificationActive
+     internal_properties : CAAAAAgAAAAog3QPJV64eag4Zwk25DtO8cbWOj5RJWYiVIzhOZLiczyRO5IJDEAhcjqGkB7IOZ7yAu6jzlgNg9o2lTbEhrz5qVJYpNiwv4YQSNJ/BzwDcJEeDpCgtXqJF7z3P5pPt5a2bQ6uR2hUj5NGcfqDY24TjOpgwV/AgxjTAC8jeNhQPb0Xzx2eKUi1o8iKer/DJlyeR6VYy8A=
+     procedure_id : 1562992240350309753
+     type_code : 15
+     code : |1+
+      // Résumé : Cette procédure permet de savoir si une notification est active 
+      // Syntaxe :
+      //[ <Résultat> = ] PartageNotificationActive (<sPartageID> [, <nIDUtilisateur>])
+      //
+      // Paramètres :
+      //	sPartageID : L'identitifiant du wiki ou "" si c'est pour la notification globale
+      //	nIDUtilisateur : L'identifiant de l'utilisateur concerné
+      
+      Procédure PartageNotificationActive(sPartageID, nIDUtilisateur = UtilisateurEnCours:IDUtilisateur)
+      
+      
+      // On doit être connecté
+      SI PAS EstConnecté() ALORS RENVOYER 0
+      
+      si sPartageID ~= "" ALORS
+      	RENVOYER Val(ParamètreLit(NOTIFICATION_partage_CREATION + "_" + MODULE_PARTAGES + "0_" + nIDUtilisateur, pourtous,"0"))	
+      sinon
+      	RENVOYER Val(ParamètreLit(NOTIFICATION_partage_MODIFICATION + "_" + MODULE_PARTAGES + sPartageID + "_" + nIDUtilisateur, PourTous, "0"))
+      FIN
+      
+      
+     type : 458752
+   -
+     name : CreerZipDossierPartage
+     procedure_id : 1563000448247584712
+     type_code : 15
+     code : |1-
+      // Résumé : <indiquez ici ce que fait la procédure>
+      // Syntaxe :
+      //CreerZipDossierPartage (<sCheminBaseArchive>, <sNomArchive>, <nIDPartage>, <bOKTelechargement>)
+      //
+      // Paramètres :
+      //	sCheminBaseArchive : <indiquez ici le rôle de sCheminBaseArchive>
+      //	sNomArchive : <indiquez ici le rôle de sNomArchive>
+      //	nIDPartage : <indiquez ici le rôle de nIDPartage>
+      //	bOKTelechargement : <indiquez ici le rôle de bOKTelechargement>
+      // Valeur de retour :
+      // 	Aucune
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure CreerZipDossierPartage(sCheminBaseArchive,sNomArchive,nIDPartage,bOKTelechargement)
+      
+      //Mémorise le répertoire qu'on vient de créer : permettra de faire du ménage plus tard
+      CorbeilleAjouteRépertoire(sCheminBaseArchive+["\"]+PartageRécupèreNom(nIDPartage))
+      
+      //On recrée toute l'arborescence du partage à télécharger sur le serveur
+      PartageRecreePartageSurServeur(nIDPartage,sCheminBaseArchive+["\"]+PartageRécupèreNom(nIDPartage),bOKTelechargement)
+      
+      //On en fait une archive : un .zip
+      zipCrée(sNomArchive,sCheminBaseArchive+["\"]+sNomArchive+".zip")
+      
+      //On ajoute à l'archive l'arborescence recréée sur le serveur correspondant au partage 
+      zipAjouteRépertoire(sNomArchive,sCheminBaseArchive+["\"]+PartageRécupèreNom(nIDPartage),Vrai,zipRelatif)
+      zipFerme(sNomArchive)
+      
+      //Mémorise le fichier zip qu'on vient de créer dans la corbeille : permettra de faire du ménage plus tard
+      CorbeilleAjouteFichier(sCheminBaseArchive+["\"]+sNomArchive+".zip")
+     type : 458752
+   -
+     name : TelechargerLePartage
+     internal_properties : CAAAAAgAAADMNAFNkSPGB6KtsE5v3vOwH7p1MxCBWvUYeHwU19OOUyLaVo7NomAYKmhxArqTC318pbe6zd1FTMdKBhwsEjJI69+47UQJpd3oN6kRzzufmyRvdIrKvW79tdrlZaJDl/aEU2TwMbScR0/C/X7nIWYTKniOAx02/RLPDMtTkJA86Vj6PKDdireiWDUHJWAEPZe3035vikb8MtPyiBbR9I7bkVZ26jqn
+     procedure_id : 1564021253036139862
+     type_code : 15
+     code : |1-
+      // Résumé : <indiquez ici ce que fait la procédure>
+      // Syntaxe :
+      //[ <Résultat> = ] TelechargerLePartage (<nIDPartage>, <sMotDePasse>)
+      //
+      // Paramètres :
+      //	nIDPartage : <indiquez ici le rôle de nIDPartage>
+      //	sMotDePasse : <indiquez ici le rôle de sMotDePasse>
+      // Valeur de retour :
+      // 	Type indéterminé : // 	Aucune
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure RESTREINTE TelechargerLePartage(nIDPartage, sMotDePasse, sErreur = "")
+      
+      sNomFichier est une chaine 
+      sCheminBaseArchive est une chaine 
+      sNomArchive est une chaine
+      bufContenuFichier est un Buffer
+      bOKTelechargement est un booleen
+      
+      HLitRecherche(Partage,IDPartage,nIDPartage)
+      
+      SI HTrouve(Partage) ALORS
+      	//Si le partage est un dossier
+      	SI Partage.TypePartage =1 ALORS
+      		
+      		HLitRecherchePremier(Partage,IDDossierParent,Partage.IDPartage)
+      		SI HTrouve(Partage) ALORS
+      			//Création du zip correspondant au dossier de partage à télécharger
+      			sCheminBaseArchive  = fRépertoireTemp()+["\"]+"PARTAGE_"+UtilisateurEnCours:IDUtilisateur+HeureSys
+      			sNomArchive =PartageRécupèreNom(nIDPartage)
+      			CreerZipDossierPartage(sCheminBaseArchive,sNomArchive,nIDPartage,bOKTelechargement)
+      			
+      			SI bOKTelechargement = Vrai ALORS
+      				//Et on permet à l'utilisateur de le télécharger
+      				FichierAffiche(sCheminBaseArchive+["\"]+sNomArchive+".zip", "application/unknown",sNomArchive+".zip")
+      				renvoyer vrai
+      			SINON
+      				sErreur = <§@158a97881e1fe3f20015§>
+      				renvoyer faux
+      			FIN
+      			
+      		SINON
+      			sErreur = <§@158a97881e1fe3f20016§>
+      			renvoyer faux
+      		FIN
+      		
+      	SINON
+      		si partage.MotDePasse = sMotDePasse alors
+      		
+      			bufContenuFichier = PJRécupère(Partage.CléPartage,"","",0,sNomFichier)
+      			//On permet à l'utilisateur de télécharger le fichier
+      			ChaîneAffiche(bufContenuFichier, "application/unknown",sNomFichier)
+      			renvoyer vrai
+      			
+      		sinon
+      			sErreur = <§@158a97881e1fe3f20017§>
+      			renvoyer -1
+      		fin
+      	FIN
+      	
+      SINON
+      	sErreur = <§@158a97881e1fe3f20016§>
+      	renvoyer faux
+      FIN
+     type : 458752
+   -
+     name : EnvoyerLePartage
+     procedure_id : 1564023344691860632
+     type_code : 15
+     code : |1+
+      // Résumé : <indiquez ici ce que fait la procédure>
+      // Syntaxe :
+      //EnvoyerLePartage (<nIDPartage>)
+      //
+      // Paramètres :
+      // 	nIDPartage : <indiquez ici le rôle de nIDPartage>
+      // Valeur de retour :
+      // 	Aucune
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure RESTREINTE EnvoyerLePartage(nIDPartage)
+      
+      // Variables
+      sCheminBase est une chaine 
+      sNomArchive est une chaine
+      sClé est une chaine
+      bOKTelechargement est un booleen
+      
+      
+      HLitRecherche(Partage,IDPartage,nIDPartage)
+      
+      SI HTrouve(Partage) ALORS
+      	
+      	//Création du zip correspondant au dossier de partage à envoyer
+      	sCheminBase  = fRépertoireTemp()+["\"]+"PARTAGE_"+UtilisateurEnCours:IDUtilisateur+HeureSys()
+      	frepcree(sCheminBase)
+      	
+      	SI Partage.TypePartage =1 ALORS
+      		
+      		sNomArchive =PartageRécupèreNom(nIDPartage)
+      		CreerZipDossierPartage(sCheminBase,sNomArchive,nIDPartage,bOKTelechargement)
+      		SI bOKTelechargement = Vrai ALORS
+      			PJEnregistre(sClé,sCheminBase+["\"]+sNomArchive+".zip")
+      			MessagePrépare(<§@158a97881e1fe3f20012§>+Partage.Libellé+"'",<§@158a97881e1fe3f20018§>+Partage.Libellé+"'","",sClé)  
+      		SINON
+      			Erreur(<§@158a97881e1fe3f20019§>)	
+      		FIN
+      		
+      		
+      	SINON
+      		
+      		sClé = PJDuplique(Partage.CléPartage)
+      		MessagePrépare(<§@158a97881e1fe3f20012§>+Partage.Libellé+"'",<§@158a97881e1fe3f20018§>+Partage.Libellé+"'","",sClé)  
+      		
+      	FIN
+      	
+      SINON
+      	Erreur(<§@158a97881e1fe3f20000§>, ErreurInfo())
+      FIN
+     type : 458752
+   -
+     name : TelechargerLesPartagesCochés
+     internal_properties : CAAAAAgAAADMdygOagAVYfaGO2WqGgs+g3Dk/NIP+e707kDFBWDS35LHwQwJVgTlfCRWiDaiFerIcDRltsKBQySwwb78qOyRg7RqgsSeExJqYv52gIm6oUKfhWE5wneUEH0YkrdQwuvnLs1fgAXJAjSn4kkw9HUcKR+rblQpDLOsISDKCT3DctoENu7bygn0mP0vjQCAOY7A1mEc95w=
+     procedure_id : 1564024096312951161
+     type_code : 15
+     code : |1-
+      // Résumé : <indiquez ici ce que fait la procédure>
+      // Syntaxe :
+      //[ <Résultat> = ] TelechargerLesPartagesCochés (<sChampZR>, <sNomArchive>)
+      //
+      // Paramètres :
+      //	sChampZR : <indiquez ici le rôle de sChampZR>
+      //	sNomArchive : <indiquez ici le rôle de sNOmArchive>
+      // Valeur de retour :
+      // 	booléen : // 	Aucune
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure TelechargerLesPartagesCochés(sChampZR,sNomArchive)
+                
+      sCheminBaseArchive est une chaine = fRépertoireTemp()+["\"]+"PARTAGE_"+UtilisateurEnCours:IDUtilisateur+HeureSys+["\"]
+      sNomPartage  est une chaine
+      bOKTelechargement est un booleen
+      
+      //Création du répertoire s'il n'existe pas déjà
+      SI fRépertoireExiste(sCheminBaseArchive+["\"]+sNomArchive) = Faux ALORS
+      	fRepCrée(sCheminBaseArchive+["\"]+sNomArchive)
+      	//Mémorise le répertoire qu'on vient de créer : permettra de faire du ménage plus tard
+      	CorbeilleAjouteRépertoire(sCheminBaseArchive+["\"]+sNomArchive)
+      FIN
+      
+      //Pour chaque élément coché de la ZR
+      POUR TOUTE LIGNE DE sChampZR
+      	SI sChampZR.ATT_Coche = 1 ALORS
+      		SI sChampZR.ATT_TypePartage = 1 ALORS	//si c'est un dossier
+      			sNomPartage =sChampZR.ATT_Libellé
+      			PartageRecreePartageSurServeur(sChampZR.ATT_ID,sCheminBaseArchive+["\"]+sNomArchive+["\"]+sNomPartage,bOKTelechargement)
+      		SINON	//Si c'est un fichier
+      			si PartageEstProtégéParMotDePasse(sChampZR.ATT_ID) = faux alors
+      				// On ne prend que les fichiers non protégé par mot de passe
+      				PartageRecreeRessourceSurServeur(sChampZR.ATT_ID,sCheminBaseArchive+["\"]+sNomArchive,bOKTelechargement)
+      			fin
+      		FIN
+      	FIN	
+      FIN
+      
+      //S'il y a bien quelque chose à télécharger :  il y a au moins un fichier à télécharger 
+      //et l'utilisateur a les droits de téléchargement dessus
+      
+      SI bOKTelechargement = Vrai ALORS
+      	//On en fait une archive : un .zip
+      	zipCrée(sNomArchive,sCheminBaseArchive+["\"]+sNomArchive+".zip")
+      	
+      	//Mémorise le fichier zip qu'on vient de créer dans la corbeille : permettra de faire du ménage plus tard
+      	CorbeilleAjouteFichier(sCheminBaseArchive+["\"]+sNomArchive+".zip")
+      	
+      	zipAjouteRépertoire(sNomArchive,sCheminBaseArchive+["\"]+sNomArchive,Vrai,zipRelatif)
+      	zipFerme(sNomArchive)
+      	
+      	//Et on permet à l'utilisateur de le télécharger
+      	FichierAffiche(sCheminBaseArchive+["\"]+sNomArchive+".zip", "application/unknown",sNomArchive+".zip")
+      	
+      SINON
+      	renvoyer faux	
+      FIN
+      
+      renvoyer vrai
+     type : 458752
+   -
+     name : PartageCréeNotification
+     procedure_id : 1577032126429208066
+     type_code : 15
+     code : |1-
+      // Résumé : Cette procédure permet d'enregistrer une notification (d'ajout ou de modification) pour un partage
+      // Syntaxe :
+      //PartageCréeNotification (<sIDPartage> [, <nIDUtilisateur>])
+      //
+      // Paramètres :
+      //	sIDPartage : L'identifiant du partage
+      //	nIDUtilisateur : L'identifiant de l'utilisateur pour lequel on doit écrire le paramètre
+      
+      Procédure PartageCréeNotification(sIDPartage, nIDUtilisateur = UtilisateurEnCours:IDUtilisateur)
+      
+      // On doit être connecté
+      SI PAS EstConnecté() ALORS RETOUR
+      
+      si sIDPartage ~= "" ALORS
+      	ParamètreEcrit(NOTIFICATION_PARTAGE_CREATION + "_" + MODULE_PARTAGES + "0_" + nIDUtilisateur, "1")
+      sinon
+      	ParamètreEcrit(NOTIFICATION_partage_MODIFICATION + "_" + MODULE_PARTAGES + sIDPartage + "_" + nIDUtilisateur, "1")
+      FIN
+     type : 458752
+   -
+     name : PartageEstProtégéParMotDePasse
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1579662836793370398
+     type_code : 15
+     code : |1-
+      // Résumé : Vérifie si un partage est protégé par un mot de passe
+      // Syntaxe :
+      //[ <Résultat> = ] PartageEstProtégéParMotDePasse (<nIDPartage>)
+      //
+      // Paramètres :
+      //	nIDPartage : Identifiant du partage
+      // Valeur de retour :
+      // 	booléen : Vrai si le partage est protégé par mot de passe, Faux sinon
+      //
+      Procédure PartageEstProtégéParMotDePasse(nIDPartage)
+      
+      bMotDePasse est un booléen
+      
+      sGUID est une chaîne = HFSauvePosition(Partage..Nom)
+      
+      HLitRecherche(Partage,IDPartage,nIDPartage)
+      SI HTrouve(Partage) ALORS
+      	bMotDePasse = Partage.MotDePasse <> ""
+      FIN
+      
+      HFRetourPosition(sGUID)
+      
+      RENVOYER bMotDePasse
+     type : 458752
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : COL_Collection1
+resources :
+ string_res :
+  identifier : 0x158a97881e1fe3f2
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+  strings :
+   -
+     text :
+      fr-FR : Le partage n'a pas été trouvé
+     index : 0
+   -
+     text :
+      fr-FR : "\t%1 vient de modifier les droits sur le partage %2"
+     index : 1
+   -
+     text :
+      fr-FR : Annonce de modification des droits d'un partage
+     index : 2
+   -
+     text :
+      fr-FR : "\t\t\t\t\t\t\t\t\t\t%1 vient de modifier un partage.\r\n\t\t\t\t\t\t\t\t\t\tPartage : %2 dans %3 "
+     index : 3
+   -
+     text :
+      fr-FR : Annonce de modification d'un partage
+     index : 4
+   -
+     text :
+      fr-FR : "\t\t%1 vient de supprimer un fichier de partage.\r\n\t\tFichier : %2 dans %3 "
+     index : 5
+   -
+     text :
+      fr-FR : Annonce de suppression d'un fichier de partage
+     index : 6
+   -
+     text :
+      fr-FR : "\t\t%1 vient de supprimer un dossier de partage.\r\n\t\tDossier : %2 dans %3 "
+     index : 7
+   -
+     text :
+      fr-FR : Annonce de suppression d'un dossier de partage
+     index : 8
+   -
+     text :
+      fr-FR : Une erreur est survenue pendant l'enregistrement du partage
+     index : 9
+   -
+     text :
+      fr-FR : "%1 vient de créer un dossier de partage.\r\nDossier : %2 dans %3 "
+     index : 10
+   -
+     text :
+      fr-FR : Annonce de création d'un dossier de partage
+     index : 11
+   -
+     text :
+      fr-FR : "%1 vient de créer un fichier de partage.\r\nFichier : %2 dans %3 "
+     index : 12
+   -
+     text :
+      fr-FR : Annonce de création d'un fichier de partage
+     index : 13
+   -
+     text :
+      fr-FR : Mes Documents
+     index : 14
+   -
+     text :
+      fr-FR : Dossier racine
+     index : 15
+   -
+     text :
+      fr-FR : Dossier '%1'
+     index : 16
+   -
+     text :
+      fr-FR : Fichier '%1'
+     index : 17
+   -
+     text :
+      fr-FR : Partage '
+     index : 18
+   -
+     text :
+      fr-FR : N'hésitez pas à poser vos questions sur le partage '
+     index : 19
+   -
+     text :
+      fr-FR : Discussion sur le partage '
+     index : 20
+   -
+     text :
+      fr-FR : Impossible de créer l'archive
+     index : 21
+   -
+     text :
+      fr-FR : Document introuvable
+     index : 22
+   -
+     text :
+      fr-FR : Le document est protégé par un mot de passe
+     index : 23
+   -
+     text :
+      fr-FR : Ci-joint le partage '
+     index : 24
+   -
+     text :
+      fr-FR : Il n'y a rien à envoyer ou alors vous n'avez pas les droits dessus.
+     index : 25
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ

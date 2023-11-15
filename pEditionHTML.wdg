@@ -1,0 +1,367 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : pEditionHTML
+ major_version : 28
+ minor_version : 0
+ type : 7
+ description : ""
+ subtype : 0
+procedure_set :
+ identifier : 0x1551e00c03c0c3dc
+ internal_properties : CAAAAAgAAABGLu41kG7fjQV3iS4F72qmnKaNh5694reolNKIW0iw
+ code_elements :
+  type_code : 31
+  p_codes :
+   -
+     code : |1-
+      // Collection de procédures de transformation du HHCode (vers texte ou HTML)
+      gtaCaractèresHTML est un tableau associatif de chaines
+      
+      // Création des enregistrements du tableau associatif
+      _RempliTableauHTML()
+     type : 720896
+  procedures :
+   -
+     name : HHCodeVersHTML
+     internal_properties : CAAAAAgAAAD2tLmun074SUnqAY4beR9CSbFcgw5wC0gLVlk59h28rupMznFlaVZnQ186JmcqHjHpVND2bhQhHE1azQiOBlab7QOOlFiZF4njvwx1NarWZ4yKc94KNJHroHT12uC9H+aomAeprPSMM27BdunIalfQ+xsxXWx8QhLzZHY6CmfTvLFNNmfSx21K5x27nz1wc228tqsEmpMIy+JBsMz5yYI24xr3FnlsYfiww02QgBRpH50Ju6QosIyN/tRxALYrJpYPQYj0K3xIx620/KweEti+BG+a/Ue6xqKzQ1bpOE4XknzyIGkK3RlLzq9GS49EUvzCfF2CVEBzdKBMD6PTBT9OVZvW7x+cCdT7xCF81VYg4/j9bqhdkBO1HqQ78LsoVXdj5w==
+     procedure_id : 1536255298707245981
+     type_code : 15
+     code : |1-
+      // Résumé : Renvoie le code HTML correspondant au HH Code
+      // Syntaxe :
+      //[ <Résultat> = ] HHCodeVersHTML (<sHHCode> [, <bPourEmail>])
+      //
+      // Paramètres :
+      //	sHHCode : HHCode à convertire
+      //	bPourEmail (valeur par défaut=0) : Vrai pour générer un code utilisé dans un e-mail HTML, Faux sinon
+      // Valeur de retour :
+      // 	chaîne : Code HTML résultat
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure HHCodeVersHTML(sHHCode, bPourEmail = faux)
+      
+      	// Variables locales
+       	sHTML 		est une chaine
+       	
+       	// Initialement le code HTML correspond au HHCode
+      	sHTML = sHHCode
+      	
+      	// Retours chariots
+      	sHTML = Remplace(sHTML, RC, "<br/>")
+      	
+      	// Remplace les balises de taille de police
+      	sHTML = Remplace(sHTML, "<SIZE=", "<font size=", SansCasse)
+      	sHTML = Remplace(sHTML, "</SIZE>", "</font>", SansCasse)
+      	
+      	// Remplace les balises d'URL
+      	sHTML = Remplace(sHTML, "<URL=", "[[@<a target=_blank href=", SansCasse)
+      	sHTML = Remplace(sHTML, "</URL>", "</a>@]]", SansCasse)
+      	
+      	// Remplace les balises d'image
+      	si bPourEmail alors
+      		sHTML = Remplace(sHTML, "<IMG=""", "[[@<img src=""", SansCasse)
+      	sinon
+      		
+      		// Pour être affiché dans une zone HTML
+      		
+      
+      <SI CibleExécution=ApplicationWindows OU CibleExécution=Webservice OU CibleExécution=AssemblageDotNet OU CibleExécution=Java OU CibleExécution=ApplicationLinux32>
+      	
+      	// En mode windows, on remplace juste les balises <IMG=" par <img src="
+      	sHTML = Remplace(sHTML, "<IMG=""", "[[@<img src=""", SansCasse)
+      <SINON SI CibleExécution=Site OU CibleExécution=SitePHP>
+      	
+      	// Remplacement des images par leur source
+      	sHTML = Remplace(sHTML, "<IMG=""", "[[@<img src=""/" + RépertoireWeb() + "/FR/PAGE_PJ." + AWP_EXT + "?AWPSESSIONID=" + gsIdentifiant + "&cle=", SansCasse)	
+      <FIN>
+      
+      	FIN	
+      	
+      	// Remplace les balises de couleur de police
+      	sHTML = Remplace(sHTML, "<COLOR=", "<font color=", SansCasse)
+      	sHTML = Remplace(sHTML, "</COLOR>", "</font>", SansCasse)
+      		
+      	nPosQUOTE est un entier
+      	nFinQUOTE est un entier
+      	sEntQUOTE est une chaine
+      	
+      	// Recherche toutes les citations
+      	pour toute position nPosQUOTE de "<QUOTE" dans sHTML SansCasse
+      		
+      		// Fin de la citation
+      		nFinQUOTE = position(sHTML, ">", nPosQUOTE)	
+      		sEntQUOTE = sHTML[[nPosQUOTE a nFinQUOTE - 1]] + " >"
+      		
+      		// Extrait la date et l'auteur original
+      		sAuteur est une chaine = extraitchaine(extraitchaine(sEntQUOTE, 2, "AUTEUR="), 1, " ")
+      		sDate   est une chaine = extraitchaine(extraitchaine(sEntQUOTE, 2, "DATE="), 1, " ")		
+      		sAuteur = remplace(sAuteur, eot, "")
+      		sDate 	= remplace(sDate, eot, "")
+      		
+      		sRemplacement est une chaine
+      		selon vrai
+      			cas sDate ~= "" et sAuteur ~= ""
+      				// Pas de remplacement
+      			cas sDate ~= "" et sAuteur <> ""
+      				sRemplacement = ChaîneConstruit("<span class=Libelle-Gras><img src=/%1/ext/link.gif> %2 écrivait :</span><br>", RépertoireWeb(), sAuteur)
+      			cas sDate <> "" et sAuteur ~= ""			
+      				sRemplacement = ChaîneConstruit("<span class=Libelle-Gras><img src=/%1/ext/link.gif> %2</span><br>", RépertoireWeb(), DateVersChaîne(sDate[[A 8]]) + " " + HeureVersChaîne(sDate[[9 A]], "HH:MM"))
+      			AUTRE CAS
+      				sRemplacement = chaineconstruit("<span class=Libelle-Gras><img src=/%1/ext/link.gif> %2, %3</span><br>", repertoireweb(), sAuteur, dateverschaine(sDate[[a 8]]) + " " + heureverschaine(sDate[[9 a]], "HH:MM"))
+      		FIN
+      		
+      		sHTML[[nPosQUOTE A nFinQUOTE]] = chaineconstruit([
+      			<div style="padding-left:10;padding-top:4px">
+      				<div style="background-color:#fafafa;border:1px solid #cdcdcd;font-size:9pt;word-wrap:break-word;padding:4px">
+      				%1
+      		], sRemplacement)
+      				
+      	FIN
+      	
+      	// Fin de citations
+      	sHTML = Remplace(sHTML, "</QUOTE>", "</div></div>", SansCasse)	
+      	
+      	// Recherche les URL automatiques
+      	sHTML = RemplaceURL(sHTML, "http")
+      	sHTML = RemplaceURL(sHTML, "https")
+      	sHTML = RemplaceURL(sHTML, "ftp")
+      		
+      	sHTML = remplace(sHTML, "[[@", "")
+      	sHTML = remplace(sHTML, "@]]", "")
+      		
+      	// L'entête doit être complète pour être utilisée dans un e-mail HTML
+      	SI bPourEmail ALORS
+      		sHTML = "<html><body><span style=""font-family:'Trebuchet MS', Tahoma, Arial, Helvetica, sans-serif;font-size:11px;"">" + sHTML + "</span></body></html>"
+      	sinon
+      		sHTML = "<span class=""Libelle"">" + sHTML + "</span>"
+      	FIN
+      	
+      // On renvoie la chaîne HTML	
+      renvoyer sHTML
+     type : 458752
+   -
+     name : _RempliTableauHTML
+     internal_properties : CAAAAAgAAAChEInZsbabxLbrkA17enyL8ojpyIXg0kmax3JRkbmyTRUY3pyZMHC+5Y+Es09pPD9pwVCSf4j4qeEaL6afM0Mt8/5kOjXCRicN9afADJrzThYVUxdBrESX8zUeRmjs57Ds0Iau26LRL4Q7FVla7yrn/oKHyc0ye3C9W9CKRIzkqOtXPLEhNn3EiYK5aezmQ3pu4VknJ+GlxTIeL31+/BU2traeQd16chJ9JPbl2UhvisogsURucvL89TnKEtm0zS4O1J/BXXIVSdULcdVFKGrbEjXBTTU3xeMYEQlDC7E8IxTRlc5zNtiL54FeNoP3mQCpIGTXjLXtlJYJy5XH7cgLtLnwlg0x+GBmAD6Y5CvxyrOXPzTBruyavWv+ZDM7PkthaQnFzGJwD3C6fuEds0bOykhcv/FtApsS270Yb2a7attyGQn5M68LIsxMcTaiXwpkvX7B6aU6A9KqHH5rm42hyV/JHPdgTWX0B5XPIs3sKe9oApfmmRFd/4Wor7K8OBqoKUHHBttdQpvbnZDGAdG6oDxAAmGW6gvPPvW/c69wCWN8/zo5eIyTYePnHlF2d0sPw3tQ0VdX+ZQOYVC5xkH7CNu7XCKvu9dIp1grrpFhsDS9r6XHvgIWPLYAQd4wJkl5c/nT6uITY/p07NRAtsxzcnjXPehC1TZ6PPXKnHQ567u3xq0VJBXWUx6IA+PszcC/B1lvbWWsei6duIppafnF2pugFFIgrOFuDdAbr65a8qROgg==
+     procedure_id : 1563001889894788275
+     type_code : 15
+     code : |1-
+      // Résumé : Construit le tableau des équivalences HTML
+      // Syntaxe :
+      // _RempliTableauHTML ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	Aucune
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure PRIVE _RempliTableauHTML()
+      
+      gtaCaractèresHTML[""""] = "&quot;" 
+      gtaCaractèresHTML["&"] = "&amp;" 
+      gtaCaractèresHTML["€"] = "&euro;" 
+      gtaCaractèresHTML["‹"] = "&lt;" 
+      gtaCaractèresHTML["›"] = "&gt;" 
+      gtaCaractèresHTML["œ"] = "&oelig;" 
+      gtaCaractèresHTML["Ÿ"] = "&Yuml;" 
+      gtaCaractèresHTML[esp] = "&nbsp;" 
+      gtaCaractèresHTML["¡"] = "&iexcl;" 
+      gtaCaractèresHTML["¢"] = "&cent;" 
+      gtaCaractèresHTML["£"] = "&pound;" 
+      gtaCaractèresHTML["¤"] = "&curren;" 
+      gtaCaractèresHTML["¥"] = "&yen;"
+      gtaCaractèresHTML["¦"] = "&brvbar;" 
+      gtaCaractèresHTML["§"] = "&sect;" 
+      gtaCaractèresHTML["¨"] = "&uml;" 
+      gtaCaractèresHTML["©"] = "&copy;"    
+      gtaCaractèresHTML["ª"] = "&ordf;" 
+      gtaCaractèresHTML["«"] = "&laquo;" 
+      gtaCaractèresHTML["¬"] = "&not;" 
+      gtaCaractèresHTML["­"] = "&shy;" 
+      gtaCaractèresHTML["®"] = "&reg;" 
+      gtaCaractèresHTML["¯"] = "&masr;" 
+      gtaCaractèresHTML["°"] = "&deg;" 
+      gtaCaractèresHTML["±"] = "&plusmn;" 
+      gtaCaractèresHTML["²"] = "&sup2;" 
+      gtaCaractèresHTML["³"] = "&sup3;" 
+      gtaCaractèresHTML["´"] = "&acute;" 
+      gtaCaractèresHTML["µ"] = "&micro;" 
+      gtaCaractèresHTML["¶"] = "&para;" 
+      gtaCaractèresHTML["·"] = "&middot;" 
+      gtaCaractèresHTML["¸"] = "&cedil;" 
+      gtaCaractèresHTML["¹"] = "&sup1;" 
+      gtaCaractèresHTML["º"] = "&ordm;" 
+      gtaCaractèresHTML["»"] = "&raquo;" 
+      gtaCaractèresHTML["¼"] = "&frac14;" 
+      gtaCaractèresHTML["½"] = "&frac12;" 
+      gtaCaractèresHTML["¾"] = "&frac34;" 
+      gtaCaractèresHTML["¿"] = "&iquest;" 
+      gtaCaractèresHTML["À"] = "&Agrave;" 
+      gtaCaractèresHTML["Á"] = "&Aacute;" 
+      gtaCaractèresHTML["Â"] = "&Acirc;" 
+      gtaCaractèresHTML["Ã"] = "&Atilde;" 
+      gtaCaractèresHTML["Ä"] = "&Auml;" 
+      gtaCaractèresHTML["Å"] = "&Aring;" 
+      gtaCaractèresHTML["Æ"] = "&Aelig;"
+      gtaCaractèresHTML["Ç"] = "&Ccedil;" 
+      gtaCaractèresHTML["È"] = "&Egrave;" 
+      gtaCaractèresHTML["É"] = "&Eacute;" 
+      gtaCaractèresHTML["Ê"] = "&Ecirc;" 
+      gtaCaractèresHTML["Ë"] = "&Euml;" 
+      gtaCaractèresHTML["Ì"] = "&Igrave;" 
+      gtaCaractèresHTML["Í"] = "&Iacute;" 
+      gtaCaractèresHTML["Î"] = "&Icirc;" 
+      gtaCaractèresHTML["Ï"] = "&Iuml;" 
+      gtaCaractèresHTML["Ð"] = "&eth;" 
+      gtaCaractèresHTML["Ñ"] = "&Ntilde;" 
+      gtaCaractèresHTML["Ò"] = "&Ograve;" 
+      gtaCaractèresHTML["Ó"] = "&Oacute;" 
+      gtaCaractèresHTML["Ô"] = "&Ocirc;" 
+      gtaCaractèresHTML["Õ"] = "&Otilde;" 
+      gtaCaractèresHTML["Ö"] = "&Ouml;" 
+      gtaCaractèresHTML["×"] = "&times;" 
+      gtaCaractèresHTML["Ø"] = "&Oslash;" 
+      gtaCaractèresHTML["Ù"] = "&Ugrave;" 
+      gtaCaractèresHTML["Ú"] = "&Uacute;" 
+      gtaCaractèresHTML["Û"] = "&Ucirc;" 
+      gtaCaractèresHTML["Ü"] = "&Uuml;" 
+      gtaCaractèresHTML["Ý"] = "&Yacute;" 
+      gtaCaractèresHTML["Þ"] = "&thorn;" 
+      gtaCaractèresHTML["ß"] = "&szlig;" 
+      gtaCaractèresHTML["à"] = "&agrave;" 
+      gtaCaractèresHTML["á"] = "&aacute;" 
+      gtaCaractèresHTML["â"] = "&acirc;" 
+      gtaCaractèresHTML["ã"] = "&atilde;" 
+      gtaCaractèresHTML["ä"] = "&auml;" 
+      gtaCaractèresHTML["å"] = "&aring;" 
+      gtaCaractèresHTML["æ"] = "&aelig;" 
+      gtaCaractèresHTML["ç"] = "&ccedil;" 
+      gtaCaractèresHTML["è"] = "&egrave;" 
+      gtaCaractèresHTML["é"] = "&eacute;" 
+      gtaCaractèresHTML["ê"] = "&ecirc;" 
+      gtaCaractèresHTML["ë"] = "&euml;" 
+      gtaCaractèresHTML["ì"] = "&igrave;" 
+      gtaCaractèresHTML["í"] = "&iacute;" 
+      gtaCaractèresHTML["î"] = "&icirc;" 
+      gtaCaractèresHTML["ï"] = "&iuml;" 
+      gtaCaractèresHTML["ð"] = "&eth;" 
+      gtaCaractèresHTML["ñ"] = "&ntilde;" 
+      gtaCaractèresHTML["ò"] = "&ograve;" 
+      gtaCaractèresHTML["ó"] = "&oacute;" 
+      gtaCaractèresHTML["ô"] = "&ocirc;" 
+      gtaCaractèresHTML["õ"] = "&otilde;" 
+      gtaCaractèresHTML["ö"] = "&ouml;" 
+      gtaCaractèresHTML["÷"] = "&divide;" 
+      gtaCaractèresHTML["ø"] = "&oslash;" 
+      gtaCaractèresHTML["ù"] = "&ugrave;" 
+      gtaCaractèresHTML["ú"] = "&uacute;" 
+      gtaCaractèresHTML["û"] = "&ucirc;" 
+      gtaCaractèresHTML["ü"] = "&uuml;" 
+      gtaCaractèresHTML["ý"] = "&yacute;" 
+      gtaCaractèresHTML["þ"] = "&thorn;" 
+      gtaCaractèresHTML["ÿ"] = "&yuml;" 
+     type : 458752
+   -
+     name : RemplaceURL
+     internal_properties : CAAAAAgAAACpk6vAVdM4+IGDYU6DdusQd6D8iR/wjLu4uqgHM4jsEN8HqhYbun2CyTXWlACEEfhM7IBsA2HDj+D8aUllM3UOccQiCDIErWzkmxCw97CBiZf6d6jKIZvZrNAK6/8GKzNcEbgzFpv20Sw4Mn4+5q7yvnbMfq61LfKSlugFk01mvnTxM1FsbtefaEfR8uUlLEC6fjFxDsNMMqxybwgSVeqY70FVqtWFLYExxArN0FAsC9l2mg==
+     procedure_id : 1580348484509919586
+     type_code : 15
+     code : |1-
+      Procédure RemplaceURL(sTexte, sProtocole, sDestinationDéfaut = "_blank")
+      
+      	sLibRéponse	est une chaine = sTexte
+      	sURL		est une chaine
+      	sAHREF		est une chaine
+      	
+      	nPosHTTP est un entier
+      	nFinHTTP_ESP est un entier
+      	nFinHTTP_RC est un entier
+      	nFinHTTP_34 est un entier
+      	nFinHTTP_F est un entier
+      	nFinHTTP_O est un entier
+      	nFinHTTP_C est un entier
+      	nFinHTTP est un entier
+      
+      	// Récupère la position de la première occurrence d'une URL avec le protocole spécifié
+      	nPosHTTP = position(sLibRéponse, sProtocole + "://")
+      	tantque nPosHTTP <> 0		
+      	
+      
+      		// Recherche le premier délimiteur de fin possible
+      		
+      		nFinHTTP_ESP = position(sLibRéponse, " ", nPosHTTP)
+      		nFinHTTP_RC  = position(sLibRéponse, rc, nPosHTTP)
+      		nFinHTTP_34  = position(sLibRéponse, """", nPosHTTP)
+      		nFinHTTP_F   = position(sLibRéponse, ")", nPosHTTP)
+      		nFinHTTP_O   = position(sLibRéponse, "(", nPosHTTP)
+      		nFinHTTP_C   = position(sLibRéponse, "<", nPosHTTP)
+      		
+      		si nFinHTTP_O = 0 alors nFinHTTP_O = 999999
+      		si nFinHTTP_F = 0 alors nFinHTTP_F = 999999
+      		si nFinHTTP_34 = 0 alors nFinHTTP_34 = 999999
+      		si nFinHTTP_RC = 0 alors nFinHTTP_RC = 999999
+      		si nFinHTTP_ESP = 0 alors nFinHTTP_ESP = 999999
+      		si nFinHTTP_C = 0 alors nFinHTTP_C = 999999
+      		
+      		nFinHTTP = min(...
+      						nFinHTTP_O , ...
+      						nFinHTTP_F , ...
+      						nFinHTTP_34, ...
+      						nFinHTTP_RC , ...
+      						nFinHTTP_C , ...
+      						nFinHTTP_ESP  ...
+      		)
+      		
+      		// Si il y a une fin à l'URL on la transforme
+      		si nFinHTTP <> 0 et nFinHTTP <> 999999 alors
+      			
+      			nPosLT est un entier = position(sLibRéponse, "[[@", taille(sLibRéponse)-nPosHTTP, depuisfin)
+      			
+      			// Vérifie si l'URL ne se trouve pas à l'intérieur de brackets
+      			si nPosLT < nPosHTTP et (position(sLibRéponse, "@]]", nPosLT + 1) > nFinHTTP ou  Position(sLibRéponse, ">", nPosLT + 1) > 1) alors
+      				// On ne tient pas compte
+      			sinon
+      				// Récupère l'URL
+      				sURL = sLibRéponse[[nPosHTTP a nFinHTTP - 1]]
+      				nTailleEnMoins est un entier = 0
+      				
+      				// Si l'URL se termine par un "." on le supprime
+      				si sURL[[taille(sURL)]] = "." alors
+      					sURL[[taille(sURL)]] = ""
+      					nTailleEnMoins  = 1
+      				FIN
+      				
+      				// Génère le lien
+      				sAHREF = "<a id=""a_link"" title=""" + chaineconstruit(<§@1551e00603beacab0000§>, sURL) + """ target=""" + sDestinationDéfaut + """ href=""" + sURL + """>" + sURL + "</a>"
+      				// Remplace l'URL par le lien généré
+      				sLibRéponse[[nPosHTTP a nFinHTTP - (1 + nTailleEnMoins)]] = sAHREF
+      			FIN	
+      		FIN
+      	
+      		// Recherche la prochaine occurrence
+      		nPosHTTP = position(sLibRéponse, sProtocole + "://", nPosHTTP + taille(sAHREF) + 1)
+      	FIN
+      	
+      renvoyer sLibRéponse
+     type : 458752
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : COL_Collection1
+resources :
+ string_res :
+  identifier : 0x1551e00603beacab
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+  strings :
+   -
+     text :
+      fr-FR : "Document externe : %1"
+     index : 0
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ

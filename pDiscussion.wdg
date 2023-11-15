@@ -1,0 +1,1267 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : pDiscussion
+ major_version : 28
+ minor_version : 0
+ type : 7
+ description : ""
+ subtype : 0
+procedure_set :
+ identifier : 0x159cfdd914c3e3da
+ internal_properties : CAAAAAgAAABGLu41kG7fjQV3iS4F72qmnKaNh5694reolNKIW0iw
+ code_elements :
+  internal_properties : CAAAAAgAAABx3oqD0T0TBlnfTOSHyB7BSanEPZ2m//CmhPfmRQMfIIa6U/LtNfmVcFXYoTl4jXKMgrA+ZprTWByTzIs2mhKmx5ODp0vhmDMNdevwTR45nLDCxJ8cPcNFre7Z4i9IKB3hkjUiKqX2eVpBQ6fkR+u6Ez5zH2GcHpT6MSx9wqU=
+  type_code : 31
+  p_codes :
+   -
+     code : |1-
+      // Collection de procédures de gestion des discussions temps réel
+      
+      CONSTANT
+      
+      	// Constante concernant les réponses aux demande
+      	CN_DEMANDE_ACCEPTEE = 1
+      	CN_DEMANDE_REFUSEE = 0
+      	CN_DEMANDE_ENATTENTE = -1
+      	CN_DEMANDE_TIME_OUT = 999
+      	CN_ERREUR = 0xFFFFFFFF
+      
+      	CN_TYPE_DEMANDE = 1
+      	CN_TYPE_JOINDRE = 2
+      
+      	CS_TIME_OUT = 60000
+      
+      	CS_SEPARATEUR_PERSONNE = ";"
+      FIN
+      
+      gnIDPersonne est un entier
+      gsMessageErreur est une chaine
+     type : 720896
+  procedures :
+   -
+     name : DiscussionDemandeDiscussion
+     internal_properties : CAAAAAgAAAB/QHDIv1k511o7ZGloT8CK0fF3k1bq3+h2O550a2QPdr1EfjHJqUV4wPu+/AtPlo0LTz0/2cnHASmlqWyXWtY/V2Jf3LP97R8/+hihzxPgFQFFKNk/RxvFURN69/+2D/yqpjr3jpJVnf+v1pQkLE3uV6FMGOfBnUv7nf9+1FRyFAWy972xbAk7udoi6+oVldfaY3G6EX+gRVru8OFduNRa6w==
+     procedure_id : 1557398679961527258
+     type_code : 15
+     code : |1-
+      // Résumé : permet d'ajouter une demande de discussion.
+      // Syntaxe :
+      //[ <Résultat> = ] DiscussionDemandeDiscussion (<nIDPersonneDemandeur>, <nIDPersonneDemandée> [, <sCommentaireDemande> [, <nIDDiscussion>]])
+      //
+      // Cette procédure permet d'ajouter une demande de discussion.
+      //
+      // Paramètres :
+      //	nIDPersonneDemandeur : L'identifiant de la personne demandeuse de la discussion
+      //	nIDPersonneDemandée : L'identifiant de la personne qui est demandée
+      //	sCommentaireDemande (valeur par défaut="") : Un commentaire pour la discussion (facultatif)
+      //	nIDDiscussion (valeur par défaut=-1) : L'identifiant de la discussion si la discussion existe déjà (cas des discussion à plus de 2 personnes)
+      // Valeur de retour :
+      // 	booléen : Vrai si la demande a été faite faux sinon
+      //
+      // Traitement automatique des erreurs :   exécuter le bloc de code CAS ERREUR
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure DiscussionDemandeDiscussion(nIDPersonneDemandeur,nIDPersonneDemandée, sCommentaireDemande = "",nIDDiscussion = -1)
+      
+      // On démarre une transaction
+      // la discussion est indissociable de la demande, 
+      // Pas de Discussion => Pas de demande
+      // Pas de demande => Pas de discussion non plus
+      //htransactiondébut()
+      
+      si nIDDiscussion = -1 ALORS
+      	// Ajout de la discussion
+      	nIDDiscussion = _bAjouteDiscussion(nIDPersonneDemandeur)
+      sinon
+      	// La discussion existe déjà c'est pour la rejoindre	
+      	si DiscussionNbParticipants(nIDDiscussion) > 3 ALORS
+      		ErreurPropage(<§@15827c44001201b2000d§>)
+      		renvoyer faux
+      	FIN
+      FIN
+      
+      HlitRecherchePremier(DiscussionInvitation, IDDemandeurIDDemandé, [nIDPersonneDemandeur, nIDPersonneDemandée])
+      bTrouve est un booléen = HTrouve(DiscussionInvitation)
+      
+      // Mise à jour du contexte HFSQL
+      hraz(DiscussionInvitation)
+      DiscussionInvitation.DateHeure 		= DateDuJour() + Maintenant()
+      DiscussionInvitation.IDDemandeur 	= nIDPersonneDemandeur
+      DiscussionInvitation.IDDemandé 		= nIDPersonneDemandée
+      DiscussionInvitation.IDDiscussion 	= nIDDiscussion
+      DiscussionInvitation.Commentaire 	= sCommentaireDemande
+      DiscussionInvitation.RéponseDonnée 	= CN_DEMANDE_ENATTENTE 			// La demande est en attente
+      
+      si bTrouve ALORS
+      	// Ajout de la demande
+      	hmodifie(DiscussionInvitation)
+      sinon
+      	// Ajout de la demande
+      	HAjoute(DiscussionInvitation)	
+      FIN
+      
+      // Sauvegarde des paramètres globaux
+      gnIDPersonne = nIDPersonneDemandeur
+      
+      renvoyer vrai
+      
+      // Traitement d'erreur
+      CAS ERREUR:
+      	// On propage l'erreur
+      	ErreurPropage(<§@15827c44001201b20000§>)
+      	
+      	renvoyer faux
+     type : 458752
+   -
+     name : _bAjouteDiscussion
+     internal_properties : CAAAAAgAAABdQA2XJ6TIsZhQ11qLgdcRlVRngxPzYVEtgHig8MuCJRRa0mt+1nkBd6WCzFc7khJrT2fs4PF470IJmOnP8eNo24AHH2VDS3dEcOmbOavygTCGDNCNEf6dYHEYsgisEPxYOmD3nA65T9eKT+/yQJPEOkrS5scO090RSJAFtnUNwb420L1ffqwYNuF/GA==
+     procedure_id : 1557398679961592794
+     type_code : 15
+     code : |1+
+      // Résumé : permet d'ajouter une discussion. Elle ne doit être appelée que depuis la procédure ChatDemandeDiscussion
+      // Syntaxe :
+      //[ <Résultat> = ] _bAjouteDiscussion (<nIDPersonneDemandeur>)
+      //
+      // Cette procédure permet d'ajouter une discussion. Elle ne doit être appelée que depuis la procédure ChatDemandeDiscussion
+      // Aucun ajout de discussion ne peut avoir lieu sans passer par cette procédure
+      // Paramètres :
+      //	nIDPersonneDemandeur : La personne qui a demandé la discussion
+      // Valeur de retour :
+      // 	Type indéterminé : L'identifiant de la discussion, -1 en cas d'erreur
+      //
+      
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      
+      //// Traitement automatique des erreurs : RENVOYER -1
+      //
+      
+      Procédure RESTREINTE _bAjouteDiscussion(nIDPersonneDemandeur)
+      
+      // Mise à jour du contexte HFSQL
+      Discussion.ListePersonnes = CS_SEPARATEUR_PERSONNE + nIDPersonneDemandeur + CS_SEPARATEUR_PERSONNE
+      Discussion.EnAttente = vrai
+      hajoute(Discussion)
+      
+      // On renvoie l'identifiant de la discussion
+      renvoyer Discussion.IDDiscussion
+     type : 458752
+   -
+     name : DiscussionListeDemande
+     procedure_id : 1557398679961658330
+     type_code : 15
+     code : |1-
+      // Résumé : permet de lister les demandes de discussion adressée à une personne
+      // Syntaxe :
+      //[ <Résultat> = ] DiscussionListeDemande (<nIDPersonne>)
+      //
+      // Cette procédure permet de lister les demandes de discussion adressée à une personne
+      //
+      // Paramètres :
+      //	nIDPersonne : L'identifiant de la personne demandée
+      // Valeur de retour :
+      // 	chaîne : DateHeure + TAB + IDDemandeur + TAB + IDDemande
+      //
+      Procédure DiscussionListeDemande(nIDPersonne)
+      
+      // Variables locales
+      sListeDemande 	est une chaine
+      
+      // Initialisation de la requête
+      REQ_Discussion_ListeDemandesParPersonne.pnIDPersonneDemandée = nIDPersonne
+      HExécuteRequête(REQ_Discussion_ListeDemandesParPersonne)
+      
+      // Parcours des résultats
+      pour tout REQ_Discussion_ListeDemandesParPersonne SUR DateHeure
+      	
+      	// On construit la chaîne
+      	// elle contient :
+      	// La DateHeure de la demande + TAB + L'identifiant du demandeur + TAB + L'identifiant de la demande
+      	sListeDemande += [RC] + REQ_Discussion_ListeDemandesParPersonne.DateHeure + TAB + ...
+      					REQ_Discussion_ListeDemandesParPersonne.IDDemandeur ...
+      					+ TAB + REQ_Discussion_ListeDemandesParPersonne.IDDiscussionInvitation + TAB + REQ_Discussion_ListeDemandesParPersonne.CommentaireDemande
+      	
+      FIN
+      
+      
+      renvoyer sListeDemande
+     type : 458752
+   -
+     name : DiscussionAccepteDemande
+     internal_properties : CAAAAAgAAAAM34km+p2LM0Jafr/gijXeTImHicFj7lFu9FrqtgEK91qgYssHbROYrXPWPQuCRnMMZ684xbe6oq1nscH9xKapdVr2FWTPC1MVk/+hO52w5+vn7IjZ6fSvrcAYUpDA0PhZ/QJLYO5TzRKT4VFwJvmoQ216mG+7u8SECyh/lCtC1H7uDeo=
+     procedure_id : 1557398679961723866
+     type_code : 15
+     code : |1-
+      // Résumé : permet d'accepter une demande
+      // Syntaxe :
+      //[ <Résultat> = ] DiscussionAccepteDemande (<nIdentifiantDemande>, <nIDDiscussion>)
+      //
+      // Cette procédure permet d'accepter une demande
+      //
+      // Paramètres :
+      //	nIdentifiantDemande : L'identifiant de la demande à accepter
+      //	nIDDiscussion : Ce paramètre est en sortie, il permet de récupérer l'identifiant de la discussion
+      // Valeur de retour :
+      // 	booléen : Vrai, si tout est bon, faux sinon
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      // 	nIDPersonne : <indiquez ici le rôle de nIDPersonne>
+      //	nIdentifiantDemande : <indiquez ici le rôle de nIdentifiantDemande>// Traitement automatique des erreurs :   exécuter le bloc de code CAS ERREUR
+      //
+      
+      Procédure DiscussionAccepteDemande(nIdentifiantDemande, nIDDiscussion)
+      
+      // Recherche des informations sur la demande
+      hLitreCherchepremier(DiscussionInvitation,IDDiscussionInvitation,nIdentifiantDemande)
+      si htrouve(DiscussionInvitation) = faux ALORS
+      	_SetMessageErreur(<§@15827c44001201b20001§>)
+      	renvoyer faux
+      FIN
+      
+      HLitRecherchePremier(Discussion,IDDiscussion,DiscussionInvitation.IDDiscussion)
+      SI HTrouve(Discussion) = Faux ALORS
+      	_SetMessageErreur(<§@15827c44001201b20002§>)
+      	RENVOYER Faux
+      FIN
+      
+      
+      // Démarrage d'une transaction
+      //HTransactionDébut()
+      // Modification de la demande pour dire qu'elle est acceptée
+      DiscussionInvitation.RéponseDonnée = CN_DEMANDE_ACCEPTEE
+      hmodifie(DiscussionInvitation)
+      
+      // On met à jour le fichier des discussion avec la personne qui accepte (c'est le demandé)
+      Discussion.ListePersonnes += [CS_SEPARATEUR_PERSONNE] +  DiscussionInvitation.IDDemandé + CS_SEPARATEUR_PERSONNE
+      HModifie(Discussion)
+      
+      //Htransactionfin()
+      
+      // Sauvegarde des variables globales
+      nIDDiscussion = Discussion.IDDiscussion
+      gnIDPersonne = DiscussionInvitation.IDDemandé
+      
+      renvoyer vrai
+      
+      CAS ERREUR:
+      	
+      	_SetMessageErreur(<§@15827c44001201b20003§> + RC + herreurinfo())
+      	
+      	HTransactionAnnule()
+      	renvoyer faux
+     type : 458752
+   -
+     name : DiscussionRefuseDemande
+     internal_properties : CAAAAAgAAAB0gOm2pCTJsYcp8A22zsfVxIMjEHsC8Gzubi47rmC2kaqfQmUDrQuMtnj4ZTPGBrGj1BIJTVpZ80DBDnS3pdR8CIxkziMF6JZoY79m1j9HvepBpfJ7yBBykh0ccJNtGILVCFN8AUfUQ4AihQZD1z1MkNcKtNwLxP3CSAIaSz2k4jgulWstnMoI8CnV92M=
+     procedure_id : 1557398679961789402
+     type_code : 15
+     group : 3
+     code : |1+
+      // Résumé : permet de refuser une demande
+      // Syntaxe :
+      //[ <Résultat> = ] DiscussionRefuseDemande (<nIdentifiantDemande>)
+      //
+      // Cette procédure permet de refuser une demande
+      // Paramètres :
+      //	nIdentifiantDemande : L'identifiant de la demande à supprimer
+      // Valeur de retour :
+      // 	booléen : Vrai si la demande a bien été refusée, faux, sinon
+      //
+      
+      // Traitement automatique des erreurs : RENVOYER FAUX
+      //
+      
+      Procédure DiscussionRefuseDemande(nIdentifiantDemande)
+      
+      hLitreCherchepremier(DiscussionInvitation,IDDiscussionInvitation,nIdentifiantDemande)
+      si htrouve(DiscussionInvitation) = faux ALORS
+      	_SetMessageErreur(<§@15827c44001201b20001§>)
+      	renvoyer faux
+      FIN
+      	
+      // Modification de la demande pour dire qu'elle est acceptée
+      DiscussionInvitation.RéponseDonnée = CN_DEMANDE_REFUSEE
+      hmodifie(DiscussionInvitation)
+      
+      renvoyer vrai
+     type : 458752
+   -
+     name : DiscussionRecupereMessages
+     procedure_id : 1557398679961854938
+     type_code : 15
+     code : |1-
+      // Résumé : Cette procédure permet de récupérer la liste des messages reçus depuis l'arrivée dans la discussion
+      // Syntaxe :
+      //[ <Résultat> = ] DiscussionRecupereMessages (<nIDDiscussion>, <dhDateHeureArrivée>)
+      //
+      // Paramètres :
+      //	nIDDiscussion : L'identifiant de la discussion
+      //	dhDateHeureArrivée : La date et l'heure d'arrivée dans la discussion
+      // Valeur de retour :
+      // 	chaîne : La liste de tous les messages reçus depuis l'arrivée
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure DiscussionRecupereMessages(nIDDiscussion, dhDateHeureArrivée)
+      
+      // Variables locales
+      sListeMessage 		est une chaine
+      
+      // Paramétrage et exécution de la requête
+      REQ_Discussion_ListeMessagesParPersonne.pDateHeureArrivée 	= dhDateHeureArrivée
+      REQ_Discussion_ListeMessagesParPersonne.pIDDiscussion 		= nIDDiscussion
+      REQ_Discussion_ListeMessagesParPersonne.pIDPersonne 		= gnIDPersonne
+      hexécuterequete(REQ_Discussion_ListeMessagesParPersonne)
+      
+      // Parcours la liste des messages reçus lors de la discussion
+      pour tout REQ_Discussion_ListeMessagesParPersonne sur DateHeure
+      	
+      	sListeMessage += [RC] + REQ_Discussion_ListeMessagesParPersonne.DateHeure+ TAB + REQ_Discussion_ListeMessagesParPersonne.DeQui + TAB + ...
+      						_DiscussionTraiteSmileys(REQ_Discussion_ListeMessagesParPersonne.CorpsMessage) + TAB + REQ_Discussion_ListeMessagesParPersonne.IDPièceJointe
+      							
+      FIN
+      
+      renvoyer sListeMessage
+     type : 458752
+   -
+     name : DiscussionEnvoiMessage
+     procedure_id : 1557398679961920474
+     type_code : 15
+     code : |1+
+      // Résumé : Cette procédure permet d'envoyer un message
+      // Syntaxe :
+      //[ <Résultat> = ] DiscussionEnvoiMessage (<nIDDiscussion>, <sMessage> [, <sIDPièceJointe>])
+      //
+      // Paramètres :
+      //	nIDDiscussion : L'identifiant de la discussion
+      //	sMessage : Le message à envoyer
+      //	sIDPièceJointe (valeur par défaut="") : La clé de la pièce jointe associée à ce message
+      // Valeur de retour :
+      // 	booléen : Vrai si le message a été envoyé, faux sinon
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure DiscussionEnvoiMessage(nIDDiscussion,sMessage, sIDPièceJointe = "")
+      
+      // Paramétrage du message
+      DiscussionMESSAGE.Message 			= remplace(sMessage, rc, "<BR/>")
+      DiscussionMessage.DateHeure 		= datedujour() + maintenant()
+      DiscussionMessage.IDExpéditeur 		= gnIDPersonne
+      DiscussionMessage.IDDiscussion 		= nIDDiscussion
+      DiscussionMessage.CléPièceJointe 	= sIDPièceJointe
+      
+      REnvoyer hajoute(DiscussionMessage)
+     type : 458752
+   -
+     name : _CheckReponsesDemande
+     procedure_id : 1557398679961986010
+     type_code : 15
+     code : |1-
+      // Résumé : Vérification des réponses aux demandes (procédure PRIVE)
+      // Syntaxe :
+      //[ <Résultat> = ] _CheckReponsesDemande (<nIDDiscussion>, <dhDateHeureArrivée> [, <bDemandée>])
+      //
+      // Paramètres :
+      //	nIDDiscussion : L'identifiant de la discussion
+      //	dhDateHeureArrivée : La date et l'heure d'arrivée dans la discussion
+      //	bDemandée (valeur par défaut=0) : Est-on demandeur de la discussion ou invité ?
+      
+      // Valeur de retour :
+      // 	Type indéterminé : une des constantes CN_DEMANDE_XXX
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure RESTREINTE _CheckReponsesDemande(nIDDiscussion, dhDateHeureArrivée, bDemandée = faux)
+      
+      si bDemandée ALORS
+      	
+      	renvoyer _CheckReponsesParDemandé(nIDDiscussion,dhDateHeureArrivée )
+      	
+      sinon
+      	
+      	renvoyer _CheckReponsesParDemandeur(nIDDiscussion)
+      		
+      FIN
+     type : 458752
+   -
+     name : _SupprimeDemande
+     procedure_id : 1557398679962051546
+     type_code : 15
+     code : |1+
+      // Résumé : Cette procédure permet de supprimer une demande
+      // Syntaxe :
+      //[ <Résultat> = ] _SupprimeDemande (<nIDDemande>)
+      //
+      // Paramètres :
+      //	nIDDemande : l'identifiant de la demande à supprimer
+      // Valeur de retour :
+      // 	booléen : Vrai si la demande a été supprimée, faux sinon
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure RESTREINTE _SupprimeDemande(nIDDemande)
+      
+      // Recherche de l'invitation
+      hlitrecherchepremier(DiscussionInvitation,IDDiscussionInvitation,nIDDemande)
+      
+      si htrouve(DiscussionInvitation) = faux ALORS
+      	renvoyer vrai	
+      FIN
+      
+      renvoyer hsupprime(DiscussionInvitation)
+      
+     type : 458752
+   -
+     name : _VérifieValiditéDiscussion
+     procedure_id : 1557398679962117082
+     type_code : 15
+     code : |1+
+      // Résumé : Cette procédure permet vérifier la validité d'une discussion
+      // Syntaxe :
+      //[ <Résultat> = ] _VérifieValiditéDiscussion (<nIDDiscussion>)
+      //
+      // Une discussion est invalide dans plusieurs cas :
+      // 1 - Elle n'existe plus 
+      // 2 - Il y a moins de deux personnes actuellement connectées sur cette discussion
+      // Paramètres :
+      //	nIDDiscussion : L'identifiant de la discussion à vérifier
+      // Valeur de retour :
+      // 	booléen :  Vrai si la discussion est valide, faux sinon
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      
+      Procédure RESTREINTE _VérifieValiditéDiscussion(nIDDiscussion)
+      
+      
+      si EstConnecté() = faux ALORS
+      	DiscussionDéconnecte(nIDDiscussion)
+      	renvoyer faux
+      FIN
+      
+      // Recherche de la discussion
+      hlitrecherchepremier(Discussion,IDDiscussion,nIDDiscussion)
+      si htrouve(Discussion) = faux ALORS
+      	_SetMessageErreur(<§@15827c44001201b20005§> + RC + nIDDiscussion)
+      	renvoyer faux
+      FIN
+      
+      // SI la discussion est en attente, on renvoie vrai, elle est encore valide
+      si Discussion.EnAttente = vrai ALORS
+      	_SetMessageErreur(<§@15827c44001201b20006§>+ RC + nIDDiscussion)
+      	renvoyer vrai
+      FIN
+      
+      // Il y a plus de deux personnes
+      si ChaîneOccurrence(Discussion.ListePersonnes,CS_SEPARATEUR_PERSONNE) > 2 ALORS
+      	_SetMessageErreur(<§@15827c44001201b20006§>+ RC + nIDDiscussion)
+      	renvoyer vrai
+      sinon
+      	_SetMessageErreur(<§@15827c44001201b20008§> + Discussion.ListePersonnes+ RC + nIDDiscussion)
+      	// On démarre une transaction
+      	HTransactionDébut()
+      	
+      	// On supprime toutes les demandes associées à cette discussion
+      	_SupprimeDemandesDiscussion(nIDDiscussion)
+      
+      	
+      	// S'il n'y a plus aucune personne qui est présente dans la discussion, on supprime les messages et les pièces jointes
+      	// Et la discussion elle-même
+      	si discussion.ListePersonnes ~= "" ALORS
+      		
+      		_SupprimeMessageDiscussion(nIDDiscussion)
+      		
+      		// Suppression de la discussion
+      		HSupprime(Discussion)
+      		
+      	FIN
+      		
+      	htransactionfin()
+      	
+      	renvoyer faux	
+      
+      FIN
+     type : 458752
+   -
+     name : _SupprimeDemandesDiscussion
+     procedure_id : 1557398679962182618
+     type_code : 15
+     code : |1-
+      // Résumé : Cette procédure permet de supprimer les demandes associées à une discussion
+      // Syntaxe :
+      //[ <Résultat> = ] _SupprimeDemandesDiscussion (<nIDDiscussion>)
+      //
+      // Paramètres :
+      //	nIDDiscussion : L'identifiant de la discussion dont on doit supprimer les demandes
+      // Valeur de retour :
+      // 	booléen : Vrai si les demandes ont été supprimées, faux sinon
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      
+      Procédure RESTREINTE _SupprimeDemandesDiscussion(nIDDiscussion)
+      
+      // Recherche des invitations
+      hlitrecherchepremier(DiscussionInvitation,IDDiscussion,nIDDiscussion)
+      tantque htrouve(DiscussionInvitation)
+      	hsupprime(DiscussionInvitation)
+      	HLitSuivant(DiscussionInvitation)
+      FIN
+      
+      renvoyer vrai
+     type : 458752
+   -
+     name : _SupprimeMessageDiscussion
+     procedure_id : 1557398679962248154
+     type_code : 15
+     code : |1-
+      // Résumé : Cette procédure permet de supprimer les messages associés à une discussion
+      // Syntaxe :
+      //_SupprimeMessageDiscussion (<nIDDiscussion>)
+      //
+      // Paramètres :
+      //	nIDDiscussion : L'identifiant de la discussion dont on doit supprimer tous les messages
+      // Valeur de retour :
+      // 	Aucune
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      
+      Procédure RESTREINTE _SupprimeMessageDiscussion(nIDDiscussion)
+      
+      // Recherche du premier message
+      hlitrecherchepremier(DiscussionMessage,IDDiscussion,nIDDiscussion)
+      
+      tantque htrouve(DiscussionMessage)
+      	
+      	
+      	// Suppression des liens
+      	si pas DiscussionMessage.CléPièceJointe ~= "" _et_ PJCléExiste(DiscussionMessage.CléPièceJointe) ALORS
+      		
+      		// Suppression de la pièce jointe
+      		PJSupprime(DiscussionMessage.CléPièceJointe)
+      		
+      	FIN
+      	
+      	// Suppression du message
+      	hsupprime(DiscussionMessage)
+      	
+      	
+      	// Passe au Message suivant
+      	hlitsuivant(DiscussionMessage)
+      	
+      FIN
+     type : 458752
+   -
+     name : _ActiveDiscussion
+     procedure_id : 1557398679962313690
+     type_code : 15
+     code : |1+
+      // Résumé : Cette procédure permet d'activer une discussion (s'il y a plus de deux personnes dans la discussion)
+      // Syntaxe :
+      //[ <Résultat> = ] _ActiveDiscussion (<nIDDiscussion>)
+      //
+      // Paramètres :
+      //	nIDDiscussion : L'identifiant de la discussion à activer
+      // Valeur de retour :
+      // 	Type indéterminé : Vrai si la discussion a été activée, faux sinon
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      
+      Procédure RESTREINTE _ActiveDiscussion(nIDDiscussion)
+      
+      // Recherche la discussion
+      hlitrecherchepremier(Discussion,IDDiscussion,nIDDiscussion)
+      
+      si htrouve(Discussion) = faux ALORS
+      	renvoyer -1
+      FIN
+      
+      Discussion.EnAttente = faux
+      
+      renvoyer hmodifie(Discussion)
+      
+     type : 458752
+   -
+     name : _dbgGetValeurVariable
+     procedure_id : 1557398679962379226
+     type_code : 15
+     code : |1-
+      // Résumé : Cette procédure permet de récupérer en AJAX la valeur d'une variable serveur
+      // Syntaxe :
+      //[ <Résultat> = ] _dbgGetValeurVariable (<sNomVariable>)
+      //
+      // Paramètres :
+      //	sNomVariable : Le nom de la variable
+      // Valeur de retour :
+      // 	Type indéterminé : // 	Aucune
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure RESTREINTE _dbgGetValeurVariable(sNomVariable)
+      
+      renvoyer {sNomVariable,indVariable}
+     type : 458752
+   -
+     name : _CheckReponsesParDemandeur
+     internal_properties : CAAAAAgAAADDYjp0BwqQLke9cE5c6ZxpFm3zNM1+aCwIepMNkLX2iAiFp5JMpZX0O4FEJIh8xf5S+PJUE3tG4Sm1qsuLpWtxfF8Kc2WeoQcZHzZ6l9L5i9a5Vew13mRQecKsNVCx8nx7DbVVlWBVwaphrvrDXeUjzWglzi0IJnzaU2Cv6Ha7J1uBrtn577LdYIKbMKhQLxQnd6OFS4Fo91MH9PDxTNilW67bwGmt7TukTEfGVDrHOFuuZBAk
+     procedure_id : 1557398679962444762
+     type_code : 15
+     code : |1-
+      // Résumé : Cette procédure permet de vérifier les réponses à une invitation lancée par l'utilisateur en cours
+      // Syntaxe :
+      //[ <Résultat> = ] _CheckReponsesParDemandeur (<nIDDiscussion>)
+      //
+      // Paramètres :
+      //	nIDDiscussion : L'identifiant de la discussion dont on doit vérifier les réponses
+      // Valeur de retour :
+      // 	Type indéterminé : <indiquez ici les valeurs possibles ainsi que leur interprétation>
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      
+      Procédure RESTREINTE _CheckReponsesParDemandeur(nIDDiscussion)
+      
+      // Variables locales
+      sDifférence 		est une chaine
+      nRésultat 			est un entier
+      
+      // Recherche la demande
+      HLitRecherchePremier(DiscussionInvitation,IDDemandeur_IDDiscussion,[gnIDPersonne,nIDDiscussion])
+      
+      //Si on ne trouve pas la demande, on a atteint le timeout
+      SI HTrouve(DiscussionInvitation) = Faux ALORS 
+      	_SetMessageErreur(<§@15827c44001201b20001§>)
+      	RENVOYER CN_ERREUR
+      FIN
+      
+      SI DiscussionInvitation.RéponseDonnée = CN_DEMANDE_ENATTENTE ALORS
+      	
+      	sDifférence = DateHeureDifférence(DiscussionInvitation.DateHeure,DateDuJour() + Maintenant())
+      	SI val(sDifférence) > CS_TIME_OUT ALORS
+      		
+      		//Le time out est atteint, on supprime la demande
+      		_SupprimeDemande(DiscussionInvitation.IDDiscussionInvitation)
+      				
+      		// on active la discussion de façon à ce qu'elle soit supprimée
+      		// dans _vérifieValidiéDiscussion si elle est encore en attente
+      		// Parce que si elle était encore en attente, c'est une connexion 
+      		_ActiveDiscussion(nIDDiscussion)
+      		
+      		// On vérifie également la suppression de la discussion
+      		_VérifieValiditéDiscussion(nIDDiscussion)
+      		
+      		// On renvoie Time out
+      		RENVOYER CN_DEMANDE_TIME_OUT
+      	SINON
+      		RENVOYER CN_DEMANDE_ENATTENTE	
+      	FIN
+      	
+      	
+      SINON
+      	// Sauvegarde de la réponse
+      	nRésultat = DiscussionInvitation.RéponseDonnée
+      	
+      	// On active la discussion
+      	selon _ActiveDiscussion(nIDDiscussion)
+      		cas -1
+      			_SetMessageErreur(<§@15827c44001201b2000a§> + nIDDiscussion)
+      			renvoyer CN_ERREUR
+      		cas 1
+      			// On continue
+      		autres cas
+      			_SetMessageErreur(<§@15827c44001201b2000b§> + RC + HErreurInfo())
+      			renvoyer CN_ERREUR
+      
+      	FIN
+      	
+      	// On vérifie également la suppression de la discussion
+      	_VérifieValiditéDiscussion(nIDDiscussion)
+      	
+      	// On a un résultat, on supprime la demande
+      	_SupprimeDemande(DiscussionInvitation.IDDiscussionInvitation)
+      	
+      	// On renvoie la réponse que ce soit accepté ou refusée
+      	RENVOYER nRésultat	
+      	
+      FIN
+     type : 458752
+   -
+     name : _CheckReponsesParDemandé
+     internal_properties : CAAAAAgAAAAgS8xX/RaWgXQEGxGGWJPaPQLWAr71iRaGeOiZ0VZK35B1O0LpQGQB7pZySFb0QapmXj57toQZ83ZyOda0YoQlhc7QvEBEO8aEDO7hKeYlVvuAYF7ypzTDUT7p0UypyaxYv1DkGcqWQXW4k/yNhdj5HnR6V6H6/ZJ1evktIgqyq2eJsRNQY8q3rQJ0lKnVwBTWf20AE7g=
+     procedure_id : 1557398679962510298
+     type_code : 15
+     code : |1+
+      // Résumé : Cette procédure permet de vérifier les réponses à une invitation (c'est le Ok, c'est bon on peut commencer qui est envoyé par le demandeur)
+      
+      // Syntaxe :
+      //[ <Résultat> = ] _CheckReponsesParDemandé (<nIDDiscussion>, <dhDateHeureArrivée>)
+      //
+      // Paramètres :
+      //	nIDDiscussion : L'identifiant de la discussion
+      //	dhDateHeureArrivée : La date et l'heure d'arrivée
+      // Valeur de retour :
+      // 	Type indéterminé : // 	Aucune
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure RESTREINTE _CheckReponsesParDemandé(nIDDiscussion, dhDateHeureArrivée)
+      
+      // Cette procédure sert à vérifier si la discussion a été validée par le demandeur
+      // c'est à dire si le demandeur à activé la discussion
+      
+      // Variables locales
+      sDifférence est une chaine
+      
+      // Recherche la demande
+      HLitRecherchePremier(Discussion,IDDiscussion,nIDDiscussion)
+      
+      si htrouve(Discussion) = faux ALORS
+      	_SetMessageErreur(<§@15827c44001201b2000a§> + nIDDiscussion)
+      	RENVOYER CN_ERREUR 
+      FIN
+      
+      si Discussion.EnAttente ALORS
+      	
+      	sDifférence = DateHeureDifférence(dhDateHeureArrivée,DateDuJour() + Maintenant())
+      	SI val(sDifférence) > CS_TIME_OUT ALORS
+      		// On renvoie Time out
+      		RENVOYER CN_DEMANDE_TIME_OUT
+      	SINON
+      		RENVOYER CN_DEMANDE_ENATTENTE	
+      	FIN
+      sinon
+      	RENVOYER CN_DEMANDE_ACCEPTEE	
+      FIN
+      
+     type : 458752
+   -
+     name : DiscussionRecupereNbMessages
+     procedure_id : 1557398679962575834
+     type_code : 15
+     code : |1-
+      // Résumé : Cette procédure permet de récupérer le nombre de messages (pour savoir s'il a changé ou pas)
+      // Syntaxe :
+      //[ <Résultat> = ] DiscussionRecupereNbMessages (<nIDDiscussion>, <dhDateHeure>)
+      //
+      // Paramètres :
+      //	nIDDiscussion : L'identifiant de la discussion
+      //	dhDateHeure : La date et l'heure d'arrivée de la personne
+      // Valeur de retour :
+      // 	entier sur 8 octets : Le nombre de messages à afficher
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure DiscussionRecupereNbMessages(nIDDiscussion, dhDateHeure)
+      
+      
+      // Paramétrage et exécution de la requête
+      REQ_Discussion_ListeMessagesParPersonne.pDateHeureArrivée 	= dhDateHeure
+      REQ_Discussion_ListeMessagesParPersonne.pIDDiscussion 		= nIDDiscussion
+      REQ_Discussion_ListeMessagesParPersonne.pIDPersonne 		= gnIDPersonne
+      HExécuteRequête(REQ_Discussion_ListeMessagesParPersonne)
+      
+      renvoyer HNbEnr(REQ_Discussion_ListeMessagesParPersonne)
+     type : 458752
+   -
+     name : DiscussionNbDemandes
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1557398679962641370
+     type_code : 15
+     code : |1+
+      // Résumé : Cette procédure permet de récupérer le nombre de demandes en attente pour une personne
+      // Syntaxe :
+      //[ <Résultat> = ] DiscussionNbDemandes (<nIDPersonne>)
+      //
+      // Paramètres :
+      //	nIDPersonne : L'identifiant de la personne pour laquelle on souhaite connaitre le nombre de demandes
+      // Valeur de retour :
+      // 	Type indéterminé : // 	Aucune
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure DiscussionNbDemandes(nIDPersonne)
+      
+      si gbErreurFatale = Vrai alors
+      	renvoyer 0
+      FIN
+      
+      HRecherchePremier(DiscussionInvitation, IDDemandé_RéponseDonnée, [nIDPersonne, CN_DEMANDE_ENATTENTE])
+      renvoyer htrouve(DiscussionInvitation)
+      
+     type : 458752
+   -
+     name : DiscussionDéconnecte
+     procedure_id : 1557398679962706906
+     type_code : 15
+     code : |1-
+      // Résumé : Cette procédure permet de se déconnecter d'une discussion
+      // Syntaxe :
+      //[ <Résultat> = ] DiscussionDéconnecte (<nIDDiscussion>)
+      //
+      // Paramètres :
+      //	nIDDiscussion : L'identifiant de la connexion dont on souhaite se déconnecter
+      // Valeur de retour :
+      // 	booléen : Vrai si on est déconnecté, faux sinon
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure DiscussionDéconnecte(nIDDiscussion)
+      
+      // On recherche la discussion concernée
+      hlitrecherchepremier(Discussion,IDDiscussion,nIDDiscussion)
+      
+      si htrouve(Discussion) = faux ALORS
+      	renvoyer vrai
+      FIN
+      
+      // On supprime l'utilisateur en cours de la discussion
+      Discussion.ListePersonnes = remplace(Discussion.ListePersonnes,CS_SEPARATEUR_PERSONNE + UtilisateurEnCours:IDUtilisateur + CS_SEPARATEUR_PERSONNE, CS_SEPARATEUR_PERSONNE)
+      
+      hmodifie(Discussion)
+      
+      // Par défaut on active la discussion => Parce que si la demande est active, on pourra la supprimer
+      // si elle est déjà active ca change rien, et sinon, ca nous permet de la supprimer
+      _ActiveDiscussion(nIDDiscussion)
+      
+      // Relance la validation de la discussion
+      _VérifieValiditéDiscussion(nIDDiscussion)
+      
+      renvoyer vrai
+     type : 458752
+   -
+     name : RechercheDiscussion
+     procedure_id : 1557398679962772442
+     type_code : 15
+     code : |1-
+      // Résumé : Cette procédure permet de rechercher si deux utilisateurs sont déjà en cours de discussion
+      // Syntaxe :
+      //[ <Résultat> = ] RechercheDiscussion (<nPremierUtilisateur>, <nSecondUtilisateur>)
+      //
+      // Paramètres :
+      //	nPremierUtilisateur : L'identifiant du premier utilisateur
+      //	nSecondUtilisateur : L'identifiant du second utilisateur
+      // Valeur de retour :
+      // 	booléen : Vrai si une discussion est déjà en cours entre les deux utilisateurs, faux sinon
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure RechercheDiscussion(nPremierUtilisateur, nSecondUtilisateur)
+      
+      // Cette procédure permet de rechercher une discussion entre les deux utilisateurs
+      pour tout Discussion
+      	
+      	si position(Discussion.ListePersonnes,CS_SEPARATEUR_PERSONNE + nPremierUtilisateur + CS_SEPARATEUR_PERSONNE) > 0 ALORS
+      		// La première personne est trouvée
+      		// On recherche maintenant la seconde personne
+      		si Position(Discussion.ListePersonnes,CS_SEPARATEUR_PERSONNE + nSecondUtilisateur + CS_SEPARATEUR_PERSONNE) > 0 ALORS
+      			// la seconde personne est trouvée, on renvoie vrai
+      			renvoyer vrai
+      		FIN
+      	FIN
+      	
+      FIN
+      
+      renvoyer faux
+     type : 458752
+   -
+     name : DiscussionVérifie
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1557398679962837978
+     type_code : 15
+     code : |1-
+      // Résumé : Cette procédure permet de vérifier qu'une discussion est toujours valide
+      // Syntaxe :
+      //[ <Résultat> = ] DiscussionVérifie (<nIDDiscussion>)
+      //
+      // Paramètres :
+      //	nIDDiscussion : l'identifiant de la procédure dont on doit vérifier la validité
+      // Valeur de retour :
+      // 	booléen : Vrai si la discussion est valide, faux sinon
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure DiscussionVérifie(nIDDiscussion)
+      
+      renvoyer _VérifieValiditéDiscussion(nIDDiscussion)
+     type : 458752
+   -
+     name : _SetMessageErreur
+     procedure_id : 1557398679962903514
+     type_code : 15
+     code : |1-
+      // Résumé : Cette procédure permet d'affecter le message d'erreur
+      // Syntaxe :
+      //_SetMessageErreur (<sMessage>)
+      //
+      // Paramètres :
+      //	sMessage : Le message d'erreur à sauvegarder
+      // Valeur de retour :
+      // 	Aucune
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure RESTREINTE _SetMessageErreur(sMessage)
+      
+      gsMessageErreur = sMessage
+     type : 458752
+   -
+     name : DiscussionMessageErreur
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1557398679962969050
+     type_code : 15
+     code : |1-
+      // Résumé : Cette procédure permet de récupérer le message d'erreur
+      // Syntaxe :
+      //[ <Résultat> = ] DiscussionMessageErreur ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	chaîne : Le dernier message d'erreur sauvegardé
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure DiscussionMessageErreur()
+      
+      renvoyer gsMessageErreur
+     type : 458752
+   -
+     name : DiscussionDéconnecteUtilisateur
+     procedure_id : 1559646258183694958
+     type_code : 15
+     code : |1+
+      // Résumé : Permet de déconnecter un utilisateur
+      // Syntaxe :
+      //DiscussionDéconnecteUtilisateur ( [<nIDUtilisateur>])
+      //
+      // Paramètres :
+      //	nIDUtilisateur : <indiquez ici le rôle de nIDUtilisateur>
+      // Valeur de retour :
+      // 	Aucune
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure DiscussionDéconnecteUtilisateur(nIDUtilisateur = UtilisateurEnCours:IDUtilisateur)
+      
+      
+      // Cette procédure permet de rechercher une discussion entre les deux utilisateurs
+      POUR TOUT Discussion
+      	
+      	// Si l'utilisateur fait partie de la discussion
+      	SI Position(Discussion.ListePersonnes,CS_SEPARATEUR_PERSONNE + nIDUtilisateur + CS_SEPARATEUR_PERSONNE) > 0 ALORS
+      		
+      		// Déconnexion de la discussion
+      		DiscussionDéconnecte(Discussion.IDDiscussion)
+      		
+      	FIN
+      	
+      FIN
+     type : 458752
+   -
+     name : DiscussionListeUtilisateursDisponibles
+     internal_properties : CAAAAAgAAAAAq2w6nCxPySamG22qKhuuq8CMXErvAd789pgVfdi6t0KPIdRZHqRNzPTmkLYSZdpwQDxlrkLZ8+wYyV6E0MQZAzxaisR2g7pqEs5yPPXeTc4jCYXNViMwzKGMjoNM1vezAhGjRJllHhALhoWMgEloFWNvAgg92O/4pYTWtXkXzgbIevKf3kUwxKHjCazMXbRiao1gs9g=
+     procedure_id : 1560082695144530700
+     type_code : 15
+     group : 3
+     code : |1-
+      // Résumé : Cette procédure permet de renvoyer la liste des utilisateurs avec qui on peut entamer une discussion
+      // Syntaxe :
+      //[ <Résultat> = ] DiscussionListeUtilisateursDisponibles ( [<bUniquementLogin>])
+      //
+      // Cette procédure permet de renvoyer la liste des utilisateurs avec qui on peut entamer une discussion
+      
+      // Paramètres :
+      //	bUniquementLogin (valeur par défaut=0) : Savoir si on doit absolument renvoyer le login
+      // Valeur de retour :
+      // 	chaîne : La liste des utilisateurs disponibles (ID + TAB + NOM ou LOGIN)
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure DiscussionListeUtilisateursDisponibles(bUniquementLogin = faux)
+      
+      // Variables locales
+      sListeUtilisateur 	est une chaine
+      sNomAffiché 		est une chaine
+      
+      // Sauvegarde du contexte HFSQL
+      sGUID est une chaine = HFSauvePosition(UTILISATEUR..nom)
+      
+      // Pour chaque utilisateur
+      POUR TOUT Utilisateur
+      
+      	// Si l'utilisateur est disponible
+      	si DiscussionUtilisateurEstDisponible(utilisateur.idutilisateur) = faux alors continuer
+      	
+      	si bUniquementLogin = Vrai ALORS
+      		sNomAffiché = utilisateur.login
+      	sinon
+      
+      		// Récupération du nom affiché	
+      		sNomAffiché = RécupèreNomUtilisateur(utilisateur.IDUtilisateur)
+      						
+      	FIN
+      	
+      	// Construction de la liste
+      	sListeUtilisateur += [RC] + Utilisateur.IDUtilisateur + TAB + sNomAffiché
+      	
+      FIN
+      
+      // Restauration du contexte
+      HFRetourPosition(sGUID)
+      
+      
+      renvoyer sListeUtilisateur
+     type : 458752
+   -
+     name : DiscussionUtilisateurEstDisponible
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1560084073831188162
+     type_code : 15
+     group : 3
+     code : |1-
+      // Résumé : permet de savoir si un utilisateur peut être contacté par le biais de la messagerie
+      // Syntaxe :
+      //[ <Résultat> = ] DiscussionUtilisateurEstDisponible ( [<nIDUtilisateur>])
+      //
+      // Cette procédure permet de savoir si un utilisateur peut être contacté par le biais de la messagerie
+      // Paramètres :
+      //	nIDUtilisateur : L'identifiant de l'utilisateur dont on doit vérifier s'il est disponible
+      // Valeur de retour :
+      // 	booléen : Vrai si l'utilisateur peut être contacté via une discussion, faux sinon
+      //
+      Procédure DiscussionUtilisateurEstDisponible(nIDUtilisateur = Utilisateur.IDUtilisateur)
+      
+      // Si ce n'est pas l'utilisateur actuellement connecté 
+      SI nIDUtilisateur = UtilisateurEnCours:IDUtilisateur ALORS renvoyer faux
+      
+      // on recherche une discussion existante entre l'utilisateur actuel et l'utilisateur en cours de parcours
+      SI RechercheDiscussion(UtilisateurEnCours:IDUtilisateur, nIDUtilisateur) = Vrai ALORS renvoyer faux
+      
+      // Si l'utilisateur en cours n'est pas connecté, on continue
+      SI EstConnecté(nIDUtilisateur) = Faux ALORS renvoyer faux
+      
+      // Si l'utilisateur est supprimé on ne le propose pas
+      Si estsupprimé(nIDUtilisateur) = vrai alors renvoyer faux
+      
+      
+      renvoyer vrai
+     type : 458752
+   -
+     name : _DiscussionTraiteSmileys
+     internal_properties : CAAAAAgAAACUZrzFFc9McO8fI0SWsY8qpqZz3ZzyW85N8x0xULb5KWJQH5xq+UXMN8FMeKi5yjyVKplZb/bVrvXurDqBhLikycQUlPWztvcwMDK9Bf3LnGLIHDqrUsJ5w8ahLoFzvvt0f1JDLRX5qQMT4m5zcQEt95I/iGPS3EKUbeKPlKLXIVDwHZZYot+Ew+VaUe37MntbI/Q0elApNto+Q//Ip088wIsTWIdpsQ9I4DtqGErb8hXpv8pg8a9VD2HKp4Mq8WrFAyzqZQRFTXoCRFGTBVZW3jsqAyc=
+     procedure_id : 1560400956765409064
+     type_code : 15
+     code : |1-
+      // Résumé : Gère les smileys dans le message (remplace le texte du smiley par une image)
+      // Syntaxe :
+      //[ <Résultat> = ] _DiscussionTraiteSmileys (<sCorpsMessage>)
+      //
+      // Paramètres :
+      //	sCorpsMessage : <indiquez ici le rôle de sCorpsMessage>
+      // Valeur de retour :
+      // 	Type indéterminé : // 	Aucune
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure RESTREINTE _DiscussionTraiteSmileys(LOCAL sCorpsMessage)
+      
+      // 1 - content
+      // 2 - pas content
+      // 3 - langue
+      // 4 - pleure
+      
+      // Variables locales
+      sImageSmileyContent 		est une chaine
+      sImageSmileyPasContent		est une chaine
+      sImageSmileyTireLangue 		est une chaine
+      sImageSmileyPleure 			est une chaine
+      sImageSmileyRit 			est une chaine
+      sCodeSmileyCommun 			est une chaine
+      
+      sCodeSmileyCommun = remplace([
+      <IMG src="%web%/ext/modules/discussion/%1" align=absmiddle alt="%2">
+      ], "%web%", "/" + RépertoireWeb())
+      
+      // Liste des smilays
+      sImageSmileyContent 		= "1.gif"
+      sImageSmileyPasContent 		= "2.gif"
+      sImageSmileyTireLangue 		= "3.gif"
+      sImageSmileyPleure 			= "4.gif"
+      sImageSmileyRit 			= "5.gif"
+      
+      
+      // Traitement du smiley content
+      sCorpsMessage = remplace(sCorpsMessage, ":)", chaineconstruit(sCodeSmileyCommun, sImageSmileyContent, ":)"), MotComplet+SansCasse)
+      sCorpsMessage = remplace(sCorpsMessage, ":-)", chaineconstruit(sCodeSmileyCommun, sImageSmileyContent, ":-)"), MotComplet+SansCasse)
+      
+      // Traitement du smiley pas content
+      sCorpsMessage = remplace(sCorpsMessage, ":(", chaineconstruit(sCodeSmileyCommun, sImageSmileyPasContent, ":("), MotComplet+SansCasse)
+      sCorpsMessage = remplace(sCorpsMessage, ":-(", chaineconstruit(sCodeSmileyCommun, sImageSmileyPasContent, ":-("), MotComplet+SansCasse)
+      
+      
+      // Traitement du smiley qui tire la langue
+      sCorpsMessage = Remplace(sCorpsMessage, ":p", ChaîneConstruit(sCodeSmileyCommun, sImageSmileyTireLangue, ":p"), MotComplet+SansCasse)
+      sCorpsMessage = Remplace(sCorpsMessage, ":-p", ChaîneConstruit(sCodeSmileyCommun, sImageSmileyTireLangue, ":-p"), MotComplet+SansCasse)
+      
+      // Traitement du smiley qui pleure
+      sCorpsMessage = Remplace(sCorpsMessage, ":'(", ChaîneConstruit(sCodeSmileyCommun, sImageSmileyPleure, ":'("), MotComplet+SansCasse)
+      sCorpsMessage = Remplace(sCorpsMessage, ":'-(", ChaîneConstruit(sCodeSmileyCommun, sImageSmileyPleure, ":'-("), MotComplet+SansCasse)
+      
+      // Cas du smiley qui rit
+      sCorpsMessage = Remplace(sCorpsMessage, ":d", ChaîneConstruit(sCodeSmileyCommun, sImageSmileyRit, ":d"), MotComplet+SansCasse)
+      
+      
+      renvoyer sCorpsMessage
+     type : 458752
+   -
+     name : DiscussionListePersonne
+     procedure_id : 1560405612524935654
+     type_code : 15
+     code : |1-
+      // Résumé : <indiquez ici ce que fait la procédure>
+      // Syntaxe :
+      //[ <Résultat> = ] DiscussionListePersonne (<nIDDiscussion>)
+      //
+      // Permet de renvoyer la liste des participants à une discussion
+      //
+      // Paramètres :
+      //	nIDDiscussion : La discussion dont on souhaite avoir les participants
+      // Valeur de retour :
+      // 	chaîne : // 	Aucune
+      //
+      // Exemple :
+      // Indiquez ici un exemple d'utilisation.
+      //
+      Procédure DiscussionListePersonne(nIDDiscussion)
+      
+      // Variables locales
+      sGUID 				est une chaine
+      sChaîneRetour 		est une chaine
+      
+      // Sauvegarde du contexte HFSQL
+      sGUID = HFSauvePosition(Discussion..nom)
+      
+      // Recherche la discussion
+      hlitrecherchepremier(Discussion,IDDiscussion,nIDDiscussion)
+      si htrouve(Discussion) ALORS
+      	// On récupère la liste des personnes intervenantes
+      	sChaîneRetour = discussion.ListePersonnes
+      FIN
+      
+      // Restauration du contexte
+      HFRetourPosition(sGUID)
+      
+      
+      renvoyer sChaîneRetour
+     type : 458752
+   -
+     name : DiscussionNbParticipants
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1579991492889415585
+     type_code : 15
+     group : 3
+     code : |1-
+      // Résumé : Renvoie le nombre de participants à une discussion
+      // Syntaxe :
+      //[ <Résultat> = ] DiscussionNbParticipants (<nIDDiscussion>)
+      //
+      // Paramètres :
+      //	nIDDiscussion : <indiquez ici le rôle de nIDDiscussion>
+      // Valeur de retour :
+      // 	entier : Nombre de personnes dans la discussion
+      //
+      Procédure DiscussionNbParticipants(nIDDiscussion)
+      
+      nNbPersonnes est un entier
+      
+      GUID est une chaine
+      GUID = HFSauvePosition(discussion..nom)
+      
+      HLitRecherchePremier(Discussion,IDDiscussion,nIDDiscussion)
+      si htrouve(Discussion) ALORS	
+      	nNbPersonnes = ChaîneOccurrence(Discussion.ListePersonnes, CS_SEPARATEUR_PERSONNE) / 2	
+      FIN
+      
+      HFRetourPosition(GUID)
+      	
+      renvoyer nNbPersonnes
+     type : 458752
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : COL_Collection1
+resources :
+ string_res :
+  identifier : 0x15827c44001201b2
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+  strings :
+   -
+     text :
+      fr-FR : Impossible d'ajouter la demande de discussion
+     index : 0
+   -
+     text :
+      fr-FR : Impossible de trouver l'invitation
+     index : 1
+   -
+     text :
+      fr-FR : Impossible de trouver la discussion associée
+     index : 2
+   -
+     text :
+      fr-FR : Erreur
+     index : 3
+   -
+     text :
+      fr-FR : Impossible de trouver la discussion
+     index : 5
+   -
+     text :
+      fr-FR : Discussion valide
+     index : 6
+   -
+     text :
+      fr-FR : "Liste des personnes impliquées : "
+     index : 8
+   -
+     text :
+      fr-FR : Impossible de trouver la discussion N°
+     index : 10
+   -
+     text :
+      fr-FR : "La fonction hModifie a renvoyé faux "
+     index : 11
+   -
+     text :
+      fr-FR : Une discussion ne peut comporter que jusqu'à 3 utilisateurs simultanés.
+     index : 13
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ

@@ -1,0 +1,290 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : pActualités
+ major_version : 28
+ minor_version : 0
+ type : 7
+ description : ""
+ subtype : 0
+procedure_set :
+ identifier : 0x15acb29355be1a83
+ internal_properties : CAAAAAgAAABGLu41kG7fjQV3iS4F72qmnKaNh5694reolNKIW0iw
+ code_elements :
+  type_code : 31
+  p_codes :
+   -
+     code : |1+
+      // Collection de procédures de gestion des actualités
+      
+      // Déclaration des constantes de gestion des actualités
+      CONSTANT
+      	// Gestion des notifications
+      	NOTIFICATION_SUPPRESSION_ACTUALITE 		= "NOTIFICATION_SUPPRESSION_ACTUALITE"	
+      	NOTIFICATION_ACTUALITE_MODIFICATION 	= "NOTIFICATION_ACTUALITE_MODIFICATION"
+      	NOTIFICATION_ACTUALITE_CREATION 		= "NOTIFICATION_ACTUALITE_CREATION"
+      FIN
+     type : 720896
+  procedures :
+   -
+     name : ActualitéSupprime
+     procedure_id : 1561822609741780848
+     type_code : 15
+     code : |1-
+      // Résumé : Permet de supprimer une actualité
+      // Syntaxe :
+      //[ <Résultat> = ] ActualitéSupprime (<nIDActualité>)
+      //
+      // Paramètres :
+      //	nIDActualité : Identifiant de l'actualité à supprimer
+      // Valeur de retour :
+      // 	booléen : Vrai si la suppression a réussi, Faux sinon
+      
+      Procédure ActualitéSupprime(nIDActualité)
+      
+      // Variables locales
+      sMessage 			est une chaîne		// Contenu du message de notification
+      sGUID 				est une chaîne		// Identifiant du contexte
+      
+      // Sauvegarde du contexte
+      sGUID  = HFSauvePosition(Actualite..Nom)
+      
+      // Recherche l'enregistrement à supprimer
+      HLitRecherchePremier(Actualite,IDActualite,nIDActualité)
+      dbgAssertion(HTrouve(Actualite),ChaîneConstruit(<§@15acb28c55bc02670000§>,nIDActualité))
+      SI Htrouve(Actualite) = Faux alors
+      	// Restauration du contexte
+      	HFRetourPosition(sGUID)
+      	RENVOYER Faux
+      FIN
+      
+      // Suppression de l'actualité
+      SI HSupprime(Actualite) ALORS
+      	
+      	// Suppression du sujet lié à l'actualité dans le forum "Actualités" 
+      	ParametreSupprime("SUJET_ACTUALITE_" + nIDActualité)
+      	
+      	// La suppression a réussi : envoi d'une notification de suppression d'une actualité
+      	sMessage = ChaîneConstruit(""+TAB+<§@15acb28c55bc0267000a§>+RC+""+TAB+<§@15acb28c55bc0267000b§>,RécupèreLogin(UtilisateurEnCours:IDUtilisateur), Actualite.Titre,Actualite.DateHeureCréation)
+      	NotificationEnvoie(	MODULE_ACTUALITES, NOTIFICATION_SUPPRESSION,<§@15acb28c55bc02670002§>,sMessage)
+      	
+      SINON
+      	// Restauration du contexte
+      	HFRetourPosition(sGUID)
+      	RENVOYER Faux
+      FIN
+      
+      // Restauration du contexte
+      HFRetourPosition(sGUID)
+      
+      // Par défaut, l'opération se déroule sans erreur
+      RENVOYER Vrai
+     type : 458752
+   -
+     name : ActualitéDiscuterSurForum
+     procedure_id : 1561824920505832422
+     type_code : 15
+     code : |1+
+      // Résumé : Permet de discuter d'une actualité dans le forum de discussion correspondant
+      // Syntaxe :
+      //ActualitéDiscuterSurForum (<nIDActualité>)
+      //
+      // Paramètres :
+      //	nIDActualité : Identifiant de l'actualité
+      // Valeur de retour :
+      // 	Aucune
+      //
+      Procédure ActualitéDiscuterSurForum(nIDActualité)
+      
+      // Variables locales
+      nIDSujet 				est un entier
+      sTitreActualité 		est une chaine
+      sGUID 					est une chaine
+      
+      // Sauvegarde du contexte
+      sGUID  = HFSauvePosition(Actualite..Nom)
+      
+      // Recherche de l'actualité
+      HLitRecherchePremier(Actualite,IDActualite,nIDActualité)
+      dbgAssertion(Htrouve(Actualite),<§@15acb28c55bc02670009§>)
+      
+      // Récupération du titre de l'actualité en cours
+      sTitreActualité  = Actualite.Titre
+      
+      // Vérifie si un sujet a été créé pour cette actualité
+      nIDSujet = ParamètreLit("SUJET_ACTUALITE_" + nIDActualité, pourtous, 0)
+      
+      // Si aucun sujet n'a encore été créé
+      si nIDSujet = 0 ALORS
+      	
+      	// Création du sujet<§aad:0§>
+      	nIDSujet = SujetCrée(ChaineConstruit(<§@15acb28c55bc02670004§>,sTitreActualité), RécupèreIDForumActualités(), ChaineConstruit(<§@15acb28c55bc02670005§>,sTitreActualité), ChaîneConstruit(<§@15acb28c55bc02670006§>,sTitreActualité),Actualite.IDUtilisateur)
+      	
+      	// Sauvegarde de l'identifiant du sujet associé à cette actualité
+      	ParamètreEcrit("SUJET_ACTUALITE_" + nIDActualité, nIDSujet, PourTous)
+      FIN
+      
+      // Restauration du contexte
+      HFRetourPosition(sGUID)
+      
+      // Affiche le sujet correspondant à l'actualité
+      PageAffiche(PAGE_Forum_Messages, nIDSujet)
+      
+     type : 458752
+   -
+     name : ActualitéRécupèreTitre
+     procedure_id : 1561825685011172243
+     type_code : 15
+     code : |1+
+      // Résumé : Permet de récupérer le titre d'une actualité
+      // Syntaxe :
+      //[ <Résultat> = ] ActualitéRécupèreTitre (<nIDActualité>)
+      //
+      // Paramètres :
+      //	nIDActualité : Identifiant de l'actualité
+      // Valeur de retour :
+      // 	chaîne : Titre de l'actualité
+      
+      Procédure ActualitéRécupèreTitre(nIDActualité)
+      
+      // Variables locales
+      sTitreActualité 		est une chaine
+      sGUID 					est une chaîne
+      
+      // Sauvegarde du contexte
+      sGUID = HFSauvePosition(Actualite..Nom)
+      
+      // Recherche de l'actualité
+      HLitRecherchePremier(Actualite,IDActualite,nIDActualité)
+      dbgAssertion(HTrouve(Actualite),ChaineConstruit(<§@15acb28c55bc02670000§>,nIDActualité))
+       
+      si HTrouve(Actualite) ALORS
+      	// Mise à jour de l'actualité
+      	sTitreActualité = Actualite.Titre
+      FIN
+      
+      // Restauration du contexte
+      HFRetourPosition(sGUID)
+      
+      // Renvoie le titre de l'actualité
+      renvoyer sTitreActualité
+     type : 458752
+   -
+     name : ActualitéNotificationActive
+     internal_properties : CAAAAAgAAACAK+z3mbYogRhYB+Em1DtOCTbOKqbh3UZarFSRwWr6ewyJK0rp9CCZUipGmI7oad4aolajpti1ExKeXTasrsRhOTpoHEjo755wCCI7w0hnDD2yknTUSRYl44DrCwbrS3JioTKSexzgi5+aFVa/X6IPmO709RMED7S/9MO/pHQ0KQnbg/GCPaQR/2zOdktPish6nw3gM1g=
+     procedure_id : 1564051825148100860
+     type_code : 15
+     code : |1+
+      // Résumé : Cette procédure permet de savoir si une notification est active 
+      // Syntaxe :
+      //[ <Résultat> = ] ActualitéNotificationActive (<sActualitéID> [, <nIDUtilisateur>])
+      //
+      // Paramètres :
+      //	sActualitéID : L'identitifiant du wiki ou "" si c'est pour la notification globale
+      //	nIDUtilisateur : L'identifiant de l'utilisateur concerné
+      
+      Procédure ActualitéNotificationActive(sActualitéID, nIDUtilisateur = UtilisateurEnCours:IDUtilisateur)
+      
+      // On doit être connecté
+      SI PAS EstConnecté() ALORS RENVOYER 0
+      
+      si sActualitéID ~= "" ALORS
+      	RENVOYER Val(ParamètreLit(NOTIFICATION_ACTUALITE_CREATION + "_" + MODULE_ACTUALITES + "0_" + nIDUtilisateur, pourtous,"0"))	
+      sinon
+      	RENVOYER Val(ParamètreLit(NOTIFICATION_ACTUALITE_MODIFICATION + "_" + MODULE_ACTUALITES + sActualitéID + "_" + nIDUtilisateur, PourTous, "0"))
+      FIN
+     type : 458752
+   -
+     name : ActualitéNotificationSupprime
+     procedure_id : 1564051825148166646
+     type_code : 15
+     code : |1-
+      // Résumé : Cette procédure permet de supprimer une notification
+      // Syntaxe :
+      //ActualitéNotificationSupprime (<sIDActualité>, <sNotification> [, <nIDUtilisateur>])
+      //
+      // Paramètres :
+      //	sIDActualité : L'identifiant du WIKI concerné
+      //	sNotification : La notification concernée => NOTIFICATION_WIKI_CREATION, NOTIFICATION_WIKI_MODIFICATION
+      //	nIDUtilisateur : L'identifiant de l'utilisateur concerné
+      
+      Procédure ActualitéNotificationSupprime(sIDActualité, sNotification, nIDUtilisateur = UtilisateurEnCours:IDUtilisateur)
+      
+      // On doit être connecté
+      SI PAS EstConnecté() ALORS RETOUR
+      
+      // Si le document est vide, c'est l'abonnement global à l'actualité 
+      si sIDActualité~= "" ALORS
+      	ParamètreSupprime(sNotification + "_" + MODULE_ACTUALITES + "0_" + nIDUtilisateur)	
+      sinon
+      	ParamètreSupprime(sNotification + "_" + MODULE_ACTUALITES + sIDActualité + "_" + nIDUtilisateur)
+      FIN
+     type : 458752
+   -
+     name : ActualitéCréeNotification
+     procedure_id : 1577040858972430850
+     type_code : 15
+     code : |1-
+      // Résumé : Cette procédure permet d'enregistrer une notification (d'ajout ou de modification) pour une actualité
+      // Syntaxe :
+      //ActualitéCréeNotification (<sIDActu> [, <nIDUtilisateur>])
+      //
+      // Paramètres :
+      //	sIDActu : L'identifiant de l'actualité
+      //	nIDUtilisateur : L'identifiant de l'utilisateur pour lequel on doit écrire le paramètre
+      
+      Procédure ActualitéCréeNotification(sIDActu, nIDUtilisateur = UtilisateurEnCours:IDUtilisateur)
+      
+      // On doit être connecté
+      SI PAS EstConnecté() ALORS RETOUR
+      
+      si sIDActu ~= "" ALORS
+      	ParamètreEcrit(NOTIFICATION_actualite_CREATION + "_" + MODULE_ACTUALITEs + "0_" + nIDUtilisateur, "1")
+      sinon
+      	ParamètreEcrit(NOTIFICATION_ACTUALITE_MODIFICATION + "_" + MODULE_ACTUALITEs + sIDActu + "_" + nIDUtilisateur, "1")
+      FIN
+     type : 458752
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : COL_Collection1
+resources :
+ string_res :
+  identifier : 0x15acb28c55bc0267
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+  strings :
+   -
+     text :
+      fr-FR : Actualité '%1' non trouvée dans la base
+     index : 0
+   -
+     text :
+      fr-FR : Annonce de suppression d'une actualité
+     index : 2
+   -
+     text :
+      fr-FR : Actualité '%1'
+     index : 4
+   -
+     text :
+      fr-FR : N'hésitez pas à poser vos question sur l'actualité '%1'
+     index : 5
+   -
+     text :
+      fr-FR : Discussion sur l'actualité '%1'
+     index : 6
+   -
+     text :
+      fr-FR : Actualité non trouvée
+     index : 9
+   -
+     text :
+      fr-FR : "%1 vient de supprimer une actualité."
+     index : 10
+   -
+     text :
+      fr-FR : "Actualité : %2 du %3"
+     index : 11
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ

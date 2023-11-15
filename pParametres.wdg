@@ -1,0 +1,205 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : pParametres
+ major_version : 28
+ minor_version : 0
+ type : 7
+ description : ""
+ subtype : 0
+procedure_set :
+ identifier : 0x155095c3000872fe
+ internal_properties : CAAAAAgAAABGLu41kG7fjQV3iS4F72qmnKaNh5694reolNKIW0iw
+ code_elements :
+  type_code : 31
+  p_codes :
+   -
+     code : |1-
+      
+      // Collection de procédures gérant les paramètres globaux et personnalisés
+      
+      constant
+      	PourTous = -1
+      FIN
+     type : 720896
+  procedures :
+   -
+     name : ParamètreLit
+     procedure_id : 1535892172044865453
+     type_code : 15
+     code : |1-
+      // Résumé : Lit la valeur d'un paramètre donné
+      // Syntaxe :
+      //[ <Résultat> = ] ParamètreLit (<sNom> [, <nIDUtilisateur> [, <sValeurDéfaut>]])
+      //
+      // Paramètres :
+      //	sNom : Nom du paramètre à lire
+      //	nIDUtilisateur (valeur par défaut=-1) : Identifiant de l'utilisateur concerné ou PourTous pour un paramètre global
+      //	sValeurDéfaut (valeur par défaut="") : < indiquez ici le rôle de sValeurDéfaut >
+      // Valeur de retour :
+      // 	chaîne : Valeur du paramètre
+      //
+      Procédure ParamètreLit(sNom, nIDUtilisateur = PourTous, sValeurDéfaut = "")
+      
+      	sValeur est une chaine
+      
+      	GUID est une chaîne = HFSauvePosition(Parametre..Nom)
+      	
+      	// Recherche le paramètre
+      	HLitRecherchePremier(Parametre, CléParUtilisateur, [sNom, nIDUtilisateur])
+      	si htrouve(Parametre) ALORS
+      		sValeur = Parametre.Valeur
+      	sinon
+      		sValeur = sValeurDéfaut
+      	FIN
+      	
+      	HFRetourPosition(GUID)
+      	
+      renvoyer sValeur
+     type : 458752
+   -
+     name : ParamètreEcrit
+     procedure_id : 1535893078283045416
+     type_code : 15
+     code : |1-
+      // Résumé : Ecrit la valeur d'un paramètre donné
+      // Syntaxe :
+      //ParamètreEcrit (<sNom>, <sValeur> [, <nIDUtilisateur>])
+      //
+      // Paramètres :
+      //	sNom : Nom du paramètre
+      //	sValeur : Valeur du paramètre
+      //	nIDUtilisateur (valeur par défaut=-1) : Identifiant de l'utilisateur concerné ou PourTous pour un paramètre global
+      // Valeur de retour :
+      // 	Aucune
+      //
+      Procédure ParamètreEcrit(sNom, sValeur, nIDUtilisateur = PourTous)
+      
+      	GUID est une chaîne = HFSauvePosition(Parametre..nom)
+      	
+      	// Recherche le paramètre
+      	HLitRecherchePremier(Parametre, CléParUtilisateur, [sNom, nIDUtilisateur])
+      	SI HTrouve(Parametre) ALORS	
+      		Parametre.Valeur = sValeur
+      		hmodifie(Parametre)
+      	sinon
+      		// Crée le paramètre
+      		Parametre.Clé = sNom
+      		Parametre.Valeur = sValeur
+      		parametre.IDUtilisateur = nIDUtilisateur
+      		hajoute(Parametre)
+      	FIN
+      	
+      	HFRetourPosition(GUID)
+     type : 458752
+   -
+     name : ParamètreSupprime
+     procedure_id : 1535893954456511857
+     type_code : 15
+     code : |1-
+      // Résumé : Supprime un paramètre donné
+      // Syntaxe :
+      //[ <Résultat> = ] ParamètreSupprime (<sNom> [, <nIDUtilisateur>])
+      //
+      // Paramètres :
+      //	sNom : Nom du paramètre à supprimer
+      //	nIDUtilisateur (valeur par défaut=-1) : Identifiant de l'utilisateur concerné ou PourTous pour un paramètre global
+      // Valeur de retour :
+      // 	booléen : Vrai si le paramètre a été supprimé, Faux dans le cas contraire
+      //
+      Procédure ParamètreSupprime(sNom, nIDUtilisateur = PourTous)
+      
+      	bRetour est un booléen
+      
+      	GUID est une chaîne = HFSauvePosition(Parametre..Nom)
+      	
+      	// Recherche le paramètre
+      	HLitRecherchePremier(Parametre, CléParUtilisateur, [sNom, nIDUtilisateur])
+      	si htrouve(Parametre) ALORS
+      		Hsupprime(Parametre)
+      		bRetour = vrai
+      	FIN
+      	
+      	HFRetourPosition(GUID)
+      	
+      renvoyer bRetour
+     type : 458752
+   -
+     name : ParamètreListe
+     procedure_id : 1535898532892715831
+     type_code : 15
+     code : |1-
+      // Résumé : Liste les paramètres et leur valeur
+      // Syntaxe :
+      //[ <Résultat> = ] ParamètreListe ( [<nIDUtilisateur> [, <sDébutClé> [, <bAvecValeur>]]])
+      //
+      // Paramètres :
+      //	nIDUtilisateur (valeur par défaut=-1) : Identifiant de l'utilisateur concerné ou PourTous pour un paramètre global
+      //	sDébutClé (valeur par défaut="") : Début du nom de la clé pour lister toutes les clés correspondantes
+      // 	bAvecValeur (valeur par défaut=1) : < indiquez ici le rôle de bAvecValeur >
+      // Valeur de retour :
+      // 	chaîne : Liste des paramètres. Format : <Nom 1> TAB <Valeur 1> RC ... RC <Nom N> TAB <Valeur N>
+      //
+      Procédure ParamètreListe(nIDUtilisateur = PourTous, sDébutClé = "", bAvecValeur = vrai)
+      
+      	sListe est une chaine
+      
+      	GUID est une chaîne = HFSauvePosition(Parametre..Nom)
+      	
+      	si sDébutClé <> "" alors
+      		
+      		pour tout Parametre AVEC "IDUtilisateur = " + nIDUtilisateur + " ET Clé ]= '" + remplace(sDébutClé, "'", "\'") + "'"
+      			sListe += [RC] + Parametre.Clé + (bAvecValeur ? TAB + Parametre.Valeur	 sinon "")
+      		FIN
+      				
+      	sinon
+      		POUR TOUT Parametre AVEC IDUtilisateur = nIDUtilisateur
+      			sListe += [RC] + Parametre.Clé + (bAvecValeur ? TAB + Parametre.Valeur	 SINON "")
+      		FIN	
+      	FIN
+      	
+      	
+      	HFRetourPosition(GUID)
+      	
+      renvoyer sListe
+     type : 458752
+   -
+     name : ParamètreExiste
+     procedure_id : 1580377514588342820
+     type_code : 15
+     code : |1-
+      // Résumé : Vérifie si un paramètre existe
+      // Syntaxe :
+      //[ <Résultat> = ] ParamètreExiste (<sNom> [, <nIDUtilisateur>])
+      //
+      // Paramètres :
+      //	sNom : Nom du paramètre à lire
+      //	nIDUtilisateur (valeur par défaut=-1) : Identifiant de l'utilisateur concerné ou PourTous pour un paramètre global
+      // Valeur de retour :
+      // 	booléen : Vrai si le paramètre existe, Faux sinon
+      //
+      Procédure ParamètreExiste(sNom, nIDUtilisateur = PourTous)
+      
+      	bExiste est un booléen
+      
+      	GUID est une chaîne = HFSauvePosition(Parametre..Nom)
+      	
+      	// Recherche le paramètre
+      	HRecherchePremier(Parametre, CléParUtilisateur, [sNom, nIDUtilisateur])
+      	bExiste = htrouve(Parametre)	
+      	
+      	HFRetourPosition(GUID)
+      	
+      renvoyer bExiste
+     type : 458752
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : COL_Collection1
+resources :
+ string_res :
+  identifier : 0x10ed915026f5d4ca
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ

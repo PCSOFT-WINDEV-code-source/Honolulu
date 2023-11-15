@@ -1,0 +1,407 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : pPiecesJointes
+ major_version : 28
+ minor_version : 0
+ type : 7
+ description : ""
+ subtype : 0
+procedure_set :
+ identifier : 0x1553390400635dc3
+ internal_properties : CAAAAAgAAABGLu41kG7fjQV3iS4F72qmnKaNh5694reolNKIW0iw
+ code_elements :
+  type_code : 31
+  p_codes :
+   -
+     internal_properties : CAAAAAgAAADm4ZIMM4I1aBOekxYChyTfqxh5JXzlnKYhe0/TnYcG1x+YvDl9BQePHkpL0TXitxTn+Je3y0EB+Pt0dnHbpP+XnAde6x4S/5TxrYaEUZTVuWL5qOEpEXG/swHz8pgD2m0W3f/zA30MFVa/Vw==
+     code : |1-
+      // Collection de procédures de gestion des Pièces jointes (upload, téléchargement...)
+      
+      // Définition des types de pièces jointes
+      constant
+      	pjImage 	= 1
+      	pjAutre 	= 2
+      FIN
+     type : 720896
+  procedures :
+   -
+     name : PJEnregistre
+     internal_properties : CAAAAAgAAAAeQeZWqR4YD9gNuw5ISpse4q5d4YfQh8vxSSLWonylqfGpzXAstIQfjtu5yNZJ9N/c91UXiZv53fcJCNn0zKQH2jXtD1BPimLproJX87E+1RbRiyhFUUvyPW0p6P5mipLcRRthNLb+/G4cHMU2fOcWaLmnLrlIMic+6HTcyeP/rQgO
+     procedure_id : 1536634720356718018
+     type_code : 15
+     code : |1+
+      // Résumé : Enregistre une pièce jointe
+      // Syntaxe :
+      //[ <Résultat> = ] PJEnregistre (<sClé>, <sFichier> [, <nType> [, <sInfo> [, <nIDPropriétaire>]]])
+      //
+      // Paramètres :
+      //	sClé : Variable de type chaine qui recevra la clé de la pièce jointe
+      //	sFichier : Fichier de la pièce jointe
+      //	nType (valeur par défaut=2) : Type de la pièce jointe (pjImage, pjAutre)
+      //	sInfo (valeur par défaut="") : Infos supplémentaires
+      //	nIDPropriétaire (valeur par défaut=-1) : Utilisateur propriétaire (pourTous si pas de propriétaire)
+      // Valeur de retour :
+      // 	booléen : Vrai si la pièce jointe a pu être enregistrée, Faux sinon
+      //// Traitement automatique des exceptions :   exécuter le bloc de code CAS EXCEPTION:
+      //
+      
+      Procédure PJEnregistre(sClé, sFichier, nType = pjautre, sInfo = "", nIDPropriétaire = -1)
+      
+      // Variables locales
+      bRetour 		est un booléen
+      GUID 			est une chaîne 
+      
+      // Sauvegarde du contexte
+      GUID = HFSauvePosition(PieceJointe..nom)
+      
+      // Génère une clé
+      sClé = DonneGUID(guidBrut)
+      
+      // Définition de la pièce jointe
+      hraz(PieceJointe)
+      PieceJointe.Clé 				= sClé
+      PieceJointe.DateHeureCréation 	= datedujour + maintenant
+      piecejointe.IDUtilisateur 		= nIDPropriétaire
+      PieceJointe.Info 				= sInfo
+      piecejointe.Type 				= nType
+      PieceJointe.FichierNom 			= fExtraitChemin(sFichier,fFichier+fExtension)
+      PieceJointe.FichierTaille 		= ftaille(sFichier)
+      PieceJointe.FichierTypeMIME 	= TypeMIME(sFichier)
+      	
+      // Attache la pièce jointe
+      HAttacheMémo(PieceJointe, Mémo, sFichier, hAccepteFichierOuvert)
+      
+      // Enregistre la pièce jointe
+      bRetour = hajoute(PieceJointe)
+      
+      // Restauration du contexte
+      HFRetourPosition(GUID)
+      	
+      // Renvoie le compte-rendu	
+      renvoyer bRetour	
+      
+      CAS EXCEPTION:
+      	dbgAssertion(Faux,<§@155338f90061321f0000§>+ExceptionInfo(errComplet))
+      	HFRetourPosition(GUID)
+      	RENVOYER Faux
+     type : 458752
+   -
+     name : PJModifie
+     internal_properties : CAAAAAgAAAAeQeZWqR4YD9gNuw5ISpse4q5d4YfQh8vxSSLWonylqfGpzXAstIQfjtu5yNZJ9N/c91UXiZv53fcJCNn0zKQH2jXtD1BPimLproJX87E+1RbRiyhFUUvyPW0p6P5mipLcRRthNLb+/G4cHMU2fOcWaLmnLrlIMic+6HTcyeP/rQgO
+     procedure_id : 1536636159170834924
+     type_code : 15
+     code : |1-
+      // Résumé : Modifie une pièce jointe
+      // Syntaxe :
+      //[ <Résultat> = ] PJModifie (<sClé>, <sFichier> [, <sInfo>])
+      //
+      // Paramètres :
+      //	sClé : Clé de la pièce jointe
+      //	sFichier : Fichier de la pièce jointe
+      //	sInfo (valeur par défaut="") : Infos supplémentaires
+      // Valeur de retour :
+      // 	booléen : Vrai si la pièce jointe a été modifiée, Faux sinon
+      //// Traitement automatique des exceptions :   exécuter le bloc de code CAS EXCEPTION:
+      //
+      
+      Procédure PJModifie(sClé, sFichier, sInfo = "")
+      
+      // Variables locales
+      bRetour 		est un booléen
+      GUID 			est une chaîne 
+      
+      // Sauvegarde du contexte
+      GUID = HFSauvePosition(PieceJointe..nom)
+      
+      // Recherche de la pièce jointe
+      HLitRecherchePremier(PieceJointe, Clé, sClé)
+      si htrouve(PieceJointe) ALORS
+      	// Mise à jour des informations		
+      	PieceJointe.Info 			= sInfo
+      	PieceJointe.FichierNom 		= fExtraitChemin(sFichier,fFichier+fExtension)
+      	PieceJointe.FichierTaille 	= fTaille(sFichier)
+      	PieceJointe.FichierTypeMIME = TypeMIME(sFichier)		
+      			
+      	// Attache la pièce jointe
+      	HAttacheMémo(PieceJointe, Mémo, sFichier, hAccepteFichierOuvert)
+      	
+      	// Enregistre la pièce jointe
+      	Hmodifie(PieceJointe)
+      	bRetour = vrai		
+      FIN
+      
+      // Restauration du contexte
+      HFRetourPosition(GUID)
+      
+      // Renvoie le compte-rendu		
+      renvoyer bRetour	
+      
+      CAS EXCEPTION:
+      	dbgAssertion(Faux,<§@155338f90061321f0000§>+ExceptionInfo(errComplet))
+      	HFRetourPosition(GUID)
+      	RENVOYER Faux
+     type : 458752
+   -
+     name : PJSupprime
+     internal_properties : CAAAAAgAAAAeQeZWqR4YD9gNuw5ISpse4q5d4YfQh8vxSSLWonylqfGpzXAstIQfjtu5yNZJ9N/c91UXiZv53fcJCNn0zKQH2jXtD1BPimLproJX87E+1RbRiyhFUUvyPW0p6P5mipLcRRthNLb+/G4cHMU2fOcWaLmnLrlIMic+6HTcyeP/rQgO
+     procedure_id : 1536636519948105924
+     type_code : 15
+     code : |1-
+      // Résumé : Supprime une pièce jointe
+      // Syntaxe :
+      //[ <Résultat> = ] PJSupprime (<sClé>)
+      //
+      // Paramètres :
+      //	sClé : Clé de la pièce jointe
+      // Valeur de retour :
+      // 	booléen : Vrai si la pièce jointe a été supprimée, Faux sinon
+      //// Traitement automatique des exceptions :   exécuter le bloc de code CAS EXCEPTION:
+      //
+      
+      Procédure PJSupprime(sClé)
+      
+      // Variables locales
+      bRetour 		est un booléen
+      GUID 			est une chaîne 
+      
+      // Sauvegarde du contexte
+      GUID = HFSauvePosition(PieceJointe..Nom)
+      
+      // Recherche de la pièce jointe
+      HLitRecherchePremier(PieceJointe, Clé, sClé)
+      si htrouve(PieceJointe) ALORS
+      	// Suppression
+      	hsupprime(PieceJointe)
+      	bRetour = vrai		
+      FIN
+      
+      // Restauration du contexte
+      HFRetourPosition(GUID)
+      
+      // Renvoie le compte-rendu		
+      renvoyer bRetour	
+      
+      CAS EXCEPTION:		
+      	dbgAssertion(Faux,<§@155338f90061321f0000§>+ExceptionInfo(errComplet))
+      	HFRetourPosition(GUID)
+      	RENVOYER Faux
+     type : 458752
+   -
+     name : PJRécupère
+     procedure_id : 1536668049378590320
+     type_code : 15
+     code : |1-
+      // Résumé : Récupère  une pièce jointe
+      // Syntaxe :
+      //[ <Résultat> = ] PJRécupère (<sClé> [, <sInfos> [, <sTypeMIME> [, <nTaille> [, <sNomFichier>]]]])
+      //
+      // Paramètres :
+      //	sClé : Clé de la pièce jointe
+      //	sInfos (valeur par défaut="") : Variable qui va contenir les infos
+      //	sTypeMIME (valeur par défaut="") : Variable qui va contenir le type MIME
+      //	nTaille (valeur par défaut=0) : Variable qui va contenir la taille
+      //	sNomFichier (valeur par défaut="") : Variable qui va contenir le nom de fichier d'origine
+      // Valeur de retour :
+      // 	Type indéterminé : Contenu de la pièce jointe
+      //
+      Procédure PJRécupère(sClé, sInfos = "", sTypeMIME = "", nTaille = 0, sNomFichier = "")
+      
+      // Variables locales
+      bufContenu 		est un buffer
+      GUID 			est une chaîne 
+      
+      // Si aucune clé n'a été spécifié
+      si sClé ~= "" alors renvoyer ""
+      
+      // Sauvegarde du contexte
+      GUID = HFSauvePosition(PieceJointe..Nom)
+      
+      // Recherche de la pièce jointe	
+      HLitRecherchePremier(PieceJointe, Clé, sClé)
+      si htrouve(PieceJointe) ALORS
+      	// Récupération des informations
+      	bufContenu  = piecejointe.memo		
+      	sInfos 		= piecejointe.Info
+      	sTypeMIME 	= piecejointe.FichierTypeMIME
+      	nTaille 	= piecejointe.FichierTaille
+      	sNomFichier = piecejointe.FichierNom
+      FIN
+      	
+      // Restauration du contexte
+      HFRetourPosition(GUID)
+      
+      // Renvoie le compte-rendu			
+      renvoyer bufContenu	
+     type : 458752
+   -
+     name : PJRécupèreURL
+     internal_properties : CAAAAAgAAAD5gsWZCzvb35WyHrcPMtMvvfVo21gxMo/8TLU9YxKIe5tFPIg/829RNX7m7TDrx7Uep2iFgAAzC4wARwapCBmMUzg566M+MGntC1vcCugOIcO4lJbWq903xDtJjClD55K8v700GEgAz9DxubvGsbYnJJ4x5fKqgwTOna+6HasRydi3uiSg/QPP6kL6TYMAqO1/ADNEdhu7IV2fcU90mtvB2T1xuRYXkIf8huTZRXPehCTPVGM=
+     procedure_id : 1536669002861748109
+     type_code : 15
+     code : |1+
+      // Résumé : Récupère l'URL d'une pièce jointe
+      // Syntaxe :
+      //[ <Résultat> = ] PJRécupèreURL (<sClé> [, <bComplet>])
+      //
+      // Paramètres :
+      //	sClé : Clé de la pièce jointe
+      //	bComplet (valeur par défaut=1) : type d'url à renvoyer : Vrai pour avoir une URL complète, Faux pour une URL relative
+      // Valeur de retour :
+      // 	Type indéterminé : URL de la pièce jointe
+      //
+      Procédure PJRécupèreURL(sClé, bComplet = vrai, bSessionNonPersistente = faux)
+      
+      // Quel est le type d'URL souhaité	
+      si bComplet = vrai ALORS
+      	// URL complète
+      	RENVOYER "/" + RépertoireWeb() + <§@155338f90061321f0001§> + AWP_EXT + "?" + (bSessionNonPersistente ? "%SESSIONID%" sinon "AWPSESSIONID=" + gsIdentifiant) + "&cle=" + sClé	
+      sinon
+      	// URL relative
+      	RENVOYER <§@155338f90061321f0002§> + AWP_EXT + "?" + (bSessionNonPersistente ? "%SESSIONID%" SINON "AWPSESSIONID=" + gsIdentifiant) + "&cle=" + sClé
+      FIN
+     type : 458752
+   -
+     name : PJCléExiste
+     procedure_id : 1537011273133939758
+     type_code : 15
+     code : |1-
+      // Résumé : Vérifie si une clé de pièce jointe existe déjà
+      // Syntaxe :
+      //[ <Résultat> = ] PJCléExiste (<sClé>)
+      //
+      // Paramètres :
+      //	sClé : Clé de la pièce jointe
+      // Valeur de retour :
+      // 	booléen : Vrai si la clé de pièce jointe existe déjà
+      //
+      Procédure PJCléExiste(sClé)
+      
+      // Variables locales
+      bRetour 		est un booléen
+      GUID 			est une chaîne 
+      
+      // Sauvegarde du contexte
+      GUID = HFSauvePosition(PieceJointe..Nom)
+      
+      // Recherche de la pièce jointe
+      HLitRecherchePremier(PieceJointe, Clé, sClé)
+      si htrouve(PieceJointe) ALORS
+      	bRetour = vrai		
+      FIN
+      
+      // Restauration du contexte
+      HFRetourPosition(GUID)
+      
+      // Renvoie le compte-rendu	
+      renvoyer bRetour	
+     type : 458752
+   -
+     name : PJDuplique
+     internal_properties : CAAAAAgAAAAeQeZWqR4YD9gNuw5ISpse4q5d4YfQh8vxSSLWonylqfGpzXAstIQfjtu5yNZJ9N/c91UXiZv53fcJCNn0zKQH2jXtD1BPimLproJX87E+1RbRiyhFUUvyPW0p6P5mipLcRRthNLb+/G4cHMU2fOcWaLmnLrlIMic+6HTcyeP/rQgO
+     procedure_id : 1561931425039823021
+     type_code : 15
+     code : |1-
+      // Résumé : Permet de dupliquer une Pièce Jointe
+      // Syntaxe :
+      //[ <Résultat> = ] PJDuplique (<sClé>)
+      //
+      // Paramètres :
+      //	sClé : Clé de la pièce jointe à dupliquer
+      // Valeur de retour :
+      // 	chaîne : Clé de la nouvelle pièce jointe
+      // Traitement automatique des exceptions :   exécuter le bloc de code CAS EXCEPTION:
+      //
+      
+      Procédure PJDuplique(sClé)
+      
+      // Variables locales
+      sNouvelleClé 	est une chaine
+      GUID 			est une chaîne 
+      
+      // Sauvegarde du contexte
+      GUID = HFSauvePosition(PieceJointe..Nom)
+      
+      // Recherche de la pièce jointe
+      HLitRecherchePremier(PieceJointe, Clé, sClé)
+      
+      SI HTrouve(PieceJointe) ALORS
+      	// Génère une clé
+      	sNouvelleClé = DonneGUID(guidBrut)
+      	PieceJointe.Clé = sNouvelleClé
+      	Hajoute(PieceJointe)
+      fin
+      
+      // Restauration du contexte
+      HFRetourPosition(GUID)
+      
+      // Renvoie la nouvelle clé de la pièce jointe
+      renvoyer sNouvelleClé
+      
+      CAS EXCEPTION:
+      	dbgAssertion(Faux,<§@155338f90061321f0000§>+ExceptionInfo(errComplet))
+      	HFRetourPosition(GUID)
+      	RENVOYER ""
+     type : 458752
+   -
+     name : PJRécupèreInfoFichier
+     internal_properties : CAAAAAgAAAAWYRJk0lrGafiYF+nWlNueQfbmGq6B5SaCZKxx6TISk3yROwLpzPDxgvqWkL7YOY5iUj4jvsitI5qmFab0xgw5aRKYtDiwzzagyCL3P9QrWOnmRjhY7ZKxfxSPlxLHfx4O1Wb2P4AMN3u+SXI7+9b7BFLYqVf4+yDb2Ccb8FDYRTXfh8W2YaD968BC0lc77sqYIDsy7eY=
+     procedure_id : 1562603080784607249
+     type_code : 15
+     code : |1-
+      // Résumé : Permet de récupérer le nom du fichier, son extension ou son nom + son extension
+      // Syntaxe :
+      //[ <Résultat> = ] PJRécupèreInfoFichier (<sClé> [, <nTypeInformation>])
+      //
+      // Paramètres :
+      //	sClé : Clé de la pièce jointe sur laquelle on veut les informations
+      //	nTypeInformation (valeur par défaut=12) : tout ce qu'accepte fExtraitChemin comme 2ème paramètre
+      // Valeur de retour :
+      // 	chaîne : renvoie l'information demandée
+      
+      Procédure PJRécupèreInfoFichier(sClé, nTypeInformation = fFichier + fextension)
+      
+      // Variables locales
+      sInfoFichier 	est une chaine
+      GUID 			est une chaîne 
+      
+      // Sauvegarde du contexte
+      GUID = HFSauvePosition(PieceJointe..Nom)
+      
+      // Recherche de la pièce jointe
+      HLitRecherchePremier(PieceJointe, Clé, sClé)
+      SI HTrouve(PieceJointe) ALORS
+      	// Récupération des informations
+      	sInfoFichier = fExtraitChemin(PieceJointe.FichierNom,nTypeInformation)
+      FIN
+      
+      // Restauration du contexte
+      HFRetourPosition(GUID)
+      
+      // Renvoie les informations
+      renvoyer sInfoFichier
+     type : 458752
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : COL_Collection1
+resources :
+ string_res :
+  identifier : 0x155338f90061321f
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+  strings :
+   -
+     text :
+      fr-FR : "Exception détectée : "
+     index : 0
+   -
+     text :
+      fr-FR : /FR/PAGE_PJ.
+     index : 1
+   -
+     text :
+      fr-FR : /FR/PAGE_PJ.
+     index : 2
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ

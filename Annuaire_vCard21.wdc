@@ -1,0 +1,1258 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : cvCard21
+ major_version : 28
+ minor_version : 0
+ type : 4
+ description : ""
+ subtype : 0
+class :
+ identifier : 0x15f173117e4646f7
+ internal_properties : CAAAAAgAAAB2/vstTMCJbS/hlxjFxirSqKvCUuv8YxgpWyl7S3iA
+ code_elements :
+  type_code : 10
+  p_codes :
+   -
+     internal_properties : CAAAAAgAAACegV9j6Sg2n5CERrTB3ZAH5NXXd3DYWO7i6uiRmV6Qqfokc6auolOjV0FZD0aIPhP5ukCL4Ds43ijVtys//sDjzkwkxRXtaxui6tFTSBm+tQvv1e7d6dWqYIIpMhS1VgnRat4qjakLkKg2b/wQVKj9Lnka20plPdWIbuh4CICP0kWEXcXKFhKz2yo2cdhl80va
+     code : |1-
+      // Classe de gestion des vCards
+      
+      // Structure pour les URL
+      stVCard21Url est une structure
+      	sURL 		est une chaine		// Adresse internet
+      	sWhereIs 	est une chaine		// Type de l'adresse (HOME, WORK)
+      	sContent 	est une chaine
+      FIN
+      
+      // Structure pour les Emails
+      stVCard21Email est une structure
+      	sEmail 		est une chaine		// Adresse email
+      	bDefault 	est un booléen		// Adresse par défaut ou non
+      	sContent 	est une chaine
+      FIN
+      
+      // Structure pour les adresses
+      stVCard21Address est une structure
+      	sWhereIs 	est une chaine		// Type de l'adresse (HOME, WORK)
+      	sBureau		est une chaine		// Numéro du bureau
+      	sRue		est une chaine		// Rue
+      	sVille   	est une chaine		// Ville
+      	sDept  		est une chaine		// Département
+      	sCode    	est une chaine		// Code postal
+      	sPays    	est une chaine		// Pays, région
+      	sContent 	est une chaine
+      FIN
+      
+      // Structure pour les numéro de téléphone, fax, ...
+      stVCard21Tel est une structure
+      	sAdr  		est une chaine		// Numéro de téléphone
+      	sWhereIs 	est une chaine		// Type du numéro (HOME, WORK, CELL)
+      	sType 		est une chaine		// Type de l'appareil (VOICE, RADIO, IP, FAX)
+      	sContent 	est une chaine
+      FIN
+      
+      cvCard21 est une classe
+      prive
+      	m_svCard21 		est une chaine				// Format vCard 2.1 (VCF)
+      	m_sFullName		est une chaine				// Nom complet (FN:)
+      	m_sName			est une chaine				// Nom (N:)
+      	m_sNickName  	est une chaine				// Pseudonyme (NICKNAME:)
+      	m_sOrganisation	est une chaine				// Société (ORG:)
+      	m_sTitle		est une chaine				// Titre (TITLE:)
+      	m_sNotes		est une chaine				// Notes, commentaires (NOTE:)
+      	m_tabTel		est un  tableau dynamique	// Téléphone(s) (TEL:)
+      	m_tabAdr		est un  tableau dynamique	// Adresse(s)	(ADR:)
+      	m_tabURL		est un  tableau dynamique	// Site(s) Web	(URL:)
+      	m_tabEmail		est un  tableau dynamique	// Email(s) Web	(EMAIL:)
+      	m_sBday			est une chaine				// Anniversaire (BDAY:)
+      	m_sRevision		est une chaine				// Révision	(REV:)
+      Fin
+      
+      constant
+      	// Constantes disponibles pour l'attribut WhereIs
+      	wiHOME 	= "HOME"
+      	wiWORK 	= "WORK"
+      	wiCELL 	= "CELL"
+      	wiPAGER = "PAGER"
+      	
+      	// Constantes disponibles pour l'attribut Type
+      	tpVOICE = "VOICE"
+      	tpFAX   = "FAX"
+      	
+      	// Constantes d'export
+      	vcFichier 	= "vcf"
+      	vcChaîne 	= "str"
+      	
+      	// Constante de manipulations
+      	QuotedPrintable = 1
+      	Texte 			= 2
+      FIN
+     type : 131072
+   -
+     code : |1-
+      
+     type : 131074
+  procedures :
+   -
+     name : Constructeur
+     procedure_id : 1581171463153993463
+     type_code : 27
+     code : |1-
+      Procédure Constructeur()
+      
+      // Format vCard 2.1
+      :m_svCard21 = [
+      BEGIN:VCARD
+      VERSION:2.1
+      %1
+      REV:%2
+      END:VCARD
+      ]
+      
+      // Date de révision
+      :m_sRevision = datesys + "T" + heuresys + "Z"
+      
+      // Alloue les tableaux Téléphone, Adresse, URL et Email
+      :m_tabTel 	= allouer un tableau dynamique de 0 stVCard21Tel	
+      :m_tabAdr 	= allouer un tableau dynamique de 0 stVCard21Address	
+      :m_tabURL 	= allouer un tableau dynamique de 0 stvCard21Url	
+      :m_tabEmail = allouer un tableau dynamique de 0 stVCard21Email	
+     type : 589824
+   -
+     name : Destructeur
+     procedure_id : 1581171463154058999
+     type_code : 28
+     code : |1-
+      Procédure Destructeur()
+     type : 655360
+   -
+     name : setNom
+     procedure_id : 1581171463154124535
+     type_code : 12
+     code : |1-
+      // Résumé : Définit le nom, les prénoms et la civilité du contact
+      // Syntaxe :
+      //setNom (<sNomFamille>, <sPrénom> [, <sPrénoms> [, <sTitre>]])
+      //
+      // Paramètres :
+      //	sNomFamille : 	Nom de famille
+      //	sPrénom : 		Prénom usuel
+      //	sPrénoms : 		Prénoms
+      //	sTitre : 		Civilité (M., Mme, Mlle)
+      // Valeur de retour :
+      // 	Aucune
+      //
+      Procédure setNom(local sNomFamille, local sPrénom, local sPrénoms = "", sTitre = "")
+      
+      sNomFamille = sansespace(sNomFamille)	
+      sPrénom     = sansespace(sPrénom)
+      sPrénoms    = sansespace(sPrénoms)
+      
+      :m_sName 	= "N:" + :_SiPasVide(sNomFamille, sNomFamille) + ";" + :_SiPasVide(sPrénom, sPrénom) + ";" + :_SiPasVide(sPrénoms, sPrénoms) + ";" + sansespace(:_SiPasVide(sTitre, sTitre))
+      :m_sFullName = "FN:" + sansespace(:_SiPasVide(sPrénom, sPrénom) + " " + :_SiPasVide(sPrénoms, sPrénoms)) + " " + :_SiPasVide(sNomFamille, sNomFamille)
+     type : 458752
+   -
+     name : setPseudonyme
+     procedure_id : 1581171463154190071
+     type_code : 12
+     code : |1-
+      // Résumé : Définit un pseudonyme pour le contact
+      // Syntaxe :
+      //setPseudonyme ( [<sPseudonyme>])
+      //
+      // Paramètres :
+      //	sPseudonyme : Pseudonyme
+      // Valeur de retour :
+      // 	Aucune
+      //
+      Procédure setPseudonyme(sPseudonyme = "")
+      
+      :m_sNickName = "NICKNAME:" + :_SiPasVide(sansespace(sPseudonyme),sansespace(sPseudonyme))
+     type : 458752
+   -
+     name : setSociété
+     procedure_id : 1581171463154255607
+     type_code : 12
+     code : |1-
+      // Résumé : Définit les informations de la société : Nom, Fonction et Service du contact dans la société
+      // Syntaxe :
+      //setSociété (<sNomSociété>, <sTitre> [, <sNomService>])
+      //
+      // Paramètres :
+      //	sNomSociété : 	Nom de la société
+      //	sTitre : 		Fonction du contact dans la société
+      //	sNomService : 	Nom du service dans la société
+      // Valeur de retour :
+      // 	Aucune
+      
+      Procédure setSociété(sNomSociété, sTitre, sNomService = "")
+      
+      :m_sOrganisation 	= "ORG:" + :_SiPasVide(sansespace(sNomSociété),sansespace(sNomSociété)) + ";" + :_SiPasVide(sansespace(sNomService),sansespace(sNomService))
+      :m_sTitle 			= "TITLE:" + :_SiPasVide(sansespace(sTitre),sansespace(sTitre))
+     type : 458752
+   -
+     name : setCommentaires
+     procedure_id : 1581171463154321143
+     type_code : 12
+     code : |1-
+      // Résumé : Définit les commentaires de ce contact
+      // Syntaxe :
+      //setCommentaires ( [<sCommentaire>])
+      //
+      // Paramètres :
+      //	sCommentaire : Commentaires
+      // Valeur de retour :
+      // 	Aucune
+      //
+      Procédure setCommentaires(sCommentaire = "")
+      
+      :m_sNotes = "NOTE;ENCODING=QUOTED-PRINTABLE:" + :_Encode(sansespace(sCommentaire), ::QuotedPrintable)
+     type : 458752
+   -
+     name : setAnniversaire
+     procedure_id : 1581171463154386679
+     type_code : 12
+     code : |1-
+      // Résumé : Définit la date d'anniversaire 
+      // Syntaxe :
+      //setAnniversaire (<dDate>)
+      //
+      // Paramètres :
+      //	dDate : Date d'anniversaire
+      // Valeur de retour :
+      // 	Aucune
+      //
+      Procédure setAnniversaire(dDate)
+      
+      // Si la date est valide
+      si datevalide(dDate) alors
+      	// Renseigne la date
+      	:m_sBday = "BDAY:" + dDate
+      sinon // Si la date n'est pas valide
+      	// Renseigne une chaine vide ("")
+      	:m_sBday = ""
+      fin
+     type : 458752
+   -
+     name : addTelephone
+     procedure_id : 1581171463154452215
+     type_code : 12
+     code : |1-
+      // Résumé : Ajoute un numéro de téléphone (ou fax, mobile,...) pour le contact
+      // Syntaxe :
+      //[ <Résultat> = ] addTelephone (<sNuméro> [, <sWhereIS> [, <sType>]])
+      //
+      // Paramètres :
+      //	sNuméro : 	Numéro de téléphone
+      //	sWhereIS (valeur par défaut="HOME") : 	Localisation (HOME, WORK, CELL, PAGER)
+      //	sType (valeur par défaut="VOICE") : 	Type de numéro (VOICE ou FAX)
+      // Valeur de retour :
+      // 	booléen :  	VRAI si le numéro a été ajouté, FAUX sinon
+      //
+      Procédure addTelephone(LOCAL sNuméro, sWhereIS = ::wiHOME, sType = ::tpVOICE)
+      
+      // Supprime les espaces avant et après le numéro
+      sNuméro = sansespace(sNuméro)
+      
+      // Si le numéro est bien renseigné
+      si sNuméro <> "" alors
+      	
+      	// Vérifie si le type de numéro est correct
+      	si (sWhereIS <> ::wiHOME et sWhereIS <> ::wiCELL et sWhereIS <> ::wiPAGER et sWhereIS <> ::wiWORK) alors
+      		renvoyer faux
+      	FIN
+      	
+      	// Vérifie le mode
+      	si (sType <> ::tpFAX et sType <> ::tpVOICE) alors
+      		renvoyer faux
+      	FIN			
+      	
+      	// Ajoute le numéro
+      	dimension(:m_tabTel, dimension(:m_tabTel) + 1)
+      	:m_tabTel[dimension(:m_tabTel)]:sAdr 		= sNuméro
+      	:m_tabTel[dimension(:m_tabTel)]:sWhereIS 	= sWhereIS
+      	:m_tabTel[dimension(:m_tabTel)]:sType 		= sType
+      	
+      	// Génère le contenu
+      	:m_tabTel[dimension(:m_tabTel)]:sContent = "TEL;" + sWhereIS + ";" + sType + ":" + sNuméro
+      	
+      	// L'ajout du numéro est effectif
+      	renvoyer vrai	
+      FIN
+      
+      // L'ajout n'a pas été fait
+      renvoyer faux
+     type : 458752
+   -
+     name : addAdresse
+     procedure_id : 1581171463154517751
+     type_code : 12
+     code : |1-
+      // Résumé : Ajoute une adresse au contact 
+      // Syntaxe :
+      //[ <Résultat> = ] addAdresse (<sWhereIS>, <sBureau>, <sRue>, <sVille>, <sDépartement>, <sCodePostal>, <sPaysRégion>)
+      //
+      // Paramètres :
+      //	sWhereIS : 		Localisation (HOME, WORK)
+      //	sBureau : 		Bureau
+      //	sRue : 			Adresse (numéro + rue)
+      //	sVille : 		Ville
+      //	sDépartement : 	Département
+      //	sCodePostal : 	Code postal
+      //	sPaysRégion : 	Pays ou région
+      // Valeur de retour :
+      // 	booléen :   		VRAI si l'adresse a été ajoutée, FAUX dans le cas contraire
+      //
+      Procédure addAdresse(sWhereIS, sBureau, sRue, sVille, sDépartement, sCodePostal, sPaysRégion)
+      
+      // Supprime les espaces superflus
+      sRue = sansespace(sRue)
+      
+      // Vérifie si le type d'adresse est correct
+      si (sWhereIS <> ::wiHOME et sWhereIS <> ::wiWORK) alors
+      	renvoyer faux
+      FIN
+      
+      // Ajoute l'adresse
+      dimension(:m_tabAdr, dimension(:m_tabAdr) + 1)
+      :m_tabAdr[dimension(:m_tabadr)]:sWhereIS = sWhereIS
+      :m_tabAdr[dimension(:m_tabAdr)]:sBureau  = sansespace(sBureau)
+      :m_tabAdr[dimension(:m_tabAdr)]:sRue  	  = sansespace(sRue)
+      :m_tabAdr[dimension(:m_tabAdr)]:sVille   = sVille
+      :m_tabAdr[dimension(:m_tabAdr)]:sDept    = sDépartement
+      :m_tabAdr[dimension(:m_tabAdr)]:sCode    = sCodePostal
+      :m_tabAdr[dimension(:m_tabAdr)]:sPays    = sPaysRégion
+      
+      // Génère le contenu
+      :m_tabAdr[dimension(:m_tabAdr)]:sContent = "ADR;" + sWhereIS + ";ENCODING=QUOTED-PRINTABLE:;" + sBureau + ";" + :_Encode(:m_tabAdr[dimension(:m_tabAdr)]:sRue) + ";" + ...
+      sVille + ";" + sDépartement + ";" + sCodePostal + ";" + sPaysRégion + rc + ...
+      "LABEL;" + sWhereIS + ";ENCODING=QUOTED-PRINTABLE:" + :_Encode(...
+      sRue + rc + sVille + ", " + sDépartement + " " + sCodePostal + rc + sPaysRégion, ::QuotedPrintable)
+      
+      renvoyer vrai	
+     type : 458752
+   -
+     name : addURL
+     procedure_id : 1581171463154583287
+     type_code : 12
+     code : |1-
+      // Résumé : Ajoute une URL au contact
+      // Syntaxe :
+      //[ <Résultat> = ] addURL (<sURL> [, <sWhereIS>])
+      //
+      // Paramètres :
+      //	sURL : 			Adresse URL
+      //	sWhereIS (valeur par défaut="HOME") : 		Localisation (HOME, WORK)
+      // Valeur de retour :
+      // 	booléen :  		VRAI si l'URL a été ajoutée, FAUX dans le cas contraire
+      //
+      Procédure addURL(LOCAL sURL, sWhereIS = ::wiHOME)
+      
+      sURL = :_SiPasVide(sURL,sansespace(sURL))
+      
+      // Si l'URL est bien renseigné
+      si sURL <> "" alors
+      	
+      	// Vérifie si le type d'URL est correct
+      	si (sWhereIS <> ::wiHOME et sWhereIS <> ::wiWORK) alors
+      		renvoyer faux
+      	FIN
+      	
+      	// Ajoute l'URL
+      	dimension(:m_tabURL, dimension(:m_tabURL) + 1)
+      	:m_tabURL[dimension(:m_tabURL)]:sURL = sURL
+      	:m_tabURL[dimension(:m_tabURL)]:sWhereIS = sWhereIS
+      	
+      	// Génère le contenu
+      	:m_tabURL[dimension(:m_tabURL)]:sContent = "URL;" + sWhereIS + ":" + sURL
+      	
+      	// L'ajout est effectif
+      	renvoyer vrai	
+      FIN
+      
+      // L'URL n'a pas été ajoutée
+      renvoyer faux
+     type : 458752
+   -
+     name : addEmail
+     procedure_id : 1581171463154648823
+     type_code : 12
+     code : |1-
+      // Résumé : Ajoute une adresse email au contact
+      // Syntaxe :
+      //[ <Résultat> = ] addEmail (<sEmail> [, <bDefault>])
+      //
+      // Paramètres :
+      //	sEmail : 							Adresse email
+      //	bDefault (valeur par défaut=0) : 	VRAI s'il s'agit de l'adresse Email par défaut, FAUX dans le cas contraire
+      // Valeur de retour :
+      // 	booléen :   						VRAI si l'adresse email a été ajoutée, FAUX dans le cas contraire
+      //
+      Procédure addEmail(LOCAL sEmail, bDefault = faux)
+      
+      // Supprime les espaces superflus
+      sEmail = sansespace(sEmail)
+      
+      // Si l'adresse email est bien renseignée
+      si sEmail <> "" alors
+      	
+      	// Ajoute l'email
+      	dimension(:m_tabEmail, dimension(:m_tabEmail) + 1)
+      	:m_tabEmail[dimension(:m_tabEmail)]:sEmail = sEmail
+      	:m_tabEmail[dimension(:m_tabEmail)]:bDefault = bDefault
+      	
+      	// Génère le contenu		
+      	si bDefault alors
+      		:m_tabEmail[dimension(:m_tabEmail)]:sContent = "EMAIL;PREF;INTERNET:" + sEmail
+      	sinon
+      		:m_tabEmail[dimension(:m_tabEmail)]:sContent = "EMAIL;INTERNET:" + sEmail
+      	fin
+      	
+      	// L'ajout est effectif
+      	renvoyer vrai	
+      FIN
+      
+      // L'adresse email n'a pas été ajoutée
+      renvoyer faux
+     type : 458752
+   -
+     name : Export
+     internal_properties : CAAAAAgAAADQDcOFwlJ/0F2rRGoAL/PTwzVWVRyRjcRx3fGpPDtJtA1K/WQ6XmcTat8ApCL0EW1XKCMPjbaQRV//JwJZkm8kR276J9bmllJtBBEf0y1bYhuFH+64jeNA+WexQBS1qqy3tLly1dbzXGvFVxlJjQFPNbXNvX32JAuPm8sYzptw21/lE4DTfkt2xrwri15AGEjz6mCO2y4RQ2CrL0rozbU6z5+T
+     procedure_id : 1581171463154714359
+     type_code : 12
+     code : |1+
+      // Résumé : Exporte le contact dans un fichier VCard (.vcf)
+      // Syntaxe :
+      // [ <Résultat> = ] Export (<cDest>, <sDestination>)
+      //
+      // Paramètres :
+      // 	cDest : 		Type de destination : vcFichier pour un fichier OU vcChaîne pour une chaine
+      // 	sDestination : 	Chemin du fichier de destination (dans le cas d'un export dans un fichier)
+      // Valeur de retour :
+      // 	booléen : 		VRAI si l'export a eu lieu, FAUX dans le cas contraire
+      //
+      
+      Procédure Export(cDest, sDestination)
+      
+      // Variables locales
+      sVCF 			est une chaine	// Chaine contenant toutes les informations du contact formatées
+      nTailleTableau 	est un entier	// Taille du tableau manipulé (optimisation)
+      
+      // Remplit la chaine avec les informations disponibles
+      sVCF = ...
+      :m_sName 			+ :_SiPasVide(:m_sName, rc) 	 	+ ...
+      :m_sFullName 		+ :_SiPasVide(:m_sFullName, rc) 	+ ...
+      :m_sNickName		+ :_SiPasVide(:m_sNickName, rc) 	+ ...
+      :m_sOrganisation 	+ :_SiPasVide(:m_sOrganisation, rc) + ...
+      :m_sTitle			+ :_SiPasVide(:m_sTitle, rc) 	 	+ ...
+      :m_sNotes			+ :_SiPasVide(:m_sNotes, rc)
+      
+      // Numéros de téléphone
+      nTailleTableau = dimension(:m_tabTel)
+      pour i=1 a nTailleTableau
+      	sVCF += :m_tabTel[i]:sContent + :_SiPasVide(:m_tabTel[i]:sContent, rc)
+      FIN
+      
+      // Adresses
+      nTailleTableau = dimension(:m_tabAdr)
+      pour i=1 a nTailleTableau
+      	sVCF += :m_tabAdr[i]:sContent + :_SiPasVide(:m_tabAdr[i]:sContent, rc)
+      FIN
+      
+      // URL
+      nTailleTableau = dimension(:m_tabURL)
+      pour i=1 a nTailleTableau
+      	sVCF += :m_tabURL[i]:sContent + :_SiPasVide(:m_tabURL[i]:sContent, rc)
+      FIN
+      
+      // Anniversaire
+      sVCF += :m_sBday + :_SiPasVide(:m_sBday, rc)
+      
+      // Emails
+      nTailleTableau = dimension(:m_tabEmail)
+      pour i=1 a nTailleTableau
+      	sVCF += :m_tabEmail[i]:sContent + :_SiPasVide(:m_tabEmail[i]:sContent, rc)
+      FIN
+      
+      // Supprime le RC final
+      si droite(sVCF, 2) = rc alors sVCF = complete(sVCF, taille(sVCF)-2)
+      
+      // Selon le type de destination
+      selon cDest
+      	// Sauve les informations dans le fichier spécifié
+      	cas ::vcFichier
+      		fsauvetexte(sDestination, chaineconstruit(:m_svCard21, sVCF, :m_sRevision))
+      		renvoyer pas erreurdetectee			
+      		
+      	// Renvoie une chaîne contenant les informations
+      	cas ::vcChaîne			
+      		sDestination = chaineconstruit(:m_svCard21, sVCF, :m_sRevision)
+      		renvoyer vrai
+      		
+      	autres cas
+      		renvoyer faux
+      FIN
+     type : 458752
+   -
+     name : Import
+     internal_properties : CAAAAAgAAACBY7IUCwGQlFnFY3GtwOFRr6pJaqQkzNyL6qG9hIUSvJ7aDI65gagg0rSG96FV+fWOPwYtwQBjz6Cc6UmF09WOkQSi6HKkraxk+1AwF5AhyTc6d4gKQZsZLGC6Wy8WO0MsISijJovmodxI4q4uNv5CTkZ8Ln7lXYJCJlg1I3whmJ7+eh24K7mEqdeOQ2/WPZfjkuJiE5vRM4g2VFQytemyhAZsKIcbh0B4v5XalQnb8gnecg==
+     procedure_id : 1581171463154779895
+     type_code : 12
+     code : |1-
+      // Résumé : Importe les informations depuis un fichier VCard (.vcf)
+      // Syntaxe :
+      //[ <Résultat> = ] Import (<cSource>, <sSource>)
+      //
+      // Paramètres :
+      //	cSource : 	Type de destination : vcFichier pour un fichier OU vcChaîne pour une chaine
+      //	sSource : 	Chemin du fichier de destination (dans le cas d'un export dans un fichier)
+      // Valeur de retour :
+      // 	booléen :  	VRAI si l'import a eu lieu, FAUX dans le cas contraire
+      //
+      Procédure Import(cSource, sSource)
+      
+      i 			est un entier
+      sVCF 		est une chaine
+      sLigneVCF 	est une chaine
+      sWhereIS 	est une chaine
+      
+      // Selon la source utilisé pour l'import
+      selon cSource
+      	// La source est un fichier
+      	cas ::vcFichier
+      		// Charge le contenu du fichier
+      		sVCF = fChargeTexte(sSource)
+      		si erreurdetectee alors renvoyer faux
+      		// Si le contenu est vide
+      		si sVCF ~= "" alors
+      			renvoyer faux
+      		FIN
+      	
+      	// La source est une chaine de caractères
+      	cas ::vcChaîne
+      		sVCF = sSource
+      		
+      	autres cas
+      		renvoyer faux
+      FIN
+      
+      // Vide les informations existantes
+      dimension(:m_tabAdr, 0)
+      dimension(:m_tabEmail, 0)
+      dimension(:m_tabURL, 0)
+      dimension(:m_tabTel, 0)
+      :m_sFullName		=	""
+      :m_sName			=	""
+      :m_sNickName  		=	""
+      :m_sOrganisation	=	""
+      :m_sTitle			=	""
+      :m_sNotes			=	""
+      :m_sBday			=	""
+      
+      i = 1
+      // Parcours chaque ligne de contenu
+      sLigneVCF = extraitchaine(sVCF, i, rc)
+      tantque sLigneVCF <> eot
+      	// Si la ligne en cours n'est pas vide
+      	si sLigneVCF <> "" alors
+      		// Selon le numéro de ligne
+      		selon i
+      			// La première ligne doit être "BEGIN:VCARD"
+      			cas 1
+      				si sansespace(sLigneVCF) <> "BEGIN:VCARD" alors
+      					renvoyer faux
+      				FIN		
+      							
+      			// La deuxieme ligne doit être "VERSION:2.1"
+      			cas 2
+      				si sansespace(sLigneVCF)[[a	taille("VERSION:2.1")]] <> "VERSION:2.1" alors
+      					renvoyer faux				
+      				FIN
+      			
+      			autres cas
+      				// La dernière ligne doit être "END:VCARD"
+      				si sansespace(sLigneVCF) = "END:VCARD" alors
+      					renvoyer vrai
+      				FIN
+      				
+      				sLigneVCF = sansespace(sLigneVCF)
+      				
+      				// Définition du nom
+      				si sLigneVCF[[a 2]] = "N:" alors
+      					sLigneVCF[[a 2]] = ""
+      					:setNom(extraitchaine(sLigneVCF,1,";"), ...
+      					extraitchaine(sLigneVCF,2,";"), ...
+      					extraitchaine(sLigneVCF,3,";"), ...
+      					extraitchaine(sLigneVCF,4,";"))
+      					goto Lecture
+      				FIN
+      				
+      				// Définition du surnom
+      				si sLigneVCF[[a 9]] = "NICKNAME:" alors
+      					sLigneVCF[[a 9]] = ""
+      					:setPseudonyme(sLigneVCF)
+      					goto Lecture
+      				FIN
+      				
+      				// Définition de la société
+      				si sLigneVCF[[a 4]] = "ORG:" alors
+      					sLigneVCF[[a 4]] = ""
+      					:setSociété(extraitchaine(sLigneVCF,1,";"), ...
+      					"", ...
+      					extraitchaine(sLigneVCF,2,";"))
+      					goto Lecture
+      				FIN
+      				// Définition du titre
+      				si sLigneVCF[[a 6]] = "TITLE:" alors
+      					:m_sTitle = sLigneVCF
+      				FIN
+      				
+      				// Définition du commentaire
+      				si sLigneVCF[[a 4]] = "NOTE" alors
+      					sLigneVCF[[a 5]] = ""
+      					si sLigneVCF[[a 26]] = "ENCODING=QUOTED-PRINTABLE:" alors
+      						sLigneVCF[[a 26]] = ""
+      						
+      						:_LectureAvance(sVCF, sLigneVCF, i, ::QuotedPrintable)
+      						
+      						sLigneVCF = :_Décode(sLigneVCF, ::QuotedPrintable)
+      					FIN
+      					:setCommentaires(sLigneVCF)
+      					goto Lecture
+      				FIN
+      				
+      				// Définition de la date d'anniversaire
+      				si sLigneVCF[[a 5]] = "BDAY:" alors
+      					sLigneVCF[[a 5]] = ""
+      					:setAnniversaire(sLigneVCF)
+      					goto Lecture
+      				FIN
+      				
+      				// Définition de la révision
+      				si sLigneVCF[[a 4]] = "REV:" alors
+      					:m_sRevision = sLigneVCF[[5 a]]
+      					goto Lecture
+      				FIN
+      				
+      				// Définition des emails
+      				si sLigneVCF[[a 6]] = "EMAIL;" alors
+      					sLigneVCF[[a 6]] = ""
+      					
+      					bDefaut est un booléen
+      					si position(sLigneVCF, "PREF;") > 0 alors
+      						bDefaut = vrai
+      					sinon
+      						bDefaut = faux
+      					FIN
+      					
+      					:addEmail(sLigneVCF[[position(sLigneVCF, ":")+1 a]], bDefaut)
+      					goto Lecture
+      				FIN
+      				
+      				// Définition des URLS
+      				si sLigneVCF[[a 4]] = "URL;" alors
+      					sLigneVCF[[a 4]] = ""
+      					
+      					sWhereIS = sLigneVCF[[a position(sLigneVCF, ":")-1]]
+      					:addURL(sLigneVCF[[position(sLigneVCF, ":")+1 a]], sWhereIS)
+      					goto Lecture
+      				FIN
+      				
+      				// Définition des n° de téléphone
+      				si sLigneVCF[[a 4]] = "TEL;" alors
+      					sLigneVCF[[a 4]] = ""
+      					
+      					sWhereIS = sLigneVCF[[a position(sLigneVCF, ";")-1]]
+      					sLigneVCF[[a position(sLigneVCF, ";")]] = ""
+      					sType est une chaine = sLigneVCF[[a position(sLigneVCF, ":")-1]]
+      					sLigneVCF[[a position(sLigneVCF, ":")]] = ""
+      					
+      					:addTelephone(sLigneVCF, sWhereIS, sType)
+      					goto Lecture
+      				FIN
+      				
+      				// Définition des adresses
+      				si sLigneVCF[[a 4]] = "ADR;" alors
+      					sLigneVCF[[a 4]] = ""
+      					
+      					sWhereIS = sLigneVCF[[a position(sLigneVCF, ":")-1]]
+      					
+      					bEncode est un booléen
+      					si position(sWhereIS, ";") > 0 alors
+      						sWhereIS = sWhereIS[[a position(sWhereIS, ";")-1]]	
+      						bEncode = vrai						
+      					FIN
+      					
+      					sLigneVCF = sLigneVCF[[position(sLigneVCF, ":")+1 a]]
+      					si sLigneVCF[[taille(sLigneVCF)]] = "=" alors
+      						sLigneVCF[[taille(sLigneVCF)]] = ""
+      						i++
+      						sLigneVCF += extraitchaine(sVCF, i, rc)
+      					FIN
+      					
+      					
+      					:addAdresse(sWhereIS, extraitchaine(sLigneVCF, 2, ";"), ...
+      					:_Décode(extraitchaine(sLigneVCF, 3, ";"), ::QuotedPrintable), ...
+      					:_Décode(extraitchaine(sLigneVCF, 4, ";"), ::QuotedPrintable), ...
+      					:_Décode(extraitchaine(sLigneVCF, 5, ";"), ::QuotedPrintable), ...
+      					:_Décode(extraitchaine(sLigneVCF, 6, ";"), ::QuotedPrintable), ...
+      					:_Décode(extraitchaine(sLigneVCF, 7, ";"), ::QuotedPrintable))
+      					
+      					
+      					goto Lecture
+      				FIN
+      		FIN
+      		
+      		
+      	FIN		
+      	
+      	Lecture:
+      	
+      	// Lecture de la ligne suivante
+      	i++
+      	sLigneVCF = extraitchaine(sVCF, i, rc)	
+      FIN
+      
+      // Par défaut, l'opération se déroule normalement
+      RENVOYER Vrai
+     type : 458752
+   -
+     name : getAnniversaire
+     procedure_id : 1581171463154845431
+     type_code : 12
+     code : |1-
+      // Résumé : Récupère la date d'anniversaire du contact
+      // Syntaxe :
+      //[ <Résultat> = ] getAnniversaire ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	variant :  Date d'anniversaire du contact
+      
+      Procédure getAnniversaire()
+      
+      // Renvoie la date d'anniversaire (en supprimant le nom de l'attribut)
+      renvoyer remplace(:m_sBday, "BDAY:", "")
+     type : 458752
+   -
+     name : getCommentaires
+     procedure_id : 1581171463154910967
+     type_code : 12
+     code : |1-
+      // Résumé : Récupère le commentaire de ce contact
+      // Syntaxe :
+      // [ <Résultat> = ] getCommentaires ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	Type indéterminé : Commentaire du contact
+      //
+      
+      Procédure getCommentaires()
+      
+      // Renvoie le commentaire en supprimant les balises
+      renvoyer :_decode(remplace(:m_sNotes, "NOTE;ENCODING=QUOTED-PRINTABLE:", ""), ::QuotedPrintable)
+     type : 458752
+   -
+     name : getNom
+     internal_properties : CAAAAAgAAAB/Qxn1hFUXt/wpZbI/fyT8yo11QRhvN2IhJPjbxv9HZE6z5xW5OOPIqIpH6wkn8p27Opoi4V6RUy4mRc07zN083HxOWSOEIfBzSHpSvuKJPsOcFSB9AcCzom370iN5L3ocD0nIFNSOHTI//Ul2WfKTOIL9R3gs/4DqKZuU6b8n0p2Fokvjrd+mFEPi0la4EZau7XEE
+     procedure_id : 1581171463154976503
+     type_code : 12
+     code : |1-
+      // Résumé : Récupère les informations nominales du contact
+      // Syntaxe :
+      // [ <Résultat> = ] getNom ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	variant : Informations nominales (nom, prénoms, prénoms, civilité)
+      //
+      
+      Procédure getNom()
+      
+      // Supprime le nom de l'attribut en tête
+      sNom est une chaine = :m_sName[[3 a]]
+      
+      // Renvoie les informations nomianles séparées par TAB
+      renvoyer remplace(sNom, ";", tab)
+     type : 458752
+   -
+     name : getPseudonyme
+     procedure_id : 1581171463155042039
+     type_code : 12
+     code : |1-
+      // Résumé : Récupère le pseudonyme du contact
+      // Syntaxe :
+      // [ <Résultat> = ] getPseudonyme ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	variant : Pseudonyme du contact
+      //
+      
+      Procédure getPseudonyme()
+      
+      // Renvoie le pseudonyme en supprimant le libellé
+      renvoyer remplace(:m_sNickName, "NICKNAME:", "")
+     type : 458752
+   -
+     name : getSocieté
+     internal_properties : CAAAAAgAAAA4Cjz2paSXvsijZNbqjPYTQjgP0NE7wcqLKL7FYX04rJK1Qy7I169hme23Zg/WNLaTfFq51QYxDXwo40zjQGgq2RkXWe4zQHffzosHU8aqvGwcS81u/ffXykuEHV7Zkqxr/webWWLTu1DXUMDt61c3kSIH9PtkasDeh9SdnqeIjALbYhzSRSjSjE1xbSFOqxclaailnQ==
+     procedure_id : 1581171463155107575
+     type_code : 12
+     code : |1-
+      // Résumé : Récupère les informations de société du contact
+      // Syntaxe :
+      //[ <Résultat> = ] getSocieté ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	variant :  Informations sur la société
+      
+      Procédure getSocieté()
+      
+      // Récupère le nom de la société et le role (titre) du contact (en supprimant les libelles des attributs)
+      sSociété est une chaine = :m_sOrganisation[[5 a]] + ";" + :m_sTitle[[7 a]]
+      
+      // Renvoie les informations de société séparées par TAB
+      renvoyer remplace(sSociété, ";", tab)
+     type : 458752
+   -
+     name : getURL
+     procedure_id : 1581171463155173111
+     type_code : 12
+     code : |1-
+      // Résumé : Récupère une URL du contact
+      // Syntaxe :
+      // [ <Résultat> = ] getURL ( [<nIndex>])
+      //
+      // Paramètres :
+      // 	nIndex (valeur par défaut=1) : Indice de l'URL à récupérer
+      // Valeur de retour :
+      // 	Type indéterminé : Type et adresse de cette URL
+      //
+      
+      Procédure getURL(nIndex=1)
+      
+      // Si l'indice spécifié est invalide
+      si nIndex > dimension(:m_tabURL) alors
+      	// Renvoie une chaine vide
+      	renvoyer ""
+      	
+      sinon // Si l'indice est valide
+      	
+      	// Renvoie le type d'URL et l'adresse
+      	renvoyer :m_tabURL[nIndex]:sWhereIS + tab + :m_tabURL[nIndex]:sURL
+      fin
+     type : 458752
+   -
+     name : getTéléphone
+     procedure_id : 1581171463155238647
+     type_code : 12
+     code : |1-
+      // Résumé : Récupère le téléphone de travail 
+      // Syntaxe :
+      // [ <Résultat> = ] getTéléphone ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	chaîne : Informations sur le téléphone
+      //
+      
+      Procédure getTéléphone()
+      
+      
+      stTelephone	est un stVCard21Tel
+      
+      // Il faut recherche le téléphone ayant comme attributs :
+      //	- WhereIs 	= WORK
+      //	- Type		= VOICE
+      // Parcours tous les éléments
+      POUR TOUT ELEMENT stTelephone DE :m_tabTel
+      	
+      	si PAS (stTelephone:sWhereIs ~= "WORK" _ET_ stTelephone:sType ~= "VOICE" ) alors continuer
+      	
+      	RENVOYER stTelephone:sWhereIs + TAB + stTelephone:sType + TAB + stTelephone:sAdr	
+      	
+      FIN
+      
+      renvoyer ""
+     type : 458752
+   -
+     name : getEmail
+     procedure_id : 1581171463155304183
+     type_code : 12
+     code : |1-
+      // Résumé : Récupère l'adresse email
+      // Syntaxe :
+      //[ <Résultat> = ] getEmail ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	chaîne :     				Informations de l'email
+      //
+      //	nIndex (valeur par défaut=1) : Indice de l'adresse email
+      Procédure getEmail()
+      
+      stEmail	est un stVCard21Email
+      
+      // Il faut recherche l'email ayant comme attributs :
+      //	- Default = vrai
+      // Parcours tous les éléments
+      POUR TOUT ELEMENT stEmail DE :m_tabEmail
+      	
+      	SI PAS (stEmail:bDefault = vrai) ALORS CONTINUER
+      	
+      	RENVOYER stEmail:bDefault + TAB + stEmail:semail
+      	
+      FIN
+      
+      // Par défaut, l'opération ne se déroule normalement
+      RENVOYER ""
+     type : 458752
+   -
+     name : getAdresse
+     internal_properties : CAAAAAgAAAA4Cjz2pSSXfsgjZNbqDPYTQjiP0FG7QcoLKD5F4X24LBI1Q67I16/hmW23Zg9WNLaTfNq5VYaxDfwoY8xjQOiqWZkX2e4zQPffTstHk4ZqfKxcC42uvTeXigvEXZ6ZUmyrP8dbmSITexCXkAAtqxf30WLHtDskqoCeRxTd3mdITEIbItwSBWiSTA2xrWHOKxclaailnQ==
+     procedure_id : 1581171463155369719
+     type_code : 12
+     code : |1-
+      // Résumé : Récupère une adresse
+      // Syntaxe :
+      //[ <Résultat> = ] getAdresse ( [<nIndex>])
+      //
+      // Paramètres :
+      //	nIndex (valeur par défaut=1) : Indice de l'adresse
+      // Valeur de retour :
+      // 	Type indéterminé :   Informations de l'adress
+      //
+      Procédure getAdresse(nIndex=1)
+      
+      // Si l'indice spécifié est invalide
+      si nIndex > dimension(:m_tabAdr) alors
+      	// Renvoie une chaine vide
+      	renvoyer ""
+      	
+      sinon	// Si l'indice est valide
+      	
+      	// Renvoie les informations de l'adresse
+      	renvoyer :m_tabAdr[nIndex]:sWhereIS + tab + ...
+      	:m_tabAdr[nIndex]:sBureau	+ tab + ...
+      	:m_tabAdr[nIndex]:sRue  	+ tab + ...
+      	:m_tabAdr[nIndex]:sCode		+ tab + ...
+      	:m_tabAdr[nIndex]:sVille	+ tab + ...
+      	:m_tabAdr[nIndex]:sDept		+ tab + ...
+      	:m_tabAdr[nIndex]:sPays    		
+      FIN
+     type : 458752
+   -
+     name : getFax
+     procedure_id : 1581171463155435255
+     type_code : 12
+     code : |1-
+      // Résumé : Récupère le numéro de fax
+      // Syntaxe :
+      // [ <Résultat> = ] getFax ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	chaîne : Informations sur le fax
+      //
+      
+      Procédure getFax()
+      
+      stTelephone	est un stVCard21Tel
+      
+      // Il faut recherche le téléphone ayant comme attributs :
+      //	- WhereIs 	= WORK
+      //	- Type		= FAX
+      // Parcours tous les éléments
+      POUR TOUT ELEMENT stTelephone DE :m_tabTel
+      	
+      	si PAS (stTelephone:sWhereIs ~= "WORK" _ET_ stTelephone:sType ~= "FAX" ) alors continuer
+      	
+      	RENVOYER stTelephone:sWhereIs + TAB + stTelephone:sType + TAB + stTelephone:sAdr	
+      	
+      FIN
+      
+      renvoyer ""
+     type : 458752
+   -
+     name : getMobile
+     procedure_id : 1581171463155500791
+     type_code : 12
+     code : |1-
+      // Résumé : Récupère les informations du mobile
+      // Syntaxe :
+      // [ <Résultat> = ] getMobile ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	chaîne : Informations sur le mobile
+      //
+      
+      Procédure getMobile()
+      
+      stTelephone	est un stVCard21Tel
+      
+      // Il faut recherche le téléphone ayant comme attributs :
+      //	- WhereIs 	= CELL
+      //	- Type		= VOICE
+      // Parcours tous les éléments
+      POUR TOUT ELEMENT stTelephone DE :m_tabTel
+      	
+      	si PAS (stTelephone:sWhereIs ~= "CELL" _ET_ stTelephone:sType ~= "VOICE" ) alors continuer
+      	
+      	RENVOYER stTelephone:sWhereIs + TAB + stTelephone:sType + TAB + stTelephone:sAdr	
+      	
+      FIN
+      
+      renvoyer ""
+     type : 458752
+   -
+     name : _LectureAvance
+     procedure_id : 1581171463155566327
+     type_code : 12
+     code : |1-
+      // Syntaxe :
+      //_LectureAvance (<sVCS>, <sLigneVCS>, <iIndex> [, <nMode>])
+      //
+      // Paramètres :
+      //	sVCS : Source de lecture
+      //	sLigneVCS : Ligne de lecture
+      //	iIndex : Index de départ
+      //	nMode (valeur par défaut=1) : Mode de lecture
+      // Valeur de retour :
+      // 	Aucune
+      
+      Procédure RESTREINTE _LectureAvance(sVCS, sLigneVCS, iIndex, nMode = ::QuotedPrintable)
+      
+      j est un entier
+      sTmp est une chaine
+      
+      si nMode = ::QuotedPrintable alors
+      	
+      	// En Quoted--Printable, les lignes tronquées se terminent par un "="
+      	si sLigneVCS[[taille(sLigneVCS)]] = "=" alors
+      		
+      		// Lit les lignes suivantes, tant qu'elles se terminent par un "="
+      		j = iIndex + 1
+      		
+      		sTmp = extraitchaine(sVCS, j, rc) 
+      		TANTQUE sTmp[[Taille(sTmp)]] = "="							
+      			sLigneVCS += sTmp[[A Taille(sTmp)-1]]
+      			j ++
+      			sTmp = extraitchaine(sVCS, j, rc) 
+      		FIN
+      		
+      		// Si l'on a lu au moins une ligne, la prochaine lecture devra s'effectuer à partir de la ligne suivante
+      		SI j > iIndex + 1 ALORS 
+      			iIndex = j
+      			// On ajoute les lignes supplémentaires à la ligne en cours
+      			sLigneVCS += sTmp[[A Taille(sTmp)-1]]
+      		FIN
+      	fin
+      sinon
+      	j = iIndex + 1
+      	
+      	// Lit les lignes suivantes, tant qu'elles comment par un espace
+      	sTmp = extraitchaine(sVCS, j, rc) 
+      	TANTQUE sTmp[[1]] = " "								
+      		sLigneVCS += sTmp
+      		j ++
+      		sTmp = extraitchaine(sVCS, j, rc) 
+      	FIN
+      	
+      	// Si l'on a lu au moins une ligne, la prochaine lecture devra s'effectuer à partir de la ligne suivante
+      	SI j > iIndex + 1 ALORS 
+      		iIndex = j
+      		sLigneVCS += sTmp
+      	FIN
+      fin
+     type : 458752
+   -
+     name : _Décode
+     internal_properties : CAAAAAgAAAAqfDoXJyawrgjTDOYypG4TAugXoAnDsULjoJ79kZ2I1Doto0b4F7dxmR1f9rcOHMbTvKLZPd7RxUTAs9RjUOiiEdE38V6TeJdfLh9Tv1IuwDBgz/F6ycsbBqcIaZpFJqBvc4sf5d7Xv2xD5GxpZ8uLdRYbqBdgbsRq04hZWsM8wNYvBpCuYcxmGIl1CZ0arq4Kc6K7iw==
+     procedure_id : 1581171463155631863
+     type_code : 12
+     code : |1-
+      // Syntaxe :
+      //[ <Résultat> = ] _Décode (<sChaîneEncodée> [, <nFormat>])
+      //
+      // Paramètres :
+      //	sChaîneEncodée : Chaîne à décoder
+      //	nFormat (valeur par défaut=1) : Format de décodage
+      // Valeur de retour :
+      // 	Type indéterminé :   // 	Aucune
+      
+      Procédure RESTREINTE _Décode(sChaîneEncodée, nFormat = ::QuotedPrintable)
+      
+      sChaîne est une chaine
+      nPos    est un entier
+      
+      selon nFormat 
+      	cas ::QuotedPrintable
+      		
+      		// Remplace les soft breaks
+      		sChaîne = remplace(sChaîneEncodée, "=" + rc, "")
+      		
+      		// Recherche les caractères encodés (précédés d'un "=")
+      		nPos = position(sChaîne, "=")
+      		tantque nPos <> 0
+      			
+      			// Remplace le caractère encodé
+      			sChaîne[[nPos sur 3]] = caract(val(sChaîne[[nPos + 1 sur 2]], "x"))
+      			
+      			// Caractère encodé suivant
+      			nPos = position(sChaîne, "=")	
+      		FIN
+      		
+      		renvoyer sChaîne
+      FIN
+      
+      renvoyer sChaîneEncodée
+     type : 458752
+   -
+     name : _Encode
+     procedure_id : 1581171463155697399
+     type_code : 12
+     code : |1-
+      // Syntaxe :
+      //[ <Résultat> = ] _Encode (<sChaîne> [, <nFormat>])
+      //
+      // Paramètres :
+      //	sChaîne : Chaîne à encoder
+      //	nFormat (valeur par défaut=1) : Format d'encodage
+      // Valeur de retour :
+      // 	Type indéterminé :    chaine encodée
+      
+      Procédure RESTREINTE _Encode(sChaîne, nFormat = ::QuotedPrintable)
+      
+      // Variables locales
+      i 				est un entier
+      j 				est un entier
+      sLigne 			est une chaine
+      sLigneEncodée  	est une chaine
+      sChaineEncodée 	est une chaine
+      nTaille			est un entier // Optimisation
+      
+      selon nFormat
+      	cas ::QuotedPrintable
+      		
+      		i = 1
+      		sLigne = extraitchaine(sChaîne, i, rc)
+      		tantque sLigne <> eot
+      			
+      			sLigneEncodée = ""
+      			nTaille = Taille(sLigne)
+      			pour j = 1 a nTaille
+      				
+      				// Si ce n'est pas un caractère alphanumérique
+      				si sLigne[[j]] <> tab et (asc(sLigne[[j]]) < 32 ou asc(sLigne[[j]]) = 61 ou asc(sLigne[[j]]) > 126) alors						
+      					// :Encode le caractère (=XX)
+      					sLigneEncodée += "=" + NumériqueVersChaine(asc(sLigne[[j]]), "02X")	
+      				sinon
+      					// Sinon, ajoute le caractère tel quel
+      					sLigneEncodée += sLigne[[j]]
+      				FIN
+      				
+      				// Si la taille de la ligne dépasse 76
+      				si taille(sLigneEncodée) = 76 alors
+      					sChaineEncodée += sLigneEncodée + "=" + rc
+      					sLigneEncodée = ""
+      				FIN
+      				
+      			FIN				
+      			
+      			sChaineEncodée += sLigneEncodée
+      			
+      			i ++
+      			sLigne = extraitchaine(sChaîne, i, rc)
+      			si sLigne <> eot alors
+      				sChaineEncodée += "=0D=0A"
+      			FIN
+      		FIN
+      		
+      		renvoyer sansespace(sChaineEncodée)
+      		
+      	autres cas
+      		renvoyer sChaîne		
+      		
+      FIN
+     type : 458752
+   -
+     name : _GenereUID
+     internal_properties : CAAAAAgAAAA1hSpRpiPLrXBNbx7zu5y8+i0Vf15dSWwdKOa3SoO/tJ6b429TGl2GoIIZzxUH+m3r+i6s4/iHlU6Ox1FfdEUkwIiCY43eV6KvTH11+52ylbpjNM+ChDNsi07WZZi0yIGL1pQrFct9Ct98XNgnUGtqZ7mougmjfnmTnhoDYja8BVAoxZac5BZfLcQB2a8VgN+BKzfO
+     procedure_id : 1581171463155762935
+     type_code : 12
+     code : |1-
+      // Syntaxe :
+      //[ <Résultat> = ] _GenereUID ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	chaîne :   UID
+      
+      Procédure RESTREINTE _GenereUID()
+      
+      // Variables locales
+      i 			est un entier
+      sUID 		est une chaine
+      sChaine 	est une chaine
+      nTaille		est un entier // Optimisation
+      
+      // On génère une base pour l'identifiant
+      sChaine = datesys() + heuresys() + fDisqueInfo("C:", fdNuméroDeSérie) + DonneIdentifiant()
+      
+      nTaille = Taille(sChaine)
+      pour i=1 a nTaille
+      	sUID += NumériqueVersChaine(asc(sChaine[[i]]), "02x")
+      FIN
+      
+      // On renvoie l'uid généré
+      renvoyer sUID
+     type : 458752
+   -
+     name : _SiPasVide
+     procedure_id : 1581171463155828471
+     type_code : 12
+     code : |1+
+      // Syntaxe :
+      //[ <Résultat> = ] _SiPasVide (<sChaîne>, <sCaractères>)
+      //
+      // Paramètres :
+      //	sChaîne : Chaîne à tester
+      //	sCaractères : Chaine à retourne si <sChaîne> n'est pas vide
+      // Valeur de retour :
+      // 	Type indéterminé :   Chaîne vide si <sChaine> est vide, <sCaractères> si <sChaîne> n'est pas vide
+      
+      Procédure RESTREINTE _SiPasVide(sChaîne, sCaractères)
+      
+      si pas sChaîne ~= "" et pas sChaîne ~= eot alors
+      	renvoyer sCaractères
+      sinon
+      	renvoyer ""
+      FIN
+      
+     type : 458752
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : vCard21
+resources :
+ string_res :
+  identifier : 0x10ed91502635d305
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ
